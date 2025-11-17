@@ -20,7 +20,7 @@
       background: #020617;
       border-radius: 16px;
       padding: 24px 20px;
-      max-width: 420px;
+      max-width: 440px;
       width: 100%;
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
       border: 1px solid #1f2937;
@@ -34,7 +34,7 @@
     .site-label {
       font-size: 0.95rem;
       color: #9ca3af;
-      margin-bottom: 1.5rem;
+      margin-bottom: 1.2rem;
     }
 
     .info {
@@ -43,10 +43,25 @@
       margin-bottom: 1rem;
     }
 
+    .section-heading {
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #6b7280;
+      margin-top: 1rem;
+      margin-bottom: 0.4rem;
+    }
+
     label {
       font-size: 0.9rem;
       display: block;
       margin-bottom: 6px;
+    }
+
+    .small-label {
+      font-size: 0.8rem;
+      color: #9ca3af;
+      margin-bottom: 4px;
     }
 
     textarea {
@@ -58,6 +73,26 @@
       border: 1px solid #334155;
       font-size: 0.9rem;
       margin-bottom: 10px;
+      resize: vertical;
+    }
+
+    select {
+      width: 100%;
+      border-radius: 999px;
+      padding: 8px 10px;
+      background: #0f172a;
+      color: #e5e7eb;
+      border: 1px solid #334155;
+      font-size: 0.9rem;
+      margin-bottom: 6px;
+    }
+
+    .staff-block {
+      margin-bottom: 10px;
+      padding: 8px 10px;
+      border-radius: 12px;
+      background: #020617;
+      border: 1px solid #111827;
     }
 
     button.save {
@@ -70,7 +105,9 @@
       font-weight: 600;
       box-shadow: 0 0 0 1px #374151;
       transition: 0.15s ease;
+      margin-top: 4px;
       margin-bottom: 10px;
+      width: 100%;
     }
 
     button.save:hover {
@@ -112,15 +149,68 @@
     </div>
 
     <div class="info" id="info">
-      This page will send your notes to the database for the selected site/area.
+      Fill in today’s notes and staffing details for this site/area.
     </div>
 
-    <!-- Notes Field -->
-    <label for="notes">Notes for today:</label>
-    <textarea id="notes" rows="3"></textarea>
+    <!-- General Notes -->
+    <div>
+      <label for="notes">General notes for today:</label>
+      <textarea id="notes" rows="3" placeholder="Key events, issues, wins..."></textarea>
+    </div>
+
+    <!-- Staffing Section -->
+    <div class="section-heading">Staffing</div>
+
+    <!-- Sickness block -->
+    <div class="staff-block">
+      <label for="sicknessCount">Sickness today:</label>
+      <select id="sicknessCount">
+        <option value="0">0 staff off sick</option>
+        <option value="1">1 staff member</option>
+        <option value="2">2 staff members</option>
+        <option value="3">3 staff members</option>
+        <option value="3+">3+ staff members</option>
+      </select>
+      <div id="sicknessNotesWrapper" style="display: none;">
+        <div class="small-label">Sickness notes (optional):</div>
+        <textarea id="sicknessNotes" rows="2" placeholder="Names / roles / impact..."></textarea>
+      </div>
+    </div>
+
+    <!-- Holidays block -->
+    <div class="staff-block">
+      <label for="holidayCount">Holidays today:</label>
+      <select id="holidayCount">
+        <option value="0">0 staff on holiday</option>
+        <option value="1">1 staff member</option>
+        <option value="2">2 staff members</option>
+        <option value="3">3 staff members</option>
+        <option value="3+">3+ staff members</option>
+      </select>
+      <div id="holidayNotesWrapper" style="display: none;">
+        <div class="small-label">Holiday notes (optional):</div>
+        <textarea id="holidayNotes" rows="2" placeholder="Names / key roles off..."></textarea>
+      </div>
+    </div>
+
+    <!-- Agency block -->
+    <div class="staff-block">
+      <label for="agencyCount">Agency staff used today:</label>
+      <select id="agencyCount">
+        <option value="0">0 agency staff</option>
+        <option value="1">1 agency</option>
+        <option value="2">2 agency</option>
+        <option value="3">3 agency</option>
+        <option value="3+">3+ agency</option>
+      </select>
+      <div id="agencyNotesWrapper" style="display: none;">
+        <div class="small-label">Agency notes (optional):</div>
+        <textarea id="agencyNotes" rows="2" placeholder="Which roles / hours..."></textarea>
+      </div>
+    </div>
 
     <!-- Save Button -->
-    <button class="save" onclick="saveNotes()">Save</button>
+    <button class="save" onclick="saveNotes()">Save daily log</button>
 
     <!-- Message after saving -->
     <p id="saveMessage"></p>
@@ -140,6 +230,16 @@
     const info = document.getElementById('info');
     const saveMessage = document.getElementById('saveMessage');
 
+    const sicknessCountEl = document.getElementById('sicknessCount');
+    const sicknessNotesWrapper = document.getElementById('sicknessNotesWrapper');
+
+    const holidayCountEl = document.getElementById('holidayCount');
+    const holidayNotesWrapper = document.getElementById('holidayNotesWrapper');
+
+    const agencyCountEl = document.getElementById('agencyCount');
+    const agencyNotesWrapper = document.getElementById('agencyNotesWrapper');
+
+    // Show site/area at the top
     if (site) {
       if (site === 'London' && area) {
         siteLabel.textContent = `Site: ${site} • Area: ${area}`;
@@ -152,6 +252,25 @@
       siteLabel.textContent = 'No site selected yet.';
       info.textContent = 'Go back and choose your site first.';
     }
+
+    // Toggle notes visibility when dropdowns change
+    function updateNotesVisibility() {
+      sicknessNotesWrapper.style.display =
+        sicknessCountEl.value !== '0' ? 'block' : 'none';
+
+      holidayNotesWrapper.style.display =
+        holidayCountEl.value !== '0' ? 'block' : 'none';
+
+      agencyNotesWrapper.style.display =
+        agencyCountEl.value !== '0' ? 'block' : 'none';
+    }
+
+    sicknessCountEl.addEventListener('change', updateNotesVisibility);
+    holidayCountEl.addEventListener('change', updateNotesVisibility);
+    agencyCountEl.addEventListener('change', updateNotesVisibility);
+
+    // Initial state
+    updateNotesVisibility();
 
     // Expose saveNotes to the global window so the button can call it
     window.saveNotes = async function saveNotes() {
@@ -170,34 +289,62 @@
 
       const notes = document.getElementById('notes').value.trim();
 
-      if (!notes) {
-        saveMessage.textContent = 'Please enter some notes before saving.';
+      const sicknessCount = sicknessCountEl.value;
+      const sicknessNotes = document.getElementById('sicknessNotes').value.trim();
+
+      const holidayCount = holidayCountEl.value;
+      const holidayNotes = document.getElementById('holidayNotes').value.trim();
+
+      const agencyCount = agencyCountEl.value;
+      const agencyNotes = document.getElementById('agencyNotes').value.trim();
+
+      // Basic validation: at least one thing must be filled
+      const allStaffingZero =
+        sicknessCount === '0' &&
+        holidayCount === '0' &&
+        agencyCount === '0';
+
+      if (!notes && allStaffingZero) {
+        saveMessage.textContent = 'Please add general notes or staffing details before saving.';
         return;
       }
 
       saveMessage.textContent = 'Saving...';
 
-      // Insert into ops_logs table
       const { data, error } = await supabase
         .from('ops_logs')
         .insert([
           {
             site: site,
             area: effectiveArea,
-            notes: notes
+            notes: notes || null,
+            sickness_count: sicknessCount,
+            sickness_notes: sicknessNotes || null,
+            holiday_count: holidayCount,
+            holiday_notes: holidayNotes || null,
+            agency_count: agencyCount,
+            agency_notes: agencyNotes || null
           }
         ]);
 
       if (error) {
         console.error('Insert error:', error);
-        // This is where you might see a "row level security" error for now
-        saveMessage.textContent = `Could not save yet: ${error.message}`;
+        saveMessage.textContent = `Could not save: ${error.message}`;
         return;
       }
 
-      // Clear textarea and confirm
+      // Clear fields after successful save
       document.getElementById('notes').value = '';
-      saveMessage.textContent = 'Notes saved to Supabase ✅';
+      document.getElementById('sicknessNotes').value = '';
+      document.getElementById('holidayNotes').value = '';
+      document.getElementById('agencyNotes').value = '';
+
+      sicknessCountEl.value = '0';
+      holidayCountEl.value = '0';
+      agencyCountEl.value = '0';
+      updateNotesVisibility();
+
+      saveMessage.textContent = 'Daily log saved to Supabase ✅';
     };
   </script>
 </body>
