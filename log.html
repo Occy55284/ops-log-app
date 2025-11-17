@@ -68,11 +68,19 @@
       Detecting selected site...
     </div>
 
-    <div class="info" id="info">
-      This page will become your daily log form. Right now it just shows which site you chose.
+       <div class="info" id="info">
+      This page will become your daily log form. Below is your first field.
     </div>
 
-    <a href="index.html" class="button">⬅ Back to site selection</a>
+    <label for="notes" style="font-size: 0.9rem; display: block; margin-bottom: 6px;">Notes for today:</label>
+    <textarea id="notes" rows="3" style="width: 100%; border-radius: 12px; padding: 10px; background: #0f172a; color: #f1f5f9; border: 1px solid #334155;"></textarea>
+
+    <button onclick="saveNotes()" style="margin-top: 10px; padding: 10px 16px; border-radius: 999px; border: none; cursor: pointer; background: #111827; color: #e5e7eb; font-weight: 600; box-shadow: 0 0 0 1px #374151;">Save</button>
+
+    <p id="saveMessage" style="font-size: 0.8rem; color: #9ca3af; margin-top: 8px;"></p>
+
+    <a href="index.html" class="button" style="margin-top: 12px; display: inline-block;">⬅ Back to site selection</a>
+
   </div>
 
   <script>
