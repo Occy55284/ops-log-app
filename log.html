@@ -83,6 +83,7 @@
       color: #9ca3af;
       margin-top: 3px;
       margin-bottom: 12px;
+      min-height: 1.2em;
     }
 
     a.button {
@@ -111,7 +112,7 @@
     </div>
 
     <div class="info" id="info">
-      This page will become your daily log form. Below is your first field.
+      This page will send your notes to the database for the selected site/area.
     </div>
 
     <!-- Notes Field -->
@@ -128,12 +129,16 @@
     <a href="index.html" class="button">⬅ Back to site selection</a>
   </div>
 
-  <script>
-    // Load the selected site and area from localStorage
+  <!-- Use a module script so we can import supabase-config.js -->
+  <script type="module">
+    import { supabase } from './supabase-config.js';
+
+    // Load selected site and area from localStorage
     const site = localStorage.getItem('ops_site');
     const area = localStorage.getItem('ops_area');
     const siteLabel = document.getElementById('siteLabel');
     const info = document.getElementById('info');
+    const saveMessage = document.getElementById('saveMessage');
 
     if (site) {
       if (site === 'London' && area) {
@@ -148,18 +153,52 @@
       info.textContent = 'Go back and choose your site first.';
     }
 
-    // Save button function (local only for now)
-    function saveNotes() {
-      const notes = document.getElementById('notes').value;
-      const message = document.getElementById('saveMessage');
+    // Expose saveNotes to the global window so the button can call it
+    window.saveNotes = async function saveNotes() {
+      saveMessage.textContent = '';
 
-      if (!notes.trim()) {
-        message.textContent = "Please enter some notes before saving.";
+      if (!site) {
+        saveMessage.textContent = 'No site selected. Go back and choose a site first.';
         return;
       }
 
-      message.textContent = "Notes saved (locally for now). We'll connect this to the database later.";
-    }
+      // For Newcastle, we use "All" as the area by design
+      const effectiveArea =
+        site === 'Newcastle'
+          ? 'All'
+          : (area || 'All');
+
+      const notes = document.getElementById('notes').value.trim();
+
+      if (!notes) {
+        saveMessage.textContent = 'Please enter some notes before saving.';
+        return;
+      }
+
+      saveMessage.textContent = 'Saving...';
+
+      // Insert into ops_logs table
+      const { data, error } = await supabase
+        .from('ops_logs')
+        .insert([
+          {
+            site: site,
+            area: effectiveArea,
+            notes: notes
+          }
+        ]);
+
+      if (error) {
+        console.error('Insert error:', error);
+        // This is where you might see a "row level security" error for now
+        saveMessage.textContent = `Could not save yet: ${error.message}`;
+        return;
+      }
+
+      // Clear textarea and confirm
+      document.getElementById('notes').value = '';
+      saveMessage.textContent = 'Notes saved to Supabase ✅';
+    };
   </script>
 </body>
 </html>
