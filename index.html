@@ -87,12 +87,19 @@
     </div>
   </div>
 
-  <script>
+    <script>
     function selectSite(site) {
+      // Save the chosen site in the browser
       localStorage.setItem('ops_site', site);
+
+      // Optional: update the message briefly (not really needed, but fine)
       const message = document.getElementById('message');
-      message.textContent = `You selected: ${site}.`;
+      message.textContent = `You selected: ${site}. Taking you to the daily log...`;
+
+      // Go to the daily log page
+      window.location.href = 'log.html';
     }
   </script>
+
 </body>
 </html>
