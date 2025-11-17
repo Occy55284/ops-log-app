@@ -40,7 +40,49 @@
     .info {
       font-size: 0.9rem;
       color: #9ca3af;
-      margin-bottom: 1.5rem;
+      margin-bottom: 1rem;
+    }
+
+    label {
+      font-size: 0.9rem;
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    textarea {
+      width: 100%;
+      border-radius: 12px;
+      padding: 10px;
+      background: #0f172a;
+      color: #f1f5f9;
+      border: 1px solid #334155;
+      font-size: 0.9rem;
+      margin-bottom: 10px;
+    }
+
+    button.save {
+      padding: 10px 16px;
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      background: #111827;
+      color: #e5e7eb;
+      font-weight: 600;
+      box-shadow: 0 0 0 1px #374151;
+      transition: 0.15s ease;
+      margin-bottom: 10px;
+    }
+
+    button.save:hover {
+      background: #1f2937;
+      box-shadow: 0 0 0 1px #60a5fa, 0 8px 25px rgba(37, 99, 235, 0.35);
+    }
+
+    p#saveMessage {
+      font-size: 0.8rem;
+      color: #9ca3af;
+      margin-top: 3px;
+      margin-bottom: 12px;
     }
 
     a.button {
@@ -68,23 +110,26 @@
       Detecting selected site...
     </div>
 
-       <div class="info" id="info">
+    <div class="info" id="info">
       This page will become your daily log form. Below is your first field.
     </div>
 
-    <label for="notes" style="font-size: 0.9rem; display: block; margin-bottom: 6px;">Notes for today:</label>
-    <textarea id="notes" rows="3" style="width: 100%; border-radius: 12px; padding: 10px; background: #0f172a; color: #f1f5f9; border: 1px solid #334155;"></textarea>
+    <!-- Notes Field -->
+    <label for="notes">Notes for today:</label>
+    <textarea id="notes" rows="3"></textarea>
 
-    <button onclick="saveNotes()" style="margin-top: 10px; padding: 10px 16px; border-radius: 999px; border: none; cursor: pointer; background: #111827; color: #e5e7eb; font-weight: 600; box-shadow: 0 0 0 1px #374151;">Save</button>
+    <!-- Save Button -->
+    <button class="save" onclick="saveNotes()">Save</button>
 
-    <p id="saveMessage" style="font-size: 0.8rem; color: #9ca3af; margin-top: 8px;"></p>
+    <!-- Message after saving -->
+    <p id="saveMessage"></p>
 
-    <a href="index.html" class="button" style="margin-top: 12px; display: inline-block;">⬅ Back to site selection</a>
-
+    <!-- Back Button -->
+    <a href="index.html" class="button">⬅ Back to site selection</a>
   </div>
 
   <script>
-    // Read the selected site from localStorage (set on index.html)
+    // Load the selected site from localStorage
     const site = localStorage.getItem('ops_site');
     const siteLabel = document.getElementById('siteLabel');
     const info = document.getElementById('info');
@@ -93,8 +138,22 @@
       siteLabel.textContent = `Site: ${site}`;
     } else {
       siteLabel.textContent = 'No site selected yet.';
-      info.textContent = 'Go back to the main page and choose London or Newcastle first.';
+      info.textContent = 'Go back and choose London or Newcastle first.';
+    }
+
+    // Save button function (local only for now)
+    function saveNotes() {
+      const notes = document.getElementById('notes').value;
+      const message = document.getElementById('saveMessage');
+
+      if (!notes.trim()) {
+        message.textContent = "Please enter some notes before saving.";
+        return;
+      }
+
+      message.textContent = "Notes saved (locally for now). We'll connect this to the database later.";
     }
   </script>
 </body>
 </html>
+
