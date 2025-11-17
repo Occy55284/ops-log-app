@@ -20,7 +20,7 @@
       background: #020617;
       border-radius: 16px;
       padding: 24px 20px;
-      max-width: 400px;
+      max-width: 420px;
       width: 100%;
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
       text-align: center;
@@ -34,12 +34,13 @@
 
     p {
       margin-top: 0;
-      margin-bottom: 1.5rem;
+      margin-bottom: 1.2rem;
       color: #9ca3af;
       font-size: 0.95rem;
     }
 
-    .site-buttons {
+    .site-buttons,
+    .area-buttons {
       display: flex;
       gap: 12px;
       justify-content: center;
@@ -69,37 +70,77 @@
     .hint {
       font-size: 0.8rem;
       color: #6b7280;
+      min-height: 1.3em;
+    }
+
+    .section-title {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #6b7280;
+      margin-bottom: 0.4rem;
     }
   </style>
 </head>
 <body>
   <div class="card">
     <h1>Ops Log</h1>
-    <p>Select your site to continue.</p>
+    <p id="subtitle">Select your site to continue.</p>
 
+    <div class="section-title">Site</div>
     <div class="site-buttons">
       <button onclick="selectSite('London')">London</button>
       <button onclick="selectSite('Newcastle')">Newcastle</button>
     </div>
 
+    <div id="areaSection" style="display: none; margin-top: 1rem;">
+      <div class="section-title">London area</div>
+      <div class="area-buttons">
+        <button onclick="selectArea('Kitchen')">Kitchen</button>
+        <button onclick="selectArea('Hospitality')">Hospitality</button>
+        <button onclick="selectArea('Retail')">Retail</button>
+      </div>
+    </div>
+
     <div class="hint" id="message">
-      (This just remembers your choice in the browser for now.)
+      (Choose your site first. London will then ask for area.)
     </div>
   </div>
 
-    <script>
+  <script>
     function selectSite(site) {
-      // Save the chosen site in the browser
+      // Store selected site
       localStorage.setItem('ops_site', site);
+      // Clear any previous area
+      localStorage.removeItem('ops_area');
 
-      // Optional: update the message briefly (not really needed, but fine)
       const message = document.getElementById('message');
-      message.textContent = `You selected: ${site}. Taking you to the daily log...`;
+      const areaSection = document.getElementById('areaSection');
+      const subtitle = document.getElementById('subtitle');
 
-      // Go to the daily log page
+      if (site === 'London') {
+        subtitle.textContent = 'London selected. Now choose your area:';
+        message.textContent = 'Select Kitchen, Hospitality or Retail.';
+        areaSection.style.display = 'block';
+      } else {
+        // Newcastle: no area selection, just go straight to log
+        subtitle.textContent = 'Newcastle selected.';
+        message.textContent = 'Taking you to the daily log for Newcastle.';
+        areaSection.style.display = 'none';
+
+        // For Newcastle we can use "All" as area if we want
+        localStorage.setItem('ops_area', 'All');
+        window.location.href = 'log.html';
+      }
+    }
+
+    function selectArea(area) {
+      // Store the chosen area for London
+      localStorage.setItem('ops_area', area);
+      const message = document.getElementById('message');
+      message.textContent = `Area selected: ${area}. Taking you to the daily log...`;
       window.location.href = 'log.html';
     }
   </script>
-
 </body>
 </html>
