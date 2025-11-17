@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Ops Log • Daily Log</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #0b1220;
+      color: #f9fafb;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+
+    .card {
+      background: #020617;
+      border-radius: 16px;
+      padding: 24px 20px;
+      max-width: 420px;
+      width: 100%;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+      border: 1px solid #1f2937;
+    }
+
+    h1 {
+      font-size: 1.6rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .site-label {
+      font-size: 0.95rem;
+      color: #9ca3af;
+      margin-bottom: 1.5rem;
+    }
+
+    .info {
+      font-size: 0.9rem;
+      color: #9ca3af;
+      margin-bottom: 1.5rem;
+    }
+
+    a.button {
+      display: inline-block;
+      padding: 8px 14px;
+      border-radius: 999px;
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 600;
+      background: #111827;
+      color: #e5e7eb;
+      box-shadow: 0 0 0 1px #374151;
+    }
+
+    a.button:hover {
+      background: #1f2937;
+      box-shadow: 0 0 0 1px #60a5fa, 0 8px 25px rgba(37, 99, 235, 0.35);
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Daily Ops Log</h1>
+    <div class="site-label" id="siteLabel">
+      Detecting selected site...
+    </div>
+
+    <div class="info" id="info">
+      This page will become your daily log form. Right now it just shows which site you chose.
+    </div>
+
+    <a href="index.html" class="button">⬅ Back to site selection</a>
+  </div>
+
+  <script>
+    // Read the selected site from localStorage (set on index.html)
+    const site = localStorage.getItem('ops_site');
+    const siteLabel = document.getElementById('siteLabel');
+    const info = document.getElementById('info');
+
+    if (site) {
+      siteLabel.textContent = `Site: ${site}`;
+    } else {
+      siteLabel.textContent = 'No site selected yet.';
+      info.textContent = 'Go back to the main page and choose London or Newcastle first.';
+    }
+  </script>
+</body>
+</html>
