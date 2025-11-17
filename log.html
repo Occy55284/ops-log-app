@@ -129,16 +129,23 @@
   </div>
 
   <script>
-    // Load the selected site from localStorage
+    // Load the selected site and area from localStorage
     const site = localStorage.getItem('ops_site');
+    const area = localStorage.getItem('ops_area');
     const siteLabel = document.getElementById('siteLabel');
     const info = document.getElementById('info');
 
     if (site) {
-      siteLabel.textContent = `Site: ${site}`;
+      if (site === 'London' && area) {
+        siteLabel.textContent = `Site: ${site} • Area: ${area}`;
+      } else if (site === 'Newcastle') {
+        siteLabel.textContent = 'Site: Newcastle';
+      } else {
+        siteLabel.textContent = `Site: ${site}`;
+      }
     } else {
       siteLabel.textContent = 'No site selected yet.';
-      info.textContent = 'Go back and choose London or Newcastle first.';
+      info.textContent = 'Go back and choose your site first.';
     }
 
     // Save button function (local only for now)
@@ -156,4 +163,3 @@
   </script>
 </body>
 </html>
-
