@@ -88,7 +88,8 @@
     }
 
     .staff-block,
-    .maintenance-block {
+    .maintenance-block,
+    .hs-block {
       margin-bottom: 10px;
       padding: 8px 10px;
       border-radius: 12px;
@@ -150,7 +151,7 @@
     </div>
 
     <div class="info" id="info">
-      Fill in today’s notes, staffing, and maintenance for this site/area.
+      Fill in today’s notes, staffing, maintenance and H&amp;S / Food Safety for this site/area.
     </div>
 
     <!-- General Notes -->
@@ -234,6 +235,30 @@
       </div>
     </div>
 
+    <!-- H&S / Food Safety Section -->
+    <div class="section-heading">H&amp;S / Food Safety</div>
+
+    <div class="hs-block">
+      <label for="hsIssue">Any H&amp;S or Food Safety issues today?</label>
+      <select id="hsIssue">
+        <option value="None">No issues</option>
+        <option value="Yes">Yes – issue today</option>
+      </select>
+
+      <div id="hsNotesWrapper" style="display: none; margin-top: 6px;">
+        <div class="small-label">H&amp;S / Food Safety issue details:</div>
+        <textarea id="hsNotes" rows="2" placeholder="What happened? Area / impact..."></textarea>
+      </div>
+
+      <div id="hsReportedWrapper" style="display: none; margin-top: 6px;">
+        <div class="small-label">Has it been reported?</div>
+        <select id="hsReported">
+          <option value="Yes">Yes</option>
+          <option value="No">No</option>
+        </select>
+      </div>
+    </div>
+
     <!-- Save Button -->
     <button class="save" onclick="saveNotes()">Save daily log</button>
 
@@ -270,6 +295,12 @@
     const maintenanceReportedWrapper = document.getElementById('maintenanceReportedWrapper');
     const maintenanceReportedEl = document.getElementById('maintenanceReported');
 
+    // H&S / Food Safety elements
+    const hsIssueEl = document.getElementById('hsIssue');
+    const hsNotesWrapper = document.getElementById('hsNotesWrapper');
+    const hsReportedWrapper = document.getElementById('hsReportedWrapper');
+    const hsReportedEl = document.getElementById('hsReported');
+
     // Show site/area at the top
     if (site) {
       if (site === 'London' && area) {
@@ -284,7 +315,7 @@
       info.textContent = 'Go back and choose your site first.';
     }
 
-    // Toggle visibility of notes / maintenance fields
+    // Toggle visibility of notes / maintenance / H&S fields
     function updateVisibility() {
       sicknessNotesWrapper.style.display =
         sicknessCountEl.value !== '0' ? 'block' : 'none';
@@ -298,12 +329,17 @@
       const hasMaintenanceIssue = maintenanceIssueEl.value === 'Yes';
       maintenanceNotesWrapper.style.display = hasMaintenanceIssue ? 'block' : 'none';
       maintenanceReportedWrapper.style.display = hasMaintenanceIssue ? 'block' : 'none';
+
+      const hasHSIssue = hsIssueEl.value === 'Yes';
+      hsNotesWrapper.style.display = hasHSIssue ? 'block' : 'none';
+      hsReportedWrapper.style.display = hasHSIssue ? 'block' : 'none';
     }
 
     sicknessCountEl.addEventListener('change', updateVisibility);
     holidayCountEl.addEventListener('change', updateVisibility);
     agencyCountEl.addEventListener('change', updateVisibility);
     maintenanceIssueEl.addEventListener('change', updateVisibility);
+    hsIssueEl.addEventListener('change', updateVisibility);
 
     // Initial state
     updateVisibility();
@@ -339,18 +375,24 @@
       const maintenanceReported =
         maintenanceIssue === 'Yes' ? maintenanceReportedEl.value : null;
 
+      const hsIssue = hsIssueEl.value;
+      const hsNotes = document.getElementById('hsNotes').value.trim();
+      const hsReported =
+        hsIssue === 'Yes' ? hsReportedEl.value : null;
+
       // Basic validation:
-      // at least general notes OR some staffing change OR a maintenance issue
+      // at least general notes OR some staffing change OR a maintenance issue OR an H&S issue
       const allStaffingZero =
         sicknessCount === '0' &&
         holidayCount === '0' &&
         agencyCount === '0';
 
       const hasMaintenance = maintenanceIssue === 'Yes';
+      const hasHS = hsIssue === 'Yes';
 
-      if (!notes && allStaffingZero && !hasMaintenance) {
+      if (!notes && allStaffingZero && !hasMaintenance && !hasHS) {
         saveMessage.textContent =
-          'Please add general notes, staffing details, or a maintenance issue before saving.';
+          'Please add general notes, staffing details, a maintenance issue, or an H&S/Food Safety issue before saving.';
         return;
       }
 
@@ -375,7 +417,11 @@
 
             maintenance_issue: maintenanceIssue,
             maintenance_notes: maintenanceNotes || null,
-            maintenance_reported: maintenanceReported
+            maintenance_reported: maintenanceReported,
+
+            hs_issue: hsIssue,
+            hs_notes: hsNotes || null,
+            hs_reported: hsReported
           }
         ]);
 
@@ -391,12 +437,15 @@
       document.getElementById('holidayNotes').value = '';
       document.getElementById('agencyNotes').value = '';
       document.getElementById('maintenanceNotes').value = '';
+      document.getElementById('hsNotes').value = '';
 
       sicknessCountEl.value = '0';
       holidayCountEl.value = '0';
       agencyCountEl.value = '0';
       maintenanceIssueEl.value = 'None';
       maintenanceReportedEl.value = 'Yes';
+      hsIssueEl.value = 'None';
+      hsReportedEl.value = 'Yes';
 
       updateVisibility();
 
