@@ -108,7 +108,8 @@
     .staff-block,
     .maintenance-block,
     .hs-block,
-    .newcastle-block {
+    .newcastle-block,
+    .retail-block {
       margin-bottom: 10px;
       padding: 8px 10px;
       border-radius: 12px;
@@ -302,6 +303,27 @@
       </div>
     </div>
 
+    <!-- London Retail-specific Section -->
+    <div id="retailSection" style="display: none;">
+      <div class="section-heading">London Retail – Lunch Offer</div>
+      <div class="retail-block">
+        <label for="retailLunchSpecial">Did you run any lunch special today?</label>
+        <select id="retailLunchSpecial">
+          <option value="No">No lunch special today</option>
+          <option value="Yes">Yes – lunch special ran</option>
+        </select>
+
+        <div id="retailLunchDescWrapper" style="display: none; margin-top: 6px;">
+          <div class="small-label">Brief description of the offer:</div>
+          <textarea
+            id="retailLunchDesc"
+            rows="2"
+            placeholder="e.g. Italian themed day, Soup & Sandwich combo..."
+          ></textarea>
+        </div>
+      </div>
+    </div>
+
     <!-- Save Button -->
     <button class="save" onclick="saveNotes()">Save daily log</button>
 
@@ -349,10 +371,20 @@
     const hotLunchDishesEl = document.getElementById('hotLunchDishes');
     const serviceLevelEl = document.getElementById('serviceLevel');
 
-    // Show site/area at the top and Newcastle-specific block if applicable
+    // London Retail-specific elements
+    const retailSection = document.getElementById('retailSection');
+    const retailLunchSpecialEl = document.getElementById('retailLunchSpecial');
+    const retailLunchDescWrapper = document.getElementById('retailLunchDescWrapper');
+    const retailLunchDescEl = document.getElementById('retailLunchDesc');
+
+    // Show site/area at the top and site-specific blocks if applicable
     if (site) {
       if (site === 'London' && area) {
         siteLabel.textContent = `Site: ${site} • Area: ${area}`;
+
+        if (area === 'Retail') {
+          retailSection.style.display = 'block';
+        }
       } else if (site === 'Newcastle') {
         siteLabel.textContent = 'Site: Newcastle';
         newcastleSection.style.display = 'block';
@@ -364,7 +396,7 @@
       info.textContent = 'Go back and choose your site first.';
     }
 
-    // Toggle visibility of notes / maintenance / H&S fields
+    // Toggle visibility of notes / maintenance / H&S / Retail fields
     function updateVisibility() {
       sicknessNotesWrapper.style.display =
         sicknessCountEl.value !== '0' ? 'block' : 'none';
@@ -382,6 +414,12 @@
       const hasHSIssue = hsIssueEl.value === 'Yes';
       hsNotesWrapper.style.display = hasHSIssue ? 'block' : 'none';
       hsReportedWrapper.style.display = hasHSIssue ? 'block' : 'none';
+
+      const hasRetailLunchSpecial = retailLunchSpecialEl.value === 'Yes';
+      retailLunchDescWrapper.style.display =
+        hasRetailLunchSpecial && site === 'London' && area === 'Retail'
+          ? 'block'
+          : 'none';
     }
 
     sicknessCountEl.addEventListener('change', updateVisibility);
@@ -389,6 +427,7 @@
     agencyCountEl.addEventListener('change', updateVisibility);
     maintenanceIssueEl.addEventListener('change', updateVisibility);
     hsIssueEl.addEventListener('change', updateVisibility);
+    retailLunchSpecialEl.addEventListener('change', updateVisibility);
 
     // Initial state
     updateVisibility();
@@ -447,7 +486,24 @@
         serviceLevel = serviceVal;
       }
 
-      // Basic validation:
+      // London Retail-specific values
+      let retailLunchSpecial = null;
+      let retailLunchDesc = null;
+
+      if (site === 'London' && area === 'Retail') {
+        retailLunchSpecial = retailLunchSpecialEl.value; // 'Yes' or 'No'
+        const descVal = retailLunchDescEl.value.trim();
+
+        if (retailLunchSpecial === 'Yes' && !descVal) {
+          saveMessage.textContent =
+            'For London Retail, please add a brief description of the lunch special.';
+          return;
+        }
+
+        retailLunchDesc = descVal || null;
+      }
+
+      // Basic validation for non-Newcastle:
       // at least general notes OR some staffing change OR a maintenance issue OR an H&S issue
       const allStaffingZero =
         sicknessCount === '0' &&
@@ -457,9 +513,16 @@
       const hasMaintenance = maintenanceIssue === 'Yes';
       const hasHS = hsIssue === 'Yes';
 
-      if (!notes && allStaffingZero && !hasMaintenance && !hasHS && site !== 'Newcastle') {
+      if (
+        site !== 'Newcastle' &&
+        !notes &&
+        allStaffingZero &&
+        !hasMaintenance &&
+        !hasHS &&
+        !(site === 'London' && area === 'Retail' && retailLunchSpecial === 'Yes')
+      ) {
         saveMessage.textContent =
-          'Please add general notes, staffing details, a maintenance issue, or an H&S/Food Safety issue before saving.';
+          'Please add general notes, staffing details, a maintenance issue, an H&S/Food Safety issue, or (for Retail) a lunch special before saving.';
         return;
       }
 
@@ -491,7 +554,10 @@
             hs_reported: hsReported,
 
             hot_lunch_dishes: hotLunchDishes,
-            service_level: serviceLevel
+            service_level: serviceLevel,
+
+            retail_lunch_special: retailLunchSpecial,
+            retail_lunch_desc: retailLunchDesc
           }
         ]);
 
@@ -510,6 +576,7 @@
       document.getElementById('hsNotes').value = '';
       hotLunchDishesEl.value = '';
       serviceLevelEl.value = '';
+      retailLunchDescEl.value = '';
 
       sicknessCountEl.value = '0';
       holidayCountEl.value = '0';
@@ -518,6 +585,7 @@
       maintenanceReportedEl.value = 'Yes';
       hsIssueEl.value = 'None';
       hsReportedEl.value = 'Yes';
+      retailLunchSpecialEl.value = 'No';
 
       updateVisibility();
 
