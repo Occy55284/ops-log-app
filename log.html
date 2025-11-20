@@ -109,7 +109,8 @@
     .maintenance-block,
     .hs-block,
     .newcastle-block,
-    .retail-block {
+    .retail-block,
+    .hospitality-block {
       margin-bottom: 10px;
       padding: 8px 10px;
       border-radius: 12px;
@@ -318,9 +319,31 @@
           <textarea
             id="retailLunchDesc"
             rows="2"
-            placeholder="e.g. Italian themed day, Soup & Sandwich combo..."
+            placeholder="e.g. Italian themed day, Soup &amp; Sandwich combo..."
           ></textarea>
         </div>
+      </div>
+    </div>
+
+    <!-- London Hospitality-specific Section -->
+    <div id="hospitalitySection" style="display: none;">
+      <div class="section-heading">London Hospitality – Events</div>
+      <div class="hospitality-block">
+        <label for="hospDayEvents">Day events / hospitality bookings:</label>
+        <input
+          id="hospDayEvents"
+          type="number"
+          min="0"
+          placeholder="Number of daytime events"
+        />
+
+        <label for="hospNightEvents" style="margin-top: 10px;">Night events / hospitality bookings:</label>
+        <input
+          id="hospNightEvents"
+          type="number"
+          min="0"
+          placeholder="Number of evening events"
+        />
       </div>
     </div>
 
@@ -377,6 +400,11 @@
     const retailLunchDescWrapper = document.getElementById('retailLunchDescWrapper');
     const retailLunchDescEl = document.getElementById('retailLunchDesc');
 
+    // London Hospitality-specific elements
+    const hospitalitySection = document.getElementById('hospitalitySection');
+    const hospDayEventsEl = document.getElementById('hospDayEvents');
+    const hospNightEventsEl = document.getElementById('hospNightEvents');
+
     // Show site/area at the top and site-specific blocks if applicable
     if (site) {
       if (site === 'London' && area) {
@@ -384,6 +412,10 @@
 
         if (area === 'Retail') {
           retailSection.style.display = 'block';
+        }
+
+        if (area === 'Hospitality') {
+          hospitalitySection.style.display = 'block';
         }
       } else if (site === 'Newcastle') {
         siteLabel.textContent = 'Site: Newcastle';
@@ -503,8 +535,33 @@
         retailLunchDesc = descVal || null;
       }
 
+      // London Hospitality-specific values
+      let hospDayEvents = null;
+      let hospNightEvents = null;
+
+      if (site === 'London' && area === 'Hospitality') {
+        const dayVal = hospDayEventsEl.value.trim();
+        const nightVal = hospNightEventsEl.value.trim();
+
+        if (
+          dayVal === '' ||
+          nightVal === '' ||
+          isNaN(dayVal) ||
+          isNaN(nightVal) ||
+          Number(dayVal) < 0 ||
+          Number(nightVal) < 0
+        ) {
+          saveMessage.textContent =
+            'For London Hospitality, please enter both day and night event numbers.';
+          return;
+        }
+
+        hospDayEvents = Number(dayVal);
+        hospNightEvents = Number(nightVal);
+      }
+
       // Basic validation for non-Newcastle:
-      // at least general notes OR some staffing change OR a maintenance issue OR an H&S issue
+      // at least something meaningful logged
       const allStaffingZero =
         sicknessCount === '0' &&
         holidayCount === '0' &&
@@ -512,6 +569,12 @@
 
       const hasMaintenance = maintenanceIssue === 'Yes';
       const hasHS = hsIssue === 'Yes';
+      const retailHasSpecial =
+        site === 'London' && area === 'Retail' && retailLunchSpecial === 'Yes';
+      const hospHasEvents =
+        site === 'London' &&
+        area === 'Hospitality' &&
+        (hospDayEvents !== null || hospNightEvents !== null);
 
       if (
         site !== 'Newcastle' &&
@@ -519,10 +582,11 @@
         allStaffingZero &&
         !hasMaintenance &&
         !hasHS &&
-        !(site === 'London' && area === 'Retail' && retailLunchSpecial === 'Yes')
+        !retailHasSpecial &&
+        !hospHasEvents
       ) {
         saveMessage.textContent =
-          'Please add general notes, staffing details, a maintenance issue, an H&S/Food Safety issue, or (for Retail) a lunch special before saving.';
+          'Please add general notes, staffing details, a maintenance issue, an H&S/Food Safety issue, a Retail lunch special, or (for Hospitality) event numbers before saving.';
         return;
       }
 
@@ -557,7 +621,10 @@
             service_level: serviceLevel,
 
             retail_lunch_special: retailLunchSpecial,
-            retail_lunch_desc: retailLunchDesc
+            retail_lunch_desc: retailLunchDesc,
+
+            hosp_day_events: hospDayEvents,
+            hosp_night_events: hospNightEvents
           }
         ]);
 
@@ -577,6 +644,8 @@
       hotLunchDishesEl.value = '';
       serviceLevelEl.value = '';
       retailLunchDescEl.value = '';
+      hospDayEventsEl.value = '';
+      hospNightEventsEl.value = '';
 
       sicknessCountEl.value = '0';
       holidayCountEl.value = '0';
