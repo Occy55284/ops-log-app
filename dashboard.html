@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Ops Log • Weekly Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #0b1220;
+      color: #f9fafb;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+
+    .card {
+      background: #020617;
+      border-radius: 16px;
+      padding: 24px 20px 28px;
+      max-width: 980px;
+      width: 100%;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+      border: 1px solid #1f2937;
+    }
+
+    h1 {
+      font-size: 1.6rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .subheading {
+      font-size: 0.9rem;
+      color: #9ca3af;
+      margin-bottom: 1rem;
+    }
+
+    .top-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .range-label {
+      font-size: 0.9rem;
+      color: #e5e7eb;
+    }
+
+    .buttons-right {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    a.button-link, button.nav {
+      display: inline-block;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid #374151;
+      text-decoration: none;
+      font-size: 0.8rem;
+      color: #e5e7eb;
+      background: #020617;
+      cursor: pointer;
+    }
+
+    a.button-link:hover, button.nav:hover {
+      background: #111827;
+    }
+
+    button.nav {
+      font-family: inherit;
+    }
+
+    .section-title {
+      font-size: 0.95rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #6b7280;
+      margin: 18px 0 8px;
+    }
+
+    .kpi-row {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 4px;
+    }
+
+    @media (max-width: 900px) {
+      .kpi-row {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 600px) {
+      .kpi-row {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .kpi-card {
+      background: #020617;
+      border-radius: 12px;
+      border: 1px solid #111827;
+      padding: 10px 12px;
+    }
+
+    .kpi-label {
+      font-size: 0.75rem;
+      color: #9ca3af;
+      margin-bottom: 3px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .kpi-value {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+
+    .kpi-subtext {
+      font-size: 0.75rem;
+      color: #9ca3af;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+
+    th, td {
+      padding: 6px 8px;
+      text-align: left;
+    }
+
+    th {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: #9ca3af;
+      border-bottom: 1px solid #111827;
+    }
+
+    tr:nth-child(even) td {
+      background: #020617;
+    }
+
+    tr:nth-child(odd) td {
+      background: #020617;
+    }
+
+    .table-wrapper {
+      border-radius: 12px;
+      border: 1px solid #111827;
+      overflow: hidden;
+      background: #020617;
+    }
+
+    .small-note {
+      font-size: 0.8rem;
+      color: #9ca3af;
+      margin-top: 4px;
+    }
+
+    .chips-row {
+      margin-top: 4px;
+      margin-bottom: 4px;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      border: 1px solid #374151;
+      padding: 3px 8px;
+      font-size: 0.75rem;
+      color: #e5e7eb;
+      margin-right: 6px;
+      margin-bottom: 4px;
+    }
+
+    .incident-item {
+      border-radius: 10px;
+      border: 1px solid #111827;
+      background: #020617;
+      padding: 8px 10px;
+      margin-bottom: 6px;
+      font-size: 0.85rem;
+    }
+
+    .incident-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 6px;
+      margin-bottom: 2px;
+    }
+
+    .incident-main {
+      font-weight: 500;
+    }
+
+    .incident-meta {
+      font-size: 0.75rem;
+      color: #9ca3af;
+    }
+
+    .incident-note {
+      font-size: 0.8rem;
+      color: #d1d5db;
+      margin-top: 3px;
+      white-space: pre-wrap;
+    }
+
+    .site-panels {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    @media (max-width: 900px) {
+      .site-panels {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 600px) {
+      .site-panels {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .site-panel {
+      background: #020617;
+      border-radius: 12px;
+      border: 1px solid #111827;
+      padding: 10px 12px;
+      font-size: 0.85rem;
+    }
+
+    .site-panel-title {
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .site-panel-line {
+      margin-bottom: 3px;
+    }
+
+    .site-panel-list {
+      margin-top: 4px;
+      font-size: 0.8rem;
+      color: #d1d5db;
+    }
+
+    .muted {
+      color: #6b7280;
+    }
+
+    .error-text {
+      font-size: 0.9rem;
+      color: #f97373;
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="top-row">
+      <div>
+        <h1>Weekly Overview</h1>
+        <p class="subheading">
+          Combined stats from all sites for the last 7 days.
+        </p>
+      </div>
+      <div class="buttons-right">
+        <button class="nav" id="refreshBtn">Refresh</button>
+        <a href="history.html" class="button-link">Daily overview</a>
+        <a href="index.html" class="button-link">Back to site selection</a>
+      </div>
+    </div>
+
+    <div class="range-label">
+      Showing data for: <span id="rangeLabel">–</span>
+    </div>
+
+    <!-- SECTION 1: Weekly KPI Strip -->
+    <div class="section-title">Weekly summary</div>
+    <div class="kpi-row">
+      <div class="kpi-card">
+        <div class="kpi-label">Total logs</div>
+        <div class="kpi-value" id="kpiTotalLogs">0</div>
+        <div class="kpi-subtext" id="kpiTotalLogsSub">Last 7 days</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Logs by site</div>
+        <div class="kpi-value" id="kpiLogsBySite">–</div>
+        <div class="kpi-subtext" id="kpiLogsBySiteSub">London / Newcastle</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Staffing totals</div>
+        <div class="kpi-value" id="kpiStaffingTotals">–</div>
+        <div class="kpi-subtext" id="kpiStaffingTotalsSub">Sickness / Holidays / Agency</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Incidents</div>
+        <div class="kpi-value" id="kpiIncidentsTotals">–</div>
+        <div class="kpi-subtext" id="kpiIncidentsTotalsSub">Maintenance / H&amp;S issues</div>
+      </div>
+    </div>
+
+    <div class="kpi-row" style="margin-top: 10px;">
+      <div class="kpi-card">
+        <div class="kpi-label">Hospitality events (London)</div>
+        <div class="kpi-value" id="kpiHospEvents">–</div>
+        <div class="kpi-subtext" id="kpiHospEventsSub">Day / Night events total</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Newcastle hot lunch</div>
+        <div class="kpi-value" id="kpiNewcastleHot">–</div>
+        <div class="kpi-subtext" id="kpiNewcastleHotSub">Total &amp; avg per day</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Retail specials (London)</div>
+        <div class="kpi-value" id="kpiRetailSpecials">–</div>
+        <div class="kpi-subtext" id="kpiRetailSpecialsSub">Days with offers</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Data health</div>
+        <div class="kpi-value" id="kpiDataHealth">–</div>
+        <div class="kpi-subtext" id="kpiDataHealthSub">Logs per day (avg)</div>
+      </div>
+    </div>
+
+    <div id="errorMessage" class="error-text" style="display:none;"></div>
+
+    <!-- SECTION 2: Staffing Overview -->
+    <div class="section-title">Staffing overview (last 7 days)</div>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 18%;">Date</th>
+            <th style="width: 18%;">Site</th>
+            <th style="width: 24%;">Area</th>
+            <th style="width: 12%;">Sickness</th>
+            <th style="width: 12%;">Holidays</th>
+            <th style="width: 12%;">Agency</th>
+          </tr>
+        </thead>
+        <tbody id="staffingTableBody">
+        </tbody>
+      </table>
+    </div>
+    <div class="small-note" id="staffingHighlights">
+      –
+    </div>
+
+    <!-- SECTION 3: Incidents -->
+    <div class="section-title">Incidents – Maintenance &amp; H&amp;S</div>
+    <div class="chips-row" id="incidentsSummaryChips"></div>
+    <div id="incidentList"></div>
+    <div class="small-note muted" id="incidentsEmptyNote" style="display:none;">
+      No maintenance or H&amp;S issues recorded in the last 7 days.
+    </div>
+
+    <!-- SECTION 4: Site-specific Highlights -->
+    <div class="section-title">Site highlights</div>
+    <div class="site-panels">
+      <div class="site-panel">
+        <div class="site-panel-title">Newcastle – Hot Lunch</div>
+        <div class="site-panel-line" id="newcastleTotalLine">Total hot lunches: –</div>
+        <div class="site-panel-line" id="newcastleAvgLine">Average per day: –</div>
+        <div class="site-panel-line" id="newcastleBusiestLine">Busiest day: –</div>
+        <div class="site-panel-line" id="newcastleServiceTrendLine">Service trend: –</div>
+      </div>
+      <div class="site-panel">
+        <div class="site-panel-title">London Retail – Specials</div>
+        <div class="site-panel-line" id="retailDaysLine">Days with lunch specials: –</div>
+        <div class="site-panel-list" id="retailList">
+          <span class="muted">No specials recorded yet.</span>
+        </div>
+      </div>
+      <div class="site-panel">
+        <div class="site-panel-title">London Hospitality – Events</div>
+        <div class="site-panel-line" id="hospTotalsLine">Events total (day / night): –</div>
+        <div class="site-panel-line" id="hospBusiestLine">Busiest event day: –</div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { supabase } from './supabase-config.js';
+
+    const rangeLabelEl = document.getElementById('rangeLabel');
+    const errorMessageEl = document.getElementById('errorMessage');
+
+    const kpiTotalLogsEl = document.getElementById('kpiTotalLogs');
+    const kpiTotalLogsSubEl = document.getElementById('kpiTotalLogsSub');
+    const kpiLogsBySiteEl = document.getElementById('kpiLogsBySite');
+    const kpiLogsBySiteSubEl = document.getElementById('kpiLogsBySiteSub');
+    const kpiStaffingTotalsEl = document.getElementById('kpiStaffingTotals');
+    const kpiStaffingTotalsSubEl = document.getElementById('kpiStaffingTotalsSub');
+    const kpiIncidentsTotalsEl = document.getElementById('kpiIncidentsTotals');
+    const kpiIncidentsTotalsSubEl = document.getElementById('kpiIncidentsTotalsSub');
+    const kpiHospEventsEl = document.getElementById('kpiHospEvents');
+    const kpiHospEventsSubEl = document.getElementById('kpiHospEventsSub');
+    const kpiNewcastleHotEl = document.getElementById('kpiNewcastleHot');
+    const kpiNewcastleHotSubEl = document.getElementById('kpiNewcastleHotSub');
+    const kpiRetailSpecialsEl = document.getElementById('kpiRetailSpecials');
+    const kpiRetailSpecialsSubEl = document.getElementById('kpiRetailSpecialsSub');
+    const kpiDataHealthEl = document.getElementById('kpiDataHealth');
+    const kpiDataHealthSubEl = document.getElementById('kpiDataHealthSub');
+
+    const staffingTableBody = document.getElementById('staffingTableBody');
+    const staffingHighlightsEl = document.getElementById('staffingHighlights');
+
+    const incidentsSummaryChipsEl = document.getElementById('incidentsSummaryChips');
+    const incidentListEl = document.getElementById('incidentList');
+    const incidentsEmptyNoteEl = document.getElementById('incidentsEmptyNote');
+
+    const newcastleTotalLineEl = document.getElementById('newcastleTotalLine');
+    const newcastleAvgLineEl = document.getElementById('newcastleAvgLine');
+    const newcastleBusiestLineEl = document.getElementById('newcastleBusiestLine');
+    const newcastleServiceTrendLineEl = document.getElementById('newcastleServiceTrendLine');
+
+    const retailDaysLineEl = document.getElementById('retailDaysLine');
+    const retailListEl = document.getElementById('retailList');
+
+    const hospTotalsLineEl = document.getElementById('hospTotalsLine');
+    const hospBusiestLineEl = document.getElementById('hospBusiestLine');
+
+    const refreshBtn = document.getElementById('refreshBtn');
+
+    function formatDateRange(start, end) {
+      const opts = { day: 'numeric', month: 'short' };
+      const startStr = start.toLocaleDateString('en-GB', opts);
+      const endStr = end.toLocaleDateString('en-GB', { ...opts, year: 'numeric' });
+      return `${startStr} – ${endStr}`;
+    }
+
+    function formatDate(date) {
+      return date.toLocaleDateString('en-GB', {
+        day: 'numeric',
+        month: 'short'
+      });
+    }
+
+    function dateKey(date) {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+
+    function parseCount(value) {
+      if (!value) return 0;
+      if (value === '3+') return 3;
+      const n = parseInt(value, 10);
+      return isNaN(n) ? 0 : n;
+    }
+
+    function createChip(text) {
+      const span = document.createElement('span');
+      span.className = 'chip';
+      span.textContent = text;
+      return span;
+    }
+
+    async function loadWeeklyData() {
+      errorMessageEl.style.display = 'none';
+      errorMessageEl.textContent = '';
+
+      // Last 7 days including today (based on local time)
+      const now = new Date();
+      const endLocal = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+      const startLocal = new Date(endLocal);
+      startLocal.setDate(startLocal.getDate() - 6);
+
+      rangeLabelEl.textContent = formatDateRange(startLocal, endLocal);
+
+      // Convert to UTC ISO strings
+      const start = new Date(startLocal.getTime() - startLocal.getTimezoneOffset() * 60000);
+      const end = new Date(endLocal.getTime() - endLocal.getTimezoneOffset() * 60000);
+
+      const { data, error } = await supabase
+        .from('ops_logs')
+        .select('*')
+        .gte('created_at', start.toISOString())
+        .lte('created_at', end.toISOString())
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error loading weekly data:', error);
+        errorMessageEl.textContent = 'There was an error loading weekly data.';
+        errorMessageEl.style.display = 'block';
+        setEmptyState();
+        return;
+      }
+
+      if (!data || data.length === 0) {
+        setEmptyState();
+        return;
+      }
+
+      populateDashboard(data, startLocal, endLocal);
+    }
+
+    function setEmptyState() {
+      kpiTotalLogsEl.textContent = '0';
+      kpiTotalLogsSubEl.textContent = 'No logs in last 7 days';
+      kpiLogsBySiteEl.textContent = '–';
+      kpiLogsBySiteSubEl.textContent = 'No site data';
+      kpiStaffingTotalsEl.textContent = '–';
+      kpiStaffingTotalsSubEl.textContent = 'No staffing data';
+      kpiIncidentsTotalsEl.textContent = '–';
+      kpiIncidentsTotalsSubEl.textContent = 'No incidents recorded';
+      kpiHospEventsEl.textContent = '–';
+      kpiHospEventsSubEl.textContent = 'No events recorded';
+      kpiNewcastleHotEl.textContent = '–';
+      kpiNewcastleHotSubEl.textContent = 'No hot lunch data';
+      kpiRetailSpecialsEl.textContent = '–';
+      kpiRetailSpecialsSubEl.textContent = 'No specials';
+      kpiDataHealthEl.textContent = '–';
+      kpiDataHealthSubEl.textContent = 'No logs';
+
+      staffingTableBody.innerHTML = '';
+      staffingHighlightsEl.textContent = 'No staffing data in the last 7 days.';
+
+      incidentsSummaryChipsEl.innerHTML = '';
+      incidentListEl.innerHTML = '';
+      incidentsEmptyNoteEl.style.display = 'block';
+
+      newcastleTotalLineEl.textContent = 'Total hot lunches: –';
+      newcastleAvgLineEl.textContent = 'Average per day: –';
+      newcastleBusiestLineEl.textContent = 'Busiest day: –';
+      newcastleServiceTrendLineEl.textContent = 'Service trend: –';
+
+      retailDaysLineEl.textContent = 'Days with lunch specials: –';
+      retailListEl.innerHTML = '<span class="muted">No specials recorded yet.</span>';
+
+      hospTotalsLineEl.textContent = 'Events total (day / night): –';
+      hospBusiestLineEl.textContent = 'Busiest event day: –';
+    }
+
+    function populateDashboard(rows, startLocal, endLocal) {
+      // SECTION 1: KPIs
+      const totalLogs = rows.length;
+
+      // Site counts
+      const siteCounts = {};
+      rows.forEach((row) => {
+        const site = row.site || 'Unknown';
+        siteCounts[site] = (siteCounts[site] || 0) + 1;
+      });
+      const siteText = Object.entries(siteCounts)
+        .map(([site, count]) => `${site}: ${count}`)
+        .join(' • ');
+
+      // Staffing totals and per-day maxima
+      let totalSickness = 0;
+      let totalHolidays = 0;
+      let totalAgency = 0;
+
+      const sicknessByDate = {};
+      const agencyByDate = {};
+
+      rows.forEach((row) => {
+        const created = row.created_at ? new Date(row.created_at) : null;
+        const key = created ? dateKey(created) : null;
+
+        const sick = parseCount(row.sickness_count);
+        const hol = parseCount(row.holiday_count);
+        const ag = parseCount(row.agency_count);
+
+        totalSickness += sick;
+        totalHolidays += hol;
+        totalAgency += ag;
+
+        if (key) {
+          sicknessByDate[key] = (sicknessByDate[key] || 0) + sick;
+          agencyByDate[key] = (agencyByDate[key] || 0) + ag;
+        }
+      });
+
+      function findMaxEntry(mapObj) {
+        let maxKey = null;
+        let maxVal = 0;
+        for (const [k, v] of Object.entries(mapObj)) {
+          if (v > maxVal) {
+            maxVal = v;
+            maxKey = k;
+          }
+        }
+        return maxKey ? { key: maxKey, value: maxVal } : null;
+      }
+
+      const maxSick = findMaxEntry(sicknessByDate);
+      const maxAgency = findMaxEntry(agencyByDate);
+
+      // Incidents
+      let maintenanceCount = 0;
+      let maintenanceReported = 0;
+      let hsCount = 0;
+      let hsReported = 0;
+
+      const incidents = [];
+
+      rows.forEach((row) => {
+        const created = row.created_at ? new Date(row.created_at) : null;
+        const dateStr = created ? formatDate(created) : 'Unknown';
+        const timeStr = created
+          ? created.toLocaleTimeString('en-GB', {
+              hour: '2-digit',
+              minute: '2-digit'
+            })
+          : '';
+
+        if (row.maintenance_issue === 'Yes') {
+          maintenanceCount++;
+          if (row.maintenance_reported === 'Yes') {
+            maintenanceReported++;
+          }
+          incidents.push({
+            type: 'Maintenance',
+            site: row.site || 'Unknown',
+            area: row.area || '',
+            dateStr,
+            timeStr,
+            reported: row.maintenance_reported || 'n/a',
+            note: row.maintenance_notes || ''
+          });
+        }
+
+        if (row.hs_issue === 'Yes') {
+          hsCount++;
+          if (row.hs_reported === 'Yes') {
+            hsReported++;
+          }
+          incidents.push({
+            type: 'H&S / Food Safety',
+            site: row.site || 'Unknown',
+            area: row.area || '',
+            dateStr,
+            timeStr,
+            reported: row.hs_reported || 'n/a',
+            note: row.hs_notes || ''
+          });
+        }
+      });
+
+      // Hospitality events
+      let hospDayTotal = 0;
+      let hospNightTotal = 0;
+      const hospEventsByDate = {};
+      rows.forEach((row) => {
+        if (row.site === 'London' && row.area === 'Hospitality') {
+          const day = row.hosp_day_events ?? 0;
+          const night = row.hosp_night_events ?? 0;
+          const total = (day || 0) + (night || 0);
+          hospDayTotal += day || 0;
+          hospNightTotal += night || 0;
+
+          const created = row.created_at ? new Date(row.created_at) : null;
+          const key = created ? dateKey(created) : null;
+          if (key) {
+            hospEventsByDate[key] = (hospEventsByDate[key] || 0) + total;
+          }
+        }
+      });
+      const maxHosp = findMaxEntry(hospEventsByDate);
+
+      // Newcastle hot lunch
+      let newcastleTotal = 0;
+      const newcastleByDate = {};
+      const serviceLevelsCount = { Busier: 0, Normal: 0, Quieter: 0 };
+      rows.forEach((row) => {
+        if (row.site === 'Newcastle' && row.hot_lunch_dishes != null) {
+          const dishes = row.hot_lunch_dishes || 0;
+          newcastleTotal += dishes;
+          const created = row.created_at ? new Date(row.created_at) : null;
+          const key = created ? dateKey(created) : null;
+          if (key) {
+            newcastleByDate[key] = (newcastleByDate[key] || 0) + dishes;
+          }
+          if (row.service_level && serviceLevelsCount[row.service_level] !== undefined) {
+            serviceLevelsCount[row.service_level]++;
+          }
+        }
+      });
+      const maxNewcastle = findMaxEntry(newcastleByDate);
+
+      // How many distinct days in range?
+      const daySet = new Set();
+      const curr = new Date(startLocal);
+      while (curr <= endLocal) {
+        daySet.add(dateKey(curr));
+        curr.setDate(curr.getDate() + 1);
+      }
+      const numDays = daySet.size || 1;
+
+      // Retail specials
+      let retailDaysWithSpecial = 0;
+      const retailSpecialsByDate = {};
+      const retailDescriptions = [];
+      rows.forEach((row) => {
+        if (row.site === 'London' && row.area === 'Retail' && row.retail_lunch_special) {
+          const created = row.created_at ? new Date(row.created_at) : null;
+          const key = created ? dateKey(created) : null;
+          if (key) {
+            if (!retailSpecialsByDate[key]) {
+              retailSpecialsByDate[key] = true;
+              retailDaysWithSpecial++;
+            }
+          }
+          if (row.retail_lunch_special === 'Yes' && row.retail_lunch_desc) {
+            retailDescriptions.push({
+              dateStr: created ? formatDate(created) : '',
+              desc: row.retail_lunch_desc
+            });
+          }
+        }
+      });
+
+      // Data health: logs per day
+      const logsPerDay = (totalLogs / numDays).toFixed(1);
+
+      // ---- Fill KPIs ----
+      kpiTotalLogsEl.textContent = totalLogs.toString();
+      kpiTotalLogsSubEl.textContent = `Last 7 days (${numDays} day${numDays === 1 ? '' : 's'})`;
+
+      kpiLogsBySiteEl.textContent = siteText || '–';
+      kpiLogsBySiteSubEl.textContent = 'London / Newcastle';
+
+      kpiStaffingTotalsEl.textContent =
+        totalSickness + ' / ' + totalHolidays + ' / ' + totalAgency;
+      kpiStaffingTotalsSubEl.textContent = 'Sickness / Holidays / Agency (approx)';
+
+      const totalIncidents = maintenanceCount + hsCount;
+      kpiIncidentsTotalsEl.textContent = totalIncidents.toString();
+      kpiIncidentsTotalsSubEl.textContent =
+        `Maintenance: ${maintenanceCount} • H&S: ${hsCount}`;
+
+      kpiHospEventsEl.textContent = `${hospDayTotal} / ${hospNightTotal}`;
+      kpiHospEventsSubEl.textContent = 'Day / Night events total';
+
+      if (newcastleTotal > 0) {
+        // distinct days with data
+        const newcastleDays = Object.keys(newcastleByDate).length || 1;
+        const avg = (newcastleTotal / newcastleDays).toFixed(1);
+        kpiNewcastleHotEl.textContent = `${newcastleTotal}`;
+        kpiNewcastleHotSubEl.textContent = `Avg ${avg} per day (Newcastle days)`;
+      } else {
+        kpiNewcastleHotEl.textContent = '–';
+        kpiNewcastleHotSubEl.textContent = 'No hot lunch data';
+      }
+
+      kpiRetailSpecialsEl.textContent = retailDaysWithSpecial.toString();
+      kpiRetailSpecialsSubEl.textContent = 'Days with at least one lunch offer';
+
+      kpiDataHealthEl.textContent = logsPerDay;
+      kpiDataHealthSubEl.textContent = 'Logs per day (avg)';
+
+      // ---- Staffing table & highlights ----
+      staffingTableBody.innerHTML = '';
+      const staffingRows = rows.filter((row) => {
+        const s = parseCount(row.sickness_count);
+        const h = parseCount(row.holiday_count);
+        const a = parseCount(row.agency_count);
+        return s > 0 || h > 0 || a > 0;
+      });
+
+      if (staffingRows.length === 0) {
+        staffingTableBody.innerHTML =
+          '<tr><td colspan="6" style="padding:8px;font-size:0.85rem;color:#9ca3af;">No staffing changes recorded in the last 7 days.</td></tr>';
+      } else {
+        staffingRows.forEach((row) => {
+          const tr = document.createElement('tr');
+          const created = row.created_at ? new Date(row.created_at) : null;
+          const dateStr = created ? formatDate(created) : '';
+
+          const s = parseCount(row.sickness_count);
+          const h = parseCount(row.holiday_count);
+          const a = parseCount(row.agency_count);
+
+          tr.innerHTML = `
+            <td>${dateStr}</td>
+            <td>${row.site || ''}</td>
+            <td>${row.area || ''}</td>
+            <td>${s || ''}</td>
+            <td>${h || ''}</td>
+            <td>${a || ''}</td>
+          `;
+          staffingTableBody.appendChild(tr);
+        });
+      }
+
+      let staffingText = '';
+      if (maxSick && maxSick.value > 0) {
+        const d = maxSick.key;
+        const [y, m, day] = d.split('-');
+        const dateObj = new Date(Number(y), Number(m) - 1, Number(day));
+        staffingText += `Highest sickness day: ${formatDate(dateObj)} (${maxSick.value} staff). `;
+      }
+      if (maxAgency && maxAgency.value > 0) {
+        const d = maxAgency.key;
+        const [y, m, day] = d.split('-');
+        const dateObj = new Date(Number(y), Number(m) - 1, Number(day));
+        staffingText += `Highest agency use: ${formatDate(dateObj)} (${maxAgency.value} shifts).`;
+      }
+      if (!staffingText) {
+        staffingText = 'No significant sickness or agency patterns in the last 7 days.';
+      }
+      staffingHighlightsEl.textContent = staffingText;
+
+      // ---- Incidents section ----
+      incidentsSummaryChipsEl.innerHTML = '';
+      incidentListEl.innerHTML = '';
+      if (maintenanceCount > 0) {
+        incidentsSummaryChipsEl.appendChild(
+          createChip(`Maintenance: ${maintenanceCount} (reported: ${maintenanceReported})`)
+        );
+      }
+      if (hsCount > 0) {
+        incidentsSummaryChipsEl.appendChild(
+          createChip(`H&S / Food Safety: ${hsCount} (reported: ${hsReported})`)
+        );
+      }
+      incidentsEmptyNoteEl.style.display =
+        maintenanceCount === 0 && hsCount === 0 ? 'block' : 'none';
+
+      incidents.sort((a, b) => {
+        // We don't have full ISO stamps here, but we can keep original order
+        return 0;
+      });
+
+      incidents.forEach((inc) => {
+        const div = document.createElement('div');
+        div.className = 'incident-item';
+        div.innerHTML = `
+          <div class="incident-header">
+            <div class="incident-main">${inc.type} – ${inc.site}${
+          inc.area ? ' • ' + inc.area : ''
+        }</div>
+            <div class="incident-meta">${inc.dateStr} ${inc.timeStr}</div>
+          </div>
+          <div class="incident-meta">Reported: ${inc.reported}</div>
+          ${
+            inc.note
+              ? `<div class="incident-note">${inc.note}</div>`
+              : ''
+          }
+        `;
+        incidentListEl.appendChild(div);
+      });
+
+      // ---- Newcastle panel ----
+      if (newcastleTotal > 0) {
+        newcastleTotalLineEl.textContent = `Total hot lunches: ${newcastleTotal}`;
+        if (Object.keys(newcastleByDate).length > 0) {
+          const daysWithData = Object.keys(newcastleByDate).length;
+          const avg = (newcastleTotal / daysWithData).toFixed(1);
+          newcastleAvgLineEl.textContent = `Average per day (days with data): ${avg}`;
+        } else {
+          newcastleAvgLineEl.textContent = 'Average per day: –';
+        }
+
+        if (maxNewcastle) {
+          const d = maxNewcastle.key;
+          const [y, m, day] = d.split('-');
+          const dateObj = new Date(Number(y), Number(m) - 1, Number(day));
+          newcastleBusiestLineEl.textContent =
+            `Busiest day: ${formatDate(dateObj)} (${maxNewcastle.value} dishes)`;
+        } else {
+          newcastleBusiestLineEl.textContent = 'Busiest day: –';
+        }
+
+        // service trend
+        const trendEntries = Object.entries(serviceLevelsCount)
+          .filter(([, count]) => count > 0)
+          .sort((a, b) => b[1] - a[1]);
+        if (trendEntries.length > 0) {
+          const [lvl, count] = trendEntries[0];
+          newcastleServiceTrendLineEl.textContent =
+            `Service trend: ${lvl} (most common, ${count} log${count === 1 ? '' : 's'})`;
+        } else {
+          newcastleServiceTrendLineEl.textContent = 'Service trend: –';
+        }
+      } else {
+        newcastleTotalLineEl.textContent = 'Total hot lunches: 0';
+        newcastleAvgLineEl.textContent = 'Average per day: 0';
+        newcastleBusiestLineEl.textContent = 'Busiest day: –';
+        newcastleServiceTrendLineEl.textContent = 'Service trend: –';
+      }
+
+      // ---- Retail panel ----
+      retailDaysLineEl.textContent =
+        `Days with lunch specials: ${retailDaysWithSpecial}`;
+      if (retailDescriptions.length === 0) {
+        retailListEl.innerHTML =
+          '<span class="muted">No specials recorded yet.</span>';
+      } else {
+        retailListEl.innerHTML = '';
+        retailDescriptions.slice(0, 6).forEach((item) => {
+          const p = document.createElement('div');
+          p.textContent = `${item.dateStr} – ${item.desc}`;
+          retailListEl.appendChild(p);
+        });
+        if (retailDescriptions.length > 6) {
+          const more = document.createElement('div');
+          more.className = 'muted';
+          more.textContent = `+ ${retailDescriptions.length - 6} more`;
+          retailListEl.appendChild(more);
+        }
+      }
+
+      // ---- Hospitality panel ----
+      hospTotalsLineEl.textContent =
+        `Events total (day / night): ${hospDayTotal} / ${hospNightTotal}`;
+      if (maxHosp && maxHosp.value > 0) {
+        const d = maxHosp.key;
+        const [y, m, day] = d.split('-');
+        const dateObj = new Date(Number(y), Number(m) - 1, Number(day));
+        hospBusiestLineEl.textContent =
+          `Busiest event day: ${formatDate(dateObj)} (${maxHosp.value} event${maxHosp.value === 1 ? '' : 's'})`;
+      } else {
+        hospBusiestLineEl.textContent = 'Busiest event day: –';
+      }
+    }
+
+    refreshBtn.addEventListener('click', () => {
+      loadWeeklyData();
+    });
+
+    // Initial load
+    loadWeeklyData();
+  </script>
+</body>
+</html>
