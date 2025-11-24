@@ -237,11 +237,9 @@
     const prevDayBtn = document.getElementById('prevDayBtn');
     const todayBtn = document.getElementById('todayBtn');
 
-    // We'll track the currently selected date (just YYYY-MM-DD as a string)
-    let currentDate = null;
+    let currentDate = null; // "YYYY-MM-DD"
 
     function formatDateLabel(date) {
-      // Show like "20 November 2025"
       return date.toLocaleDateString('en-GB', {
         day: 'numeric',
         month: 'long',
@@ -250,7 +248,6 @@
     }
 
     function toDateString(date) {
-      // YYYY-MM-DD
       const year = date.getFullYear();
       const month = String(date.getMonth() + 1).padStart(2, '0');
       const day = String(date.getDate()).padStart(2, '0');
@@ -258,20 +255,16 @@
     }
 
     function parseISODateOnly(isoString) {
-      // Convert "2025-11-20T10:15:00.000Z" to local Date
       return new Date(isoString);
     }
 
     async function loadDataForDate(dateStr) {
-      // dateStr is "YYYY-MM-DD"
       currentDate = dateStr;
 
-      // Update label
       const [year, month, day] = dateStr.split('-');
       const dateObj = new Date(Number(year), Number(month) - 1, Number(day));
       dateLabelEl.textContent = formatDateLabel(dateObj);
 
-      // Compute date range for the day in UTC
       const start = new Date(dateStr + 'T00:00:00Z');
       const end = new Date(dateStr + 'T23:59:59Z');
 
@@ -304,17 +297,14 @@
         return;
       }
 
-      // Summary: total logs and breakdown by site
+      // Summary
       totalLogsEl.textContent = data.length.toString();
 
-      const siteCounts = data.reduce(
-        (acc, row) => {
-          const site = row.site || 'Unknown';
-          acc[site] = (acc[site] || 0) + 1;
-          return acc;
-        },
-        {}
-      );
+      const siteCounts = data.reduce((acc, row) => {
+        const site = row.site || 'Unknown';
+        acc[site] = (acc[site] || 0) + 1;
+        return acc;
+      }, {});
 
       const siteText = Object.entries(siteCounts)
         .map(([site, count]) => `${site}: ${count}`)
@@ -322,7 +312,7 @@
 
       siteBreakdownEl.textContent = siteText || '–';
 
-      // Render each log
+      // Render logs
       data.forEach((row) => {
         const item = document.createElement('div');
         item.className = 'log-item';
@@ -343,9 +333,7 @@
 
         const timeEl = document.createElement('span');
         timeEl.className = 'log-time';
-        const created = row.created_at
-          ? parseISODateOnly(row.created_at)
-          : null;
+        const created = row.created_at ? parseISODateOnly(row.created_at) : null;
         timeEl.textContent = created
           ? created.toLocaleTimeString('en-GB', {
               hour: '2-digit',
@@ -355,13 +343,11 @@
 
         headerLeft.appendChild(siteEl);
         headerLeft.appendChild(areaEl);
-
         header.appendChild(headerLeft);
         header.appendChild(timeEl);
-
         item.appendChild(header);
 
-        // Tags row: staffing / maintenance / H&S / site-specific
+        // Tags row
         const tags = document.createElement('div');
         tags.className = 'log-tags';
 
@@ -372,7 +358,7 @@
           tags.appendChild(t);
         }
 
-        // Staffing quick view
+        // Staffing chips
         if (row.sickness_count && row.sickness_count !== '0') {
           addTag(`Sickness: ${row.sickness_count}`);
         }
@@ -386,18 +372,14 @@
         // Maintenance
         if (row.maintenance_issue === 'Yes') {
           addTag(
-            `Maintenance issue (reported: ${
-              row.maintenance_reported || 'n/a'
-            })`
+            `Maintenance issue (reported: ${row.maintenance_reported || 'n/a'})`
           );
         }
 
         // H&S / Food Safety
         if (row.hs_issue === 'Yes') {
           addTag(
-            `H&S / Food Safety issue (reported: ${
-              row.hs_reported || 'n/a'
-            })`
+            `H&S / Food Safety issue (reported: ${row.hs_reported || 'n/a'})`
           );
         }
 
@@ -436,11 +418,35 @@
           item.appendChild(tags);
         }
 
-        // Notes
+        // Notes section – now includes all detailed comments
+        const detailLines = [];
+
         if (row.notes) {
+          detailLines.push(`General: ${row.notes}`);
+        }
+        if (row.sickness_notes) {
+          detailLines.push(`Sickness notes: ${row.sickness_notes}`);
+        }
+        if (row.holiday_notes) {
+          detailLines.push(`Holiday notes: ${row.holiday_notes}`);
+        }
+        if (row.agency_notes) {
+          detailLines.push(`Agency notes: ${row.agency_notes}`);
+        }
+        if (row.maintenance_notes) {
+          detailLines.push(`Maintenance: ${row.maintenance_notes}`);
+        }
+        if (row.hs_notes) {
+          detailLines.push(`H&S / Food Safety: ${row.hs_notes}`);
+        }
+        if (row.retail_lunch_desc) {
+          detailLines.push(`Retail lunch: ${row.retail_lunch_desc}`);
+        }
+
+        if (detailLines.length > 0) {
           const notes = document.createElement('div');
           notes.className = 'log-notes';
-          notes.textContent = row.notes;
+          notes.textContent = detailLines.join('\n');
           item.appendChild(notes);
         }
 
