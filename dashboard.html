@@ -265,22 +265,6 @@
       background: linear-gradient(to right, rgba(15, 23, 42, 1), rgba(15, 23, 42, 0.9));
     }
 
-    .chip-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      margin-top: 6px;
-    }
-
-    .chip {
-      border-radius: 999px;
-      border: 1px solid rgba(148, 163, 184, 0.5);
-      padding: 4px 8px;
-      font-size: 11px;
-      color: #e5e7eb;
-      background: rgba(15, 23, 42, 0.9);
-    }
-
     .pill-pill {
       display: inline-flex;
       align-items: center;
@@ -316,49 +300,6 @@
       margin: 18px 0 8px;
     }
 
-    .kpi-row {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 12px;
-      margin-bottom: 4px;
-    }
-
-    @media (max-width: 900px) {
-      .kpi-row {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-    }
-
-    .kpi-small {
-      background: radial-gradient(circle at top left, rgba(15, 23, 42, 0.9), rgba(15, 23, 42, 1));
-      border-radius: 14px;
-      padding: 8px 10px 9px;
-      border: 1px solid rgba(148, 163, 184, 0.5);
-      box-shadow:
-        0 0 0 1px rgba(15, 23, 42, 1),
-        0 8px 18px rgba(15, 23, 42, 0.9);
-    }
-
-    .kpi-small-label {
-      font-size: 10px;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      color: #9ca3af;
-      margin-bottom: 4px;
-    }
-
-    .kpi-small-value {
-      font-size: 16px;
-      font-weight: 600;
-      color: #e5e7eb;
-    }
-
-    .kpi-small-sub {
-      font-size: 11px;
-      color: #9ca3af;
-      margin-top: 2px;
-    }
-
     .error-banner {
       display: none;
       border-radius: 10px;
@@ -368,12 +309,6 @@
       padding: 8px 10px;
       font-size: 12px;
       margin-bottom: 12px;
-    }
-
-    .spark-note {
-      font-size: 10px;
-      color: #6b7280;
-      margin-top: 4px;
     }
 
     .empty-text {
@@ -407,7 +342,7 @@
     <div id="errorMessage" class="error-banner"></div>
 
     <div class="grid">
-      <!-- LEFT: Main KPIs & Staffing -->
+      <!-- LEFT: Main KPIs & Incidents -->
       <div class="card">
         <div class="card-header">
           <div>
@@ -441,10 +376,10 @@
 
         <div class="divider"></div>
 
-        <!-- Incidents / Hospitality -->
+        <!-- Incidents & Hospitality/Retail -->
         <div class="stacked-row">
           <div>
-            <div class="card-title" style="font-size: 12px; margin-bottom: 4px;">Incidents & H&amp;S</div>
+            <div class="card-title" style="font-size: 12px; margin-bottom: 4px;">Incidents &amp; H&amp;S</div>
             <div class="metric-row" style="grid-template-columns: repeat(2, minmax(0, 1fr)); margin-bottom: 6px;">
               <div class="metric">
                 <div class="metric-label">Maintenance / H&amp;S</div>
@@ -485,7 +420,7 @@
                 <div class="metric-sub" id="kpiNewcastleHotSub">No hot lunch data</div>
               </div>
               <div class="metric">
-                <div class="metric-label">Busiest Day</div>
+                <div class="metric-label">Busiest Days</div>
                 <div class="metric-sub" id="newcastleBusiestLine">
                   Busiest day: –
                 </div>
@@ -503,7 +438,7 @@
         <div class="card-header">
           <div>
             <div class="card-title">Staffing Detail</div>
-            <div class="card-subtitle">Daily breakdown of sickness, holiday &amp; agency use.</div>
+            <div class="card-subtitle">Daily breakdown by site of sickness, holiday &amp; agency use.</div>
           </div>
         </div>
 
@@ -524,7 +459,7 @@
           </table>
           <div class="table-meta">
             <span id="staffingHighlights">No logs this week.</span>
-            <span class="spark-note">Counts are from daily ops logs.</span>
+            <span>Counts are from daily ops logs.</span>
           </div>
         </div>
       </div>
@@ -547,19 +482,18 @@
     const kpiIncidentsTotalsSubEl = document.getElementById('kpiIncidentsTotalsSub');
     const kpiHospEventsEl = document.getElementById('kpiHospEvents');
     const kpiHospEventsSubEl = document.getElementById('kpiHospEventsSub');
-    const kpiNewcastleHotEl = document.getElementById('kpiNewcastleHot');
-    const kpiNewcastleHotSubEl = document.getElementById('kpiNewcastleHotSub');
     const kpiRetailSpecialsEl = document.getElementById('kpiRetailSpecials');
     const kpiRetailSpecialsSubEl = document.getElementById('kpiRetailSpecialsSub');
+    const kpiNewcastleHotEl = document.getElementById('kpiNewcastleHot');
+    const kpiNewcastleHotSubEl = document.getElementById('kpiNewcastleHotSub');
     const kpiDataHealthEl = document.getElementById('kpiDataHealth');
     const kpiDataHealthSubEl = document.getElementById('kpiDataHealthSub');
 
     const staffingTableBody = document.getElementById('staffingTableBody');
     const staffingHighlightsEl = document.getElementById('staffingHighlights');
 
-    const incidentsSummaryChipsEl = document.getElementById('incidentsSummaryChips');
-    const incidentListEl = document.getElementById('incidentList');
     const incidentsEmptyNoteEl = document.getElementById('incidentsEmptyNote');
+    const incidentListEl = document.getElementById('incidentList');
 
     const newcastleBusiestLineEl = document.getElementById('newcastleBusiestLine');
     const hospBusiestLineEl = document.getElementById('hospBusiestLine');
@@ -594,18 +528,11 @@
       return isNaN(n) ? 0 : n;
     }
 
-    function createChip(text) {
-      const span = document.createElement('span');
-      span.className = 'chip';
-      span.textContent = text;
-      return span;
-    }
-
     async function loadWeeklyData() {
       errorMessageEl.style.display = 'none';
       errorMessageEl.textContent = '';
 
-      // 📅 Use the most recent log_date to define the week (Monday–Friday)
+      // Use the most recent log_date to define the week (Mon–Fri)
       const { data: latestRows, error: latestError } = await supabase
         .from('ops_logs')
         .select('log_date')
@@ -637,14 +564,14 @@
         latestDate.getDate() + diffToMonday
       );
 
-      // Friday is Monday + 4 days
+      // Friday = Monday + 4 days
       const endLocal = new Date(startLocal);
       endLocal.setDate(endLocal.getDate() + 4);
 
       rangeLabelEl.textContent = formatDateRange(startLocal, endLocal);
 
-      const startDateStr = dateKey(startLocal); // YYYY-MM-DD
-      const endDateStr = dateKey(endLocal);     // YYYY-MM-DD
+      const startDateStr = dateKey(startLocal);
+      const endDateStr = dateKey(endLocal);
 
       const { data, error } = await supabase
         .from('ops_logs')
@@ -681,10 +608,10 @@
       kpiIncidentsTotalsSubEl.textContent = 'No incidents recorded';
       kpiHospEventsEl.textContent = '–';
       kpiHospEventsSubEl.textContent = 'No events recorded';
-      kpiNewcastleHotEl.textContent = '–';
-      kpiNewcastleHotSubEl.textContent = 'No hot lunch data';
       kpiRetailSpecialsEl.textContent = '–';
       kpiRetailSpecialsSubEl.textContent = 'No specials';
+      kpiNewcastleHotEl.textContent = '–';
+      kpiNewcastleHotSubEl.textContent = 'No hot lunch data';
       kpiDataHealthEl.textContent = '–';
       kpiDataHealthSubEl.textContent = 'No logs';
 
@@ -710,7 +637,7 @@
       kpiTotalLogsEl.textContent = totalLogs.toString();
       kpiTotalLogsSubEl.textContent = `Logs captured across ${new Set(rows.map(r => r.site)).size} sites`;
 
-      // Logs by site breakdown
+      // Logs by site
       const logsBySiteMap = {};
       rows.forEach(row => {
         if (!row.site) return;
@@ -728,38 +655,46 @@
         kpiLogsBySiteSubEl.textContent = 'No site data';
       }
 
-      // Staffing totals
+      // Staffing totals + per date+site rows
       let totalSick = 0;
       let totalHoliday = 0;
       let totalAgency = 0;
-      const staffingByDate = {};
+
+      const staffingByDateSite = {};
 
       rows.forEach(row => {
-        const key = row.log_date || (row.created_at ? row.created_at.substring(0, 10) : 'unknown');
-        if (!staffingByDate[key]) {
-          staffingByDate[key] = {
-            dateKey: key,
-            site: row.site || '',
+        const dateKeyStr = row.log_date || (row.created_at ? row.created_at.substring(0, 10) : 'unknown');
+        const site = row.site || 'Unknown';
+        const key = `${dateKeyStr}|${site}`;
+
+        if (!staffingByDateSite[key]) {
+          staffingByDateSite[key] = {
+            dateKey: dateKeyStr,
+            site,
             area: row.area || '',
             sick: 0,
             holiday: 0,
             agency: 0
           };
         }
-        const sick = parseCount(row.sickness_count);
-        const holiday = parseCount(row.holiday_count);
-        const agency = parseCount(row.agency_count);
 
-        staffingByDate[key].sick += sick;
-        staffingByDate[key].holiday += holiday;
-        staffingByDate[key].agency += agency;
+        const sick = parseCount(row.sickness_count);
+        const hol = parseCount(row.holiday_count);
+        const ag = parseCount(row.agency_count);
+
+        staffingByDateSite[key].sick += sick;
+        staffingByDateSite[key].holiday += hol;
+        staffingByDateSite[key].agency += ag;
 
         totalSick += sick;
-        totalHoliday += holiday;
-        totalAgency += agency;
+        totalHoliday += hol;
+        totalAgency += ag;
       });
 
-      const staffingEntries = Object.values(staffingByDate).sort((a, b) => {
+      const staffingEntries = Object.values(staffingByDateSite).sort((a, b) => {
+        if (a.dateKey === b.dateKey) {
+          return (a.site || '').localeCompare(b.site || '');
+        }
         return a.dateKey < b.dateKey ? -1 : 1;
       });
 
@@ -767,36 +702,38 @@
       kpiStaffingTotalsSubEl.textContent =
         `Sick: ${totalSick} • Holiday: ${totalHoliday} • Agency: ${totalAgency}`;
 
-      // Staffing table rows
+      // Staffing table
       staffingTableBody.innerHTML = '';
-      staffingEntries.forEach(entry => {
-        const tr = document.createElement('tr');
-        const date = entry.dateKey;
-        const dateObj = new Date(date);
-        tr.innerHTML = `
-          <td>${isNaN(dateObj) ? date : formatDate(dateObj)}</td>
-          <td>${entry.site || ''}</td>
-          <td>${entry.area || ''}</td>
-          <td>${entry.sick}</td>
-          <td>${entry.holiday}</td>
-          <td>${entry.agency}</td>
-        `;
-        staffingTableBody.appendChild(tr);
-      });
+      if (staffingEntries.length === 0) {
+        staffingHighlightsEl.textContent = 'No logs this week.';
+      } else {
+        staffingEntries.forEach(entry => {
+          const tr = document.createElement('tr');
+          const dateObj = new Date(entry.dateKey);
+          const dateStr = isNaN(dateObj) ? entry.dateKey : formatDate(dateObj);
+          tr.innerHTML = `
+            <td>${dateStr}</td>
+            <td>${entry.site || ''}</td>
+            <td>${entry.area || ''}</td>
+            <td>${entry.sick}</td>
+            <td>${entry.holiday}</td>
+            <td>${entry.agency}</td>
+          `;
+          staffingTableBody.appendChild(tr);
+        });
 
-      if (staffingEntries.length > 0) {
-        const busiestDay = staffingEntries.reduce((max, cur) => {
-          const curTotal = cur.sick + cur.holiday + cur.agency;
+        // Busiest (highest impact) date+site row
+        const busiest = staffingEntries.reduce((max, cur) => {
           const maxTotal = max.sick + max.holiday + max.agency;
+          const curTotal = cur.sick + cur.holiday + cur.agency;
           return curTotal > maxTotal ? cur : max;
         }, staffingEntries[0]);
 
-        const busiestDateObj = new Date(busiestDay.dateKey);
+        const busiestDateObj = new Date(busiest.dateKey);
+        const busiestDateStr = isNaN(busiestDateObj) ? busiest.dateKey : formatDate(busiestDateObj);
+
         staffingHighlightsEl.textContent =
-          `Busiest staffing impact: ${formatDate(busiestDateObj)} • ` +
-          `Sick ${busiestDay.sick}, Holiday ${busiestDay.holiday}, Agency ${busiestDay.agency}`;
-      } else {
-        staffingHighlightsEl.textContent = 'No logs this week.';
+          `Busiest: ${busiestDateStr} – ${busiest.site} • Sick ${busiest.sick}, Holiday ${busiest.holiday}, Agency ${busiest.agency}`;
       }
 
       // Incidents
@@ -808,8 +745,14 @@
       const incidents = [];
 
       rows.forEach(row => {
-        const dateLabel = row.log_date || (row.created_at ? row.created_at.substring(0, 10) : '');
-        const siteLabel = row.site || '';
+        const created = row.created_at ? new Date(row.created_at) : null;
+        const logDateStr = row.log_date || (row.created_at ? row.created_at.substring(0, 10) : '');
+        const logDateObj = logDateStr ? new Date(logDateStr + 'T00:00:00') : null;
+
+        const dateStr = logDateObj ? formatDate(logDateObj) : (created ? formatDate(created) : 'Unknown');
+        const timeStr = created
+          ? created.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
+          : '';
 
         if (row.maintenance_issue && row.maintenance_issue !== 'None') {
           maintenanceCount++;
@@ -817,12 +760,13 @@
             maintenanceReported++;
           }
           incidents.push({
-            dateLabel,
-            siteLabel,
             type: 'Maintenance',
-            issue: row.maintenance_issue,
-            notes: row.maintenance_notes,
-            reported: row.maintenance_reported
+            site: row.site || 'Unknown',
+            area: row.area || '',
+            dateStr,
+            timeStr,
+            reported: row.maintenance_reported || 'n/a',
+            note: row.maintenance_notes || ''
           });
         }
 
@@ -832,12 +776,13 @@
             hsReported++;
           }
           incidents.push({
-            dateLabel,
-            siteLabel,
             type: 'H&S',
-            issue: row.hs_issue,
-            notes: row.hs_notes,
-            reported: row.hs_reported
+            site: row.site || 'Unknown',
+            area: row.area || '',
+            dateStr,
+            timeStr,
+            reported: row.hs_reported || 'n/a',
+            note: row.hs_notes || ''
           });
         }
       });
@@ -853,7 +798,6 @@
           `H&S: ${hsCount} (reported ${hsReported})`;
       }
 
-      // Incident list
       if (incidents.length === 0) {
         incidentsEmptyNoteEl.style.display = 'block';
         incidentListEl.innerHTML = '';
@@ -863,18 +807,16 @@
         incidents.forEach(inc => {
           const div = document.createElement('div');
           div.className = 'metric';
-          const dateObj = new Date(inc.dateLabel);
-          const dateStr = isNaN(dateObj) ? inc.dateLabel : formatDate(dateObj);
           div.innerHTML = `
-            <div class="metric-label">${inc.type} • ${inc.siteLabel || ''}</div>
+            <div class="metric-label">${inc.type} • ${inc.site}</div>
             <div class="metric-sub">
-              <strong>${dateStr}</strong> – ${inc.issue || 'Issue not specified'}
+              <strong>${inc.dateStr}</strong>${inc.timeStr ? ' • ' + inc.timeStr : ''} – ${inc.area || ''}
             </div>
             <div class="metric-sub">
-              ${inc.notes ? inc.notes : '<span style="opacity:0.7;">No additional notes.</span>'}
+              ${inc.note ? inc.note : '<span style="opacity:0.7;">No additional notes.</span>'}
             </div>
             <div class="metric-sub">
-              Reported: <strong>${inc.reported || 'Unknown'}</strong>
+              Reported: <strong>${inc.reported}</strong>
             </div>
           `;
           incidentListEl.appendChild(div);
@@ -944,7 +886,8 @@
       if (totalDishes === 0) {
         kpiNewcastleHotSubEl.textContent = 'No hot lunch data';
       } else {
-        kpiNewcastleHotSubEl.textContent = `Avg ${Math.round(totalDishes / (Object.keys(dishesByDate).length || 1))} per day`;
+        const activeDays = Object.keys(dishesByDate).length || 1;
+        kpiNewcastleHotSubEl.textContent = `Avg ${Math.round(totalDishes / activeDays)} per day`;
       }
 
       if (Object.keys(dishesByDate).length > 0) {
@@ -988,7 +931,7 @@
         hospBusiestLineEl.textContent = 'Busiest event day: –';
       }
 
-      // Data completeness: % of logs with non-empty core fields
+      // Data completeness
       let completeCount = 0;
       rows.forEach(row => {
         const hasCore =
@@ -997,10 +940,9 @@
           (row.agency_count && row.agency_count !== '0') ||
           (row.notes && row.notes.trim() !== '');
 
-        if (hasCore) {
-          completeCount++;
-        }
+        if (hasCore) completeCount++;
       });
+
       const completeness = rows.length > 0 ? Math.round((completeCount / rows.length) * 100) : 0;
       kpiDataHealthEl.textContent = `${completeness}%`;
       kpiDataHealthSubEl.textContent = `${completeCount}/${rows.length} logs with core detail`;
@@ -1010,7 +952,6 @@
       loadWeeklyData();
     });
 
-    // Initial load
     loadWeeklyData();
   </script>
 </body>
