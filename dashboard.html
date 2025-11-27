@@ -278,7 +278,7 @@
       <div>
         <h1>Weekly Overview</h1>
         <p class="subheading">
-          Combined stats from all sites for the last 7 days.
+          Combined stats from all sites for the last 7 days (by log date).
         </p>
       </div>
       <div class="buttons-right">
@@ -348,7 +348,7 @@
       <table>
         <thead>
           <tr>
-            <th style="width: 18%;">Date</th>
+            <th style="width: 18%;">Log date</th>
             <th style="width: 18%;">Site</th>
             <th style="width: 24%;">Area</th>
             <th style="width: 12%;">Sickness</th>
@@ -479,7 +479,7 @@
       errorMessageEl.style.display = 'none';
       errorMessageEl.textContent = '';
 
-      // Last 7 days including today (based on local time)
+      // Last 7 days by log_date (based on local time)
       const now = new Date();
       const endLocal = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
       const startLocal = new Date(endLocal);
@@ -487,15 +487,15 @@
 
       rangeLabelEl.textContent = formatDateRange(startLocal, endLocal);
 
-      // Convert to UTC ISO strings
-      const start = new Date(startLocal.getTime() - startLocal.getTimezoneOffset() * 60000);
-      const end = new Date(endLocal.getTime() - endLocal.getTimezoneOffset() * 60000);
+      const startDateStr = dateKey(startLocal); // YYYY-MM-DD
+      const endDateStr = dateKey(endLocal);     // YYYY-MM-DD
 
       const { data, error } = await supabase
         .from('ops_logs')
         .select('*')
-        .gte('created_at', start.toISOString())
-        .lte('created_at', end.toISOString())
+        .gte('log_date', startDateStr)
+        .lte('log_date', endDateStr)
+        .order('log_date', { ascending: false })
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -565,7 +565,7 @@
         .map(([site, count]) => `${site}: ${count}`)
         .join(' • ');
 
-      // Staffing totals and per-day maxima
+      // Staffing totals and per-log-date maxima
       let totalSickness = 0;
       let totalHolidays = 0;
       let totalAgency = 0;
@@ -574,8 +574,7 @@
       const agencyByDate = {};
 
       rows.forEach((row) => {
-        const created = row.created_at ? new Date(row.created_at) : null;
-        const key = created ? dateKey(created) : null;
+        const logDateStr = row.log_date || null;
 
         const sick = parseCount(row.sickness_count);
         const hol = parseCount(row.holiday_count);
@@ -585,9 +584,9 @@
         totalHolidays += hol;
         totalAgency += ag;
 
-        if (key) {
-          sicknessByDate[key] = (sicknessByDate[key] || 0) + sick;
-          agencyByDate[key] = (agencyByDate[key] || 0) + ag;
+        if (logDateStr) {
+          sicknessByDate[logDateStr] = (sicknessByDate[logDateStr] || 0) + sick;
+          agencyByDate[logDateStr] = (agencyByDate[logDateStr] || 0) + ag;
         }
       });
 
@@ -616,7 +615,9 @@
 
       rows.forEach((row) => {
         const created = row.created_at ? new Date(row.created_at) : null;
-        const dateStr = created ? formatDate(created) : 'Unknown';
+        const logDateStr = row.log_date || null;
+        const logDateObj = logDateStr ? new Date(logDateStr + 'T00:00:00') : null;
+        const dateStr = logDateObj ? formatDate(logDateObj) : (created ? formatDate(created) : 'Unknown');
         const timeStr = created
           ? created.toLocaleTimeString('en-GB', {
               hour: '2-digit',
@@ -669,10 +670,9 @@
           hospDayTotal += day || 0;
           hospNightTotal += night || 0;
 
-          const created = row.created_at ? new Date(row.created_at) : null;
-          const key = created ? dateKey(created) : null;
-          if (key) {
-            hospEventsByDate[key] = (hospEventsByDate[key] || 0) + total;
+          const logDateStr = row.log_date || null;
+          if (logDateStr) {
+            hospEventsByDate[logDateStr] = (hospEventsByDate[logDateStr] || 0) + total;
           }
         }
       });
@@ -686,10 +686,9 @@
         if (row.site === 'Newcastle' && row.hot_lunch_dishes != null) {
           const dishes = row.hot_lunch_dishes || 0;
           newcastleTotal += dishes;
-          const created = row.created_at ? new Date(row.created_at) : null;
-          const key = created ? dateKey(created) : null;
-          if (key) {
-            newcastleByDate[key] = (newcastleByDate[key] || 0) + dishes;
+          const logDateStr = row.log_date || null;
+          if (logDateStr) {
+            newcastleByDate[logDateStr] = (newcastleByDate[logDateStr] || 0) + dishes;
           }
           if (row.service_level && serviceLevelsCount[row.service_level] !== undefined) {
             serviceLevelsCount[row.service_level]++;
@@ -713,17 +712,17 @@
       const retailDescriptions = [];
       rows.forEach((row) => {
         if (row.site === 'London' && row.area === 'Retail' && row.retail_lunch_special) {
-          const created = row.created_at ? new Date(row.created_at) : null;
-          const key = created ? dateKey(created) : null;
-          if (key) {
-            if (!retailSpecialsByDate[key]) {
-              retailSpecialsByDate[key] = true;
+          const logDateStr = row.log_date || null;
+          if (logDateStr) {
+            if (!retailSpecialsByDate[logDateStr]) {
+              retailSpecialsByDate[logDateStr] = true;
               retailDaysWithSpecial++;
             }
           }
           if (row.retail_lunch_special === 'Yes' && row.retail_lunch_desc) {
+            const logDateObj = logDateStr ? new Date(logDateStr + 'T00:00:00') : null;
             retailDescriptions.push({
-              dateStr: created ? formatDate(created) : '',
+              dateStr: logDateObj ? formatDate(logDateObj) : '',
               desc: row.retail_lunch_desc
             });
           }
@@ -742,7 +741,7 @@
 
       kpiStaffingTotalsEl.textContent =
         totalSickness + ' / ' + totalHolidays + ' / ' + totalAgency;
-      kpiStaffingTotalsSubEl.textContent = 'Sickness / Holidays / Agency (approx)';
+      kpiStaffingTotalsSubEl.textContent = 'Sickness / Holidays / Agency (approx, by log date)';
 
       const totalIncidents = maintenanceCount + hsCount;
       kpiIncidentsTotalsEl.textContent = totalIncidents.toString();
@@ -750,10 +749,9 @@
         `Maintenance: ${maintenanceCount} • H&S: ${hsCount}`;
 
       kpiHospEventsEl.textContent = `${hospDayTotal} / ${hospNightTotal}`;
-      kpiHospEventsSubEl.textContent = 'Day / Night events total';
+      kpiHospEventsSubEl.textContent = 'Day / Night events total (by log date)';
 
       if (newcastleTotal > 0) {
-        // distinct days with data
         const newcastleDays = Object.keys(newcastleByDate).length || 1;
         const avg = (newcastleTotal / newcastleDays).toFixed(1);
         kpiNewcastleHotEl.textContent = `${newcastleTotal}`;
@@ -767,7 +765,7 @@
       kpiRetailSpecialsSubEl.textContent = 'Days with at least one lunch offer';
 
       kpiDataHealthEl.textContent = logsPerDay;
-      kpiDataHealthSubEl.textContent = 'Logs per day (avg)';
+      kpiDataHealthSubEl.textContent = 'Logs per day (avg, by log date)';
 
       // ---- Staffing table & highlights ----
       staffingTableBody.innerHTML = '';
@@ -784,8 +782,10 @@
       } else {
         staffingRows.forEach((row) => {
           const tr = document.createElement('tr');
-          const created = row.created_at ? new Date(row.created_at) : null;
-          const dateStr = created ? formatDate(created) : '';
+
+          const logDateStr = row.log_date || null;
+          const logDateObj = logDateStr ? new Date(logDateStr + 'T00:00:00') : null;
+          const dateStr = logDateObj ? formatDate(logDateObj) : '';
 
           const s = parseCount(row.sickness_count);
           const h = parseCount(row.holiday_count);
@@ -808,13 +808,13 @@
         const d = maxSick.key;
         const [y, m, day] = d.split('-');
         const dateObj = new Date(Number(y), Number(m) - 1, Number(day));
-        staffingText += `Highest sickness day: ${formatDate(dateObj)} (${maxSick.value} staff). `;
+        staffingText += `Highest sickness log date: ${formatDate(dateObj)} (${maxSick.value} staff). `;
       }
       if (maxAgency && maxAgency.value > 0) {
         const d = maxAgency.key;
         const [y, m, day] = d.split('-');
         const dateObj = new Date(Number(y), Number(m) - 1, Number(day));
-        staffingText += `Highest agency use: ${formatDate(dateObj)} (${maxAgency.value} shifts).`;
+        staffingText += `Highest agency use (by log date): ${formatDate(dateObj)} (${maxAgency.value} shifts).`;
       }
       if (!staffingText) {
         staffingText = 'No significant sickness or agency patterns in the last 7 days.';
@@ -836,11 +836,6 @@
       }
       incidentsEmptyNoteEl.style.display =
         maintenanceCount === 0 && hsCount === 0 ? 'block' : 'none';
-
-      incidents.sort((a, b) => {
-        // We don't have full ISO stamps here, but we can keep original order
-        return 0;
-      });
 
       incidents.forEach((inc) => {
         const div = document.createElement('div');
@@ -868,7 +863,7 @@
         if (Object.keys(newcastleByDate).length > 0) {
           const daysWithData = Object.keys(newcastleByDate).length;
           const avg = (newcastleTotal / daysWithData).toFixed(1);
-          newcastleAvgLineEl.textContent = `Average per day (days with data): ${avg}`;
+          newcastleAvgLineEl.textContent = `Average per log date (days with data): ${avg}`;
         } else {
           newcastleAvgLineEl.textContent = 'Average per day: –';
         }
@@ -878,12 +873,11 @@
           const [y, m, day] = d.split('-');
           const dateObj = new Date(Number(y), Number(m) - 1, Number(day));
           newcastleBusiestLineEl.textContent =
-            `Busiest day: ${formatDate(dateObj)} (${maxNewcastle.value} dishes)`;
+            `Busiest log date: ${formatDate(dateObj)} (${maxNewcastle.value} dishes)`;
         } else {
           newcastleBusiestLineEl.textContent = 'Busiest day: –';
         }
 
-        // service trend
         const trendEntries = Object.entries(serviceLevelsCount)
           .filter(([, count]) => count > 0)
           .sort((a, b) => b[1] - a[1]);
@@ -930,7 +924,7 @@
         const [y, m, day] = d.split('-');
         const dateObj = new Date(Number(y), Number(m) - 1, Number(day));
         hospBusiestLineEl.textContent =
-          `Busiest event day: ${formatDate(dateObj)} (${maxHosp.value} event${maxHosp.value === 1 ? '' : 's'})`;
+          `Busiest event log date: ${formatDate(dateObj)} (${maxHosp.value} event${maxHosp.value === 1 ? '' : 's'})`;
       } else {
         hospBusiestLineEl.textContent = 'Busiest event day: –';
       }
