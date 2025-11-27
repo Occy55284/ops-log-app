@@ -202,6 +202,7 @@
       <div class="buttons-right">
         <button class="nav" id="prevDayBtn">◀ Previous day</button>
         <button class="nav" id="todayBtn">Today</button>
+        <a href="dashboard.html" class="button-link">Weekly dashboard</a>
         <a href="index.html" class="button-link">Back to site selection</a>
       </div>
     </div>
@@ -265,19 +266,18 @@
       const dateObj = new Date(Number(year), Number(month) - 1, Number(day));
       dateLabelEl.textContent = formatDateLabel(dateObj);
 
-      const start = new Date(dateStr + 'T00:00:00Z');
-      const end = new Date(dateStr + 'T23:59:59Z');
-
       logsContainer.innerHTML = '';
       totalLogsEl.textContent = '…';
       siteBreakdownEl.textContent = '…';
       emptyStateEl.style.display = 'none';
 
+      // 🔴 IMPORTANT CHANGE HERE:
+      // We now filter by log_date (the day the log is for),
+      // NOT by created_at (the day it was saved).
       const { data, error } = await supabase
         .from('ops_logs')
         .select('*')
-        .gte('created_at', start.toISOString())
-        .lte('created_at', end.toISOString())
+        .eq('log_date', dateStr)
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -418,7 +418,7 @@
           item.appendChild(tags);
         }
 
-        // Notes section – now includes all detailed comments
+        // Notes section – includes all detailed comments
         const detailLines = [];
 
         if (row.notes) {
