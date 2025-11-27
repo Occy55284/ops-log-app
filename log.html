@@ -34,13 +34,47 @@
     .site-label {
       font-size: 0.95rem;
       color: #9ca3af;
-      margin-bottom: 1.2rem;
+      margin-bottom: 0.4rem;
     }
 
     .info {
       font-size: 0.9rem;
       color: #9ca3af;
       margin-bottom: 1rem;
+    }
+
+    .log-date-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 1rem;
+    }
+
+    .log-date-block {
+      flex: 1;
+    }
+
+    .log-date-label {
+      font-size: 0.8rem;
+      color: #9ca3af;
+      margin-bottom: 4px;
+    }
+
+    .log-date-input {
+      width: 100%;
+      border-radius: 999px;
+      padding: 6px 10px;
+      background: #0f172a;
+      color: #e5e7eb;
+      border: 1px solid #334155;
+      font-size: 0.85rem;
+    }
+
+    .log-day-label {
+      font-size: 0.85rem;
+      color: #e5e7eb;
+      text-align: right;
     }
 
     .section-heading {
@@ -173,6 +207,21 @@
 
     <div class="info" id="info">
       Fill in today’s notes, staffing, maintenance, H&amp;S / Food Safety, and any site-specific details.
+    </div>
+
+    <!-- Log Date Row -->
+    <div class="log-date-row">
+      <div class="log-date-block">
+        <div class="log-date-label">Log date</div>
+        <input
+          id="logDate"
+          type="date"
+          class="log-date-input"
+        />
+      </div>
+      <div class="log-day-label" id="logDayLabel">
+        –
+      </div>
     </div>
 
     <!-- General Notes -->
@@ -368,6 +417,10 @@
     const info = document.getElementById('info');
     const saveMessage = document.getElementById('saveMessage');
 
+    // Log date elements
+    const logDateEl = document.getElementById('logDate');
+    const logDayLabelEl = document.getElementById('logDayLabel');
+
     const sicknessCountEl = document.getElementById('sicknessCount');
     const sicknessNotesWrapper = document.getElementById('sicknessNotesWrapper');
 
@@ -428,6 +481,29 @@
       info.textContent = 'Go back and choose your site first.';
     }
 
+    // Set default log date to today and show day name
+    function setDefaultLogDateToToday() {
+      const today = new Date();
+      const year = today.getFullYear();
+      const month = String(today.getMonth() + 1).padStart(2, '0');
+      const day = String(today.getDate()).padStart(2, '0');
+      logDateEl.value = `${year}-${month}-${day}`;
+      updateLogDayLabel();
+    }
+
+    function updateLogDayLabel() {
+      const val = logDateEl.value;
+      if (!val) {
+        logDayLabelEl.textContent = 'No date selected';
+        return;
+      }
+      const d = new Date(val + 'T00:00:00');
+      const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      logDayLabelEl.textContent = days[d.getDay()];
+    }
+
+    logDateEl.addEventListener('change', updateLogDayLabel);
+
     // Toggle visibility of notes / maintenance / H&S / Retail fields
     function updateVisibility() {
       sicknessNotesWrapper.style.display =
@@ -462,6 +538,7 @@
     retailLunchSpecialEl.addEventListener('change', updateVisibility);
 
     // Initial state
+    setDefaultLogDateToToday();
     updateVisibility();
 
     // Expose saveNotes to the global window so the button can call it
@@ -470,6 +547,12 @@
 
       if (!site) {
         saveMessage.textContent = 'No site selected. Go back and choose a site first.';
+        return;
+      }
+
+      const logDateValue = logDateEl.value;
+      if (!logDateValue) {
+        saveMessage.textContent = 'Please select a log date.';
         return;
       }
 
@@ -596,6 +679,7 @@
         .from('ops_logs')
         .insert([
           {
+            log_date: logDateValue,  // NEW: log date stored as YYYY-MM-DD
             site: site,
             area: effectiveArea,
             notes: notes || null,
@@ -634,7 +718,7 @@
         return;
       }
 
-      // Clear fields after successful save
+      // Clear fields after successful save (we leave log date as-is)
       document.getElementById('notes').value = '';
       document.getElementById('sicknessNotes').value = '';
       document.getElementById('holidayNotes').value = '';
