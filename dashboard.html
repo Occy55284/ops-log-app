@@ -351,10 +351,13 @@
         </div>
 
         <div class="pill">
-          <div class="pill-label">Site</div>
+          <div class="pill-label">Site / Area</div>
           <select id="siteFilter" class="pill-select">
             <option value="All">All</option>
-            <option value="LondonOnly">London sites</option>
+            <option value="LondonAll">London – All</option>
+            <option value="LondonKitchen">London – Kitchen</option>
+            <option value="LondonHospitality">London – Hospitality</option>
+            <option value="LondonRetail">London – Retail</option>
             <option value="Newcastle">Newcastle</option>
           </select>
         </div>
@@ -701,20 +704,48 @@
     }
 
     function applySiteFilter(allRows) {
-      if (currentSiteFilter === 'All') return allRows;
+      const filter = currentSiteFilter;
+      if (filter === 'All') return allRows;
 
-      if (currentSiteFilter === 'LondonOnly') {
+      const isLondonSite = (site) =>
+        site && site.toLowerCase().includes('london');
+      const isNewcastleSite = (site) =>
+        site && site.toLowerCase().includes('newcastle');
+
+      if (filter === 'LondonAll') {
+        return allRows.filter(r => isLondonSite(r.site || ''));
+      }
+
+      if (filter === 'LondonKitchen') {
         return allRows.filter(r =>
-          r.site && r.site.toLowerCase().includes('london')
+          isLondonSite(r.site || '') &&
+          (r.area || '').trim().toLowerCase() === 'kitchen'
         );
       }
 
-      // Specific site match (e.g. "Newcastle")
-      return allRows.filter(r => (r.site || '') === currentSiteFilter);
+      if (filter === 'LondonHospitality') {
+        return allRows.filter(r =>
+          isLondonSite(r.site || '') &&
+          (r.area || '').trim().toLowerCase() === 'hospitality'
+        );
+      }
+
+      if (filter === 'LondonRetail') {
+        return allRows.filter(r =>
+          isLondonSite(r.site || '') &&
+          (r.area || '').trim().toLowerCase() === 'retail'
+        );
+      }
+
+      if (filter === 'Newcastle') {
+        return allRows.filter(r => isNewcastleSite(r.site || ''));
+      }
+
+      return allRows;
     }
 
     function populateDashboard(allRows) {
-      // Apply site filter
+      // Apply site/area filter
       const rows = applySiteFilter(allRows);
 
       if (!rows || rows.length === 0) {
@@ -754,7 +785,7 @@
       rows.forEach(row => {
         const dateKeyStr = row.log_date || (row.created_at ? row.created_at.substring(0, 10) : 'unknown');
         const site = row.site || 'Unknown';
-        const key = `${dateKeyStr}|${site}`;
+        const key = `${dateKeyStr}|${site}|${row.area || ''}`;
 
         if (!staffingByDateSite[key]) {
           staffingByDateSite[key] = {
@@ -782,7 +813,9 @@
 
       const staffingEntries = Object.values(staffingByDateSite).sort((a, b) => {
         if (a.dateKey === b.dateKey) {
-          return (a.site || '').localeCompare(b.site || '');
+          const siteCompare = (a.site || '').localeCompare(b.site || '');
+          if (siteCompare !== 0) return siteCompare;
+          return (a.area || '').localeCompare(b.area || '');
         }
         return a.dateKey < b.dateKey ? -1 : 1;
       });
@@ -797,9 +830,9 @@
         staffingHighlightsEl.textContent = 'No logs this week.';
       } else {
         staffingEntries.forEach(entry => {
-          const tr = document.createElement('tr');
           const dateObj = new Date(entry.dateKey);
           const dateStr = isNaN(dateObj) ? entry.dateKey : formatDate(dateObj);
+          const tr = document.createElement('tr');
           tr.innerHTML = `
             <td>${dateStr}</td>
             <td>${entry.site || ''}</td>
@@ -811,7 +844,7 @@
           staffingTableBody.appendChild(tr);
         });
 
-        // Busiest (highest impact) date+site row
+        // Busiest (highest impact) date+site+area row
         const busiest = staffingEntries.reduce((max, cur) => {
           const maxTotal = max.sick + max.holiday + max.agency;
           const curTotal = cur.sick + cur.holiday + cur.agency;
@@ -822,7 +855,7 @@
         const busiestDateStr = isNaN(busiestDateObj) ? busiest.dateKey : formatDate(busiestDateObj);
 
         staffingHighlightsEl.textContent =
-          `Busiest: ${busiestDateStr} – ${busiest.site} • Sick ${busiest.sick}, Holiday ${busiest.holiday}, Agency ${busiest.agency}`;
+          `Busiest: ${busiestDateStr} – ${busiest.site}${busiest.area ? ' • ' + busiest.area : ''} • Sick ${busiest.sick}, Holiday ${busiest.holiday}, Agency ${busiest.agency}`;
       }
 
       // Incidents
@@ -897,7 +930,7 @@
           const div = document.createElement('div');
           div.className = 'metric';
           div.innerHTML = `
-            <div class="metric-label">${inc.type} • ${inc.site}</div>
+            <div class="metric-label">${inc.type} • ${inc.site}${inc.area ? ' • ' + inc.area : ''}</div>
             <div class="metric-sub">
               <strong>${inc.dateStr}</strong>${inc.timeStr ? ' • ' + inc.timeStr : ''} – ${inc.area || ''}
             </div>
@@ -961,7 +994,7 @@
       const dishesByDate = {};
 
       rows.forEach(row => {
-        if (row.site !== 'Newcastle') return;
+        if (!((row.site || '').toLowerCase().includes('newcastle'))) return;
         const count = parseCount(row.hot_lunch_dishes);
         const dayKey = row.log_date || (row.created_at ? row.created_at.substring(0, 10) : '');
         totalDishes += count;
