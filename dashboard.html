@@ -62,12 +62,12 @@
       border-radius: 999px;
       background: rgba(15, 23, 42, 0.95);
       border: 1px solid rgba(148, 163, 184, 0.4);
-      padding: 8px 14px;
+      padding: 6px 12px;
       font-size: 12px;
       color: #e5e7eb;
       display: inline-flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
     }
 
     .pill-label {
@@ -79,6 +79,21 @@
 
     .pill-value {
       font-weight: 500;
+    }
+
+    .pill-select {
+      border: none;
+      background: transparent;
+      color: #e5e7eb;
+      font-size: 12px;
+      padding: 2px 4px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .pill-select option {
+      background: #020617;
+      color: #e5e7eb;
     }
 
     .btn {
@@ -96,14 +111,22 @@
       box-shadow:
         0 0 0 1px rgba(15, 23, 42, 1),
         0 8px 18px rgba(45, 212, 191, 0.2);
-      transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.1s ease;
+      transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.1s ease, opacity 0.1s ease;
     }
 
-    .btn:hover {
+    .btn:hover:not(:disabled) {
       transform: translateY(-1px);
       box-shadow:
         0 0 0 1px rgba(15, 23, 42, 1),
         0 12px 26px rgba(45, 212, 191, 0.28);
+    }
+
+    .btn:disabled {
+      opacity: 0.4;
+      cursor: default;
+      box-shadow:
+        0 0 0 1px rgba(15, 23, 42, 1),
+        0 4px 10px rgba(15, 23, 42, 0.6);
     }
 
     .btn-icon {
@@ -318,7 +341,7 @@
       <div class="title-wrap">
         <h1>Weekly Ops Dashboard</h1>
         <div class="subtitle">
-          Snapshot of logs, staffing, incidents and key activity for the latest logged week.
+          Snapshot of logs, staffing, incidents and key activity for the selected week.
         </div>
       </div>
       <div class="controls">
@@ -326,13 +349,27 @@
           <div class="pill-label">Week</div>
           <div class="pill-value" id="rangeLabel">–</div>
         </div>
+
+        <div class="pill">
+          <div class="pill-label">Site</div>
+          <select id="siteFilter" class="pill-select">
+            <option value="All">All</option>
+            <option value="London">London</option>
+            <option value="Newcastle">Newcastle</option>
+          </select>
+        </div>
+
         <button class="btn btn-secondary" id="prevWeekBtn">
           <span class="btn-icon">◀</span>
-          Previous week
+          Previous
+        </button>
+        <button class="btn btn-secondary" id="nextWeekBtn">
+          <span class="btn-icon">▶</span>
+          Next
         </button>
         <button class="btn" id="refreshBtn">
           <span class="btn-icon">⟳</span>
-          Refresh
+          Latest week
         </button>
       </div>
     </div>
@@ -498,10 +535,13 @@
 
     const refreshBtn = document.getElementById('refreshBtn');
     const prevWeekBtn = document.getElementById('prevWeekBtn');
+    const nextWeekBtn = document.getElementById('nextWeekBtn');
+    const siteFilterEl = document.getElementById('siteFilter');
 
     // Week navigation state
     let currentWeekOffset = 0;     // 0 = latest week, 1 = previous, etc.
     let latestWeekMonday = null;   // Date object for Monday of latest logged week
+    let currentSiteFilter = 'All';
 
     function formatDateRange(start, end) {
       const opts = { day: 'numeric', month: 'short' };
@@ -535,7 +575,7 @@
       errorMessageEl.style.display = 'none';
       errorMessageEl.textContent = '';
 
-      // If we haven't anchored the latest week yet, do it once
+      // Anchor the "latest" week once, based on most recent log_date
       if (!latestWeekMonday) {
         const { data: latestRows, error: latestError } = await supabase
           .from('ops_logs')
@@ -568,6 +608,9 @@
         );
       }
 
+      // Enable/disable next/week buttons
+      nextWeekBtn.disabled = currentWeekOffset === 0;
+
       // Compute Monday & Friday for the selected week
       const startLocal = new Date(
         latestWeekMonday.getFullYear(),
@@ -599,7 +642,6 @@
       }
 
       if (!data || data.length === 0) {
-        // No logs for this week, but still keep the week label
         setEmptyState();
         return;
       }
@@ -642,7 +684,17 @@
       }
     }
 
-    function populateDashboard(rows) {
+    function populateDashboard(allRows) {
+      // Apply site filter
+      const rows = currentSiteFilter === 'All'
+        ? allRows
+        : allRows.filter(r => (r.site || '') === currentSiteFilter);
+
+      if (!rows || rows.length === 0) {
+        setEmptyState();
+        return;
+      }
+
       const totalLogs = rows.length;
       kpiTotalLogsEl.textContent = totalLogs.toString();
       kpiTotalLogsSubEl.textContent = `Logs captured across ${new Set(rows.map(r => r.site)).size} sites`;
@@ -877,7 +929,7 @@
         kpiRetailSpecialsSubEl.textContent = `${retailSpecialsCount} lunch specials`;
       }
 
-      // Newcastle hot lunch & busiest day
+      // Newcastle hot lunch & busiest day (always only Newcastle logs)
       let totalDishes = 0;
       const dishesByDate = {};
 
@@ -960,11 +1012,26 @@
 
     // Buttons
     refreshBtn.addEventListener('click', () => {
+      // Jump back to latest week
+      currentWeekOffset = 0;
+      latestWeekMonday = null; // force re-fetch of latest anchor
       loadWeeklyData();
     });
 
     prevWeekBtn.addEventListener('click', () => {
       currentWeekOffset += 1; // Move one week back (Mon–Fri)
+      loadWeeklyData();
+    });
+
+    nextWeekBtn.addEventListener('click', () => {
+      if (currentWeekOffset > 0) {
+        currentWeekOffset -= 1; // Move forward towards latest
+        loadWeeklyData();
+      }
+    });
+
+    siteFilterEl.addEventListener('change', (e) => {
+      currentSiteFilter = e.target.value;
       loadWeeklyData();
     });
 
