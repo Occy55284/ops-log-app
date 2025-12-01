@@ -110,6 +110,11 @@
       font-size: 15px;
     }
 
+    .btn-secondary {
+      border-color: rgba(148, 163, 184, 0.6);
+      background: radial-gradient(circle at top left, rgba(30, 64, 175, 0.4), rgba(15, 23, 42, 1));
+    }
+
     .grid {
       display: grid;
       grid-template-columns: minmax(0, 2fr) minmax(0, 1.4fr);
@@ -281,17 +286,6 @@
       box-shadow: 0 0 8px rgba(34, 197, 94, 0.8);
     }
 
-    .note {
-      font-size: 11px;
-      color: #9ca3af;
-      margin-top: 4px;
-    }
-
-    .note strong {
-      color: #e5e7eb;
-      font-weight: 500;
-    }
-
     .section-label {
       font-size: 11px;
       text-transform: uppercase;
@@ -332,9 +326,13 @@
           <div class="pill-label">Week</div>
           <div class="pill-value" id="rangeLabel">–</div>
         </div>
+        <button class="btn btn-secondary" id="prevWeekBtn">
+          <span class="btn-icon">◀</span>
+          Previous week
+        </button>
         <button class="btn" id="refreshBtn">
           <span class="btn-icon">⟳</span>
-          Refresh data
+          Refresh
         </button>
       </div>
     </div>
@@ -351,7 +349,7 @@
           </div>
           <div class="pill-pill">
             <span class="pill-dot"></span>
-            Latest logged week by date.
+            Mon–Fri week view.
           </div>
         </div>
 
@@ -499,6 +497,11 @@
     const hospBusiestLineEl = document.getElementById('hospBusiestLine');
 
     const refreshBtn = document.getElementById('refreshBtn');
+    const prevWeekBtn = document.getElementById('prevWeekBtn');
+
+    // Week navigation state
+    let currentWeekOffset = 0;     // 0 = latest week, 1 = previous, etc.
+    let latestWeekMonday = null;   // Date object for Monday of latest logged week
 
     function formatDateRange(start, end) {
       const opts = { day: 'numeric', month: 'short' };
@@ -532,41 +535,47 @@
       errorMessageEl.style.display = 'none';
       errorMessageEl.textContent = '';
 
-      // Use the most recent log_date to define the week (Mon–Fri)
-      const { data: latestRows, error: latestError } = await supabase
-        .from('ops_logs')
-        .select('log_date')
-        .not('log_date', 'is', null)
-        .order('log_date', { ascending: false })
-        .limit(1);
+      // If we haven't anchored the latest week yet, do it once
+      if (!latestWeekMonday) {
+        const { data: latestRows, error: latestError } = await supabase
+          .from('ops_logs')
+          .select('log_date')
+          .not('log_date', 'is', null)
+          .order('log_date', { ascending: false })
+          .limit(1);
 
-      if (latestError) {
-        console.error('Error loading latest log date:', latestError);
-        errorMessageEl.textContent = 'There was an error loading weekly data.';
-        errorMessageEl.style.display = 'block';
-        setEmptyState();
-        return;
+        if (latestError) {
+          console.error('Error loading latest log date:', latestError);
+          errorMessageEl.textContent = 'There was an error loading weekly data.';
+          errorMessageEl.style.display = 'block';
+          setEmptyState();
+          return;
+        }
+
+        if (!latestRows || latestRows.length === 0 || !latestRows[0].log_date) {
+          setEmptyState();
+          return;
+        }
+
+        const latestDate = new Date(latestRows[0].log_date);
+        const latestDay = latestDate.getDay(); // 0=Sun, 1=Mon, ..., 6=Sat
+        const diffToMonday = latestDay === 0 ? -6 : 1 - latestDay;
+
+        latestWeekMonday = new Date(
+          latestDate.getFullYear(),
+          latestDate.getMonth(),
+          latestDate.getDate() + diffToMonday
+        );
       }
 
-      if (!latestRows || latestRows.length === 0 || !latestRows[0].log_date) {
-        setEmptyState();
-        return;
-      }
-
-      const latestDate = new Date(latestRows[0].log_date);
-      const latestDay = latestDate.getDay(); // 0=Sun, 1=Mon, ..., 6=Sat
-
-      // Find Monday of that week
-      const diffToMonday = latestDay === 0 ? -6 : 1 - latestDay;
+      // Compute Monday & Friday for the selected week
       const startLocal = new Date(
-        latestDate.getFullYear(),
-        latestDate.getMonth(),
-        latestDate.getDate() + diffToMonday
+        latestWeekMonday.getFullYear(),
+        latestWeekMonday.getMonth(),
+        latestWeekMonday.getDate() - currentWeekOffset * 7
       );
-
-      // Friday = Monday + 4 days
       const endLocal = new Date(startLocal);
-      endLocal.setDate(endLocal.getDate() + 4);
+      endLocal.setDate(endLocal.getDate() + 4); // Mon + 4 = Fri
 
       rangeLabelEl.textContent = formatDateRange(startLocal, endLocal);
 
@@ -590,11 +599,12 @@
       }
 
       if (!data || data.length === 0) {
+        // No logs for this week, but still keep the week label
         setEmptyState();
         return;
       }
 
-      populateDashboard(data, startLocal, endLocal);
+      populateDashboard(data);
     }
 
     function setEmptyState() {
@@ -632,7 +642,7 @@
       }
     }
 
-    function populateDashboard(rows, startLocal, endLocal) {
+    function populateDashboard(rows) {
       const totalLogs = rows.length;
       kpiTotalLogsEl.textContent = totalLogs.toString();
       kpiTotalLogsSubEl.textContent = `Logs captured across ${new Set(rows.map(r => r.site)).size} sites`;
@@ -948,10 +958,17 @@
       kpiDataHealthSubEl.textContent = `${completeCount}/${rows.length} logs with core detail`;
     }
 
+    // Buttons
     refreshBtn.addEventListener('click', () => {
       loadWeeklyData();
     });
 
+    prevWeekBtn.addEventListener('click', () => {
+      currentWeekOffset += 1; // Move one week back (Mon–Fri)
+      loadWeeklyData();
+    });
+
+    // Initial load
     loadWeeklyData();
   </script>
 </body>
