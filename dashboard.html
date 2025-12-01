@@ -341,7 +341,7 @@
       <div class="title-wrap">
         <h1>Weekly Ops Dashboard</h1>
         <div class="subtitle">
-          Snapshot of logs, staffing, incidents and key activity for the selected week.
+          Snapshot of logs, staffing, incidents, notes and key activity for the selected week.
         </div>
       </div>
       <div class="controls">
@@ -354,7 +354,7 @@
           <div class="pill-label">Site</div>
           <select id="siteFilter" class="pill-select">
             <option value="All">All</option>
-            <option value="London">London</option>
+            <option value="LondonOnly">London sites</option>
             <option value="Newcastle">Newcastle</option>
           </select>
         </div>
@@ -377,12 +377,12 @@
     <div id="errorMessage" class="error-banner"></div>
 
     <div class="grid">
-      <!-- LEFT: Main KPIs & Incidents -->
+      <!-- LEFT: Main KPIs, Incidents, Notes -->
       <div class="card">
         <div class="card-header">
           <div>
             <div class="card-title">Overview</div>
-            <div class="card-subtitle">Logs, site mix, staffing and core activity.</div>
+            <div class="card-subtitle">Logs, site mix, staffing, incidents &amp; notes.</div>
           </div>
           <div class="pill-pill">
             <span class="pill-dot"></span>
@@ -466,6 +466,11 @@
             </div>
           </div>
         </div>
+
+        <!-- Notes section -->
+        <div class="section-label">Daily notes</div>
+        <div id="notesEmptyNote" class="empty-text">No notes captured this week.</div>
+        <div id="notesList"></div>
       </div>
 
       <!-- RIGHT: Staffing details -->
@@ -532,6 +537,9 @@
 
     const newcastleBusiestLineEl = document.getElementById('newcastleBusiestLine');
     const hospBusiestLineEl = document.getElementById('hospBusiestLine');
+
+    const notesEmptyNoteEl = document.getElementById('notesEmptyNote');
+    const notesListEl = document.getElementById('notesList');
 
     const refreshBtn = document.getElementById('refreshBtn');
     const prevWeekBtn = document.getElementById('prevWeekBtn');
@@ -608,7 +616,7 @@
         );
       }
 
-      // Enable/disable next/week buttons
+      // Enable/disable next week button (can't go "future" beyond latest week)
       nextWeekBtn.disabled = currentWeekOffset === 0;
 
       // Compute Monday & Friday for the selected week
@@ -676,6 +684,14 @@
       if (incidentsEmptyNoteEl) {
         incidentsEmptyNoteEl.style.display = 'block';
       }
+
+      if (notesListEl) {
+        notesListEl.innerHTML = '';
+      }
+      if (notesEmptyNoteEl) {
+        notesEmptyNoteEl.style.display = 'block';
+      }
+
       if (newcastleBusiestLineEl) {
         newcastleBusiestLineEl.textContent = 'Busiest day: –';
       }
@@ -684,11 +700,22 @@
       }
     }
 
+    function applySiteFilter(allRows) {
+      if (currentSiteFilter === 'All') return allRows;
+
+      if (currentSiteFilter === 'LondonOnly') {
+        return allRows.filter(r =>
+          r.site && r.site.toLowerCase().includes('london')
+        );
+      }
+
+      // Specific site match (e.g. "Newcastle")
+      return allRows.filter(r => (r.site || '') === currentSiteFilter);
+    }
+
     function populateDashboard(allRows) {
       // Apply site filter
-      const rows = currentSiteFilter === 'All'
-        ? allRows
-        : allRows.filter(r => (r.site || '') === currentSiteFilter);
+      const rows = applySiteFilter(allRows);
 
       if (!rows || rows.length === 0) {
         setEmptyState();
@@ -1008,6 +1035,37 @@
       const completeness = rows.length > 0 ? Math.round((completeCount / rows.length) * 100) : 0;
       kpiDataHealthEl.textContent = `${completeness}%`;
       kpiDataHealthSubEl.textContent = `${completeCount}/${rows.length} logs with core detail`;
+
+      // Notes section
+      const notes = rows
+        .filter(r => r.notes && r.notes.trim() !== '')
+        .map(r => ({
+          notes: r.notes.trim(),
+          site: r.site || 'Unknown',
+          area: r.area || '',
+          dateKey: r.log_date || (r.created_at ? r.created_at.substring(0, 10) : '')
+        }))
+        .sort((a, b) => a.dateKey < b.dateKey ? -1 : 1);
+
+      if (!notes || notes.length === 0) {
+        notesEmptyNoteEl.style.display = 'block';
+        notesListEl.innerHTML = '';
+      } else {
+        notesEmptyNoteEl.style.display = 'none';
+        notesListEl.innerHTML = '';
+        notes.forEach(note => {
+          const dateObj = new Date(note.dateKey);
+          const dateStr = isNaN(dateObj) ? note.dateKey : formatDate(dateObj);
+          const div = document.createElement('div');
+          div.className = 'metric';
+          div.innerHTML = `
+            <div class="metric-label">Notes • ${note.site}${note.area ? ' • ' + note.area : ''}</div>
+            <div class="metric-sub"><strong>${dateStr}</strong></div>
+            <div class="metric-sub">${note.notes}</div>
+          `;
+          notesListEl.appendChild(div);
+        });
+      }
     }
 
     // Buttons
