@@ -374,6 +374,10 @@
           <span class="btn-icon">⟳</span>
           Latest week
         </button>
+        <button class="btn" id="generateSummaryBtn">
+          <span class="btn-icon">📝</span>
+          Generate Summary Text
+        </button>
       </div>
     </div>
 
@@ -509,6 +513,49 @@
     </div>
   </div>
 
+  <!-- SUMMARY MODAL -->
+  <div id="summaryModal" style="
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.75);
+    backdrop-filter:blur(4px);
+    z-index:9999;
+    padding:40px;
+  ">
+    <div style="
+      max-width:800px;
+      margin:0 auto;
+      background:#111827;
+      padding:20px;
+      border-radius:14px;
+      border:1px solid #334155;
+      box-shadow:0 0 40px rgba(0,0,0,0.4);
+    ">
+      <h2 style="margin:0 0 12px; font-size:18px; color:#e5e7eb;">
+        Weekly Summary Text
+      </h2>
+      <textarea id="summaryOutput" style="
+        width:100%;
+        height:400px;
+        padding:12px;
+        border-radius:10px;
+        background:#0f172a;
+        color:#e2e8f0;
+        border:1px solid #475569;
+        font-size:13px;
+        line-height:1.5;
+      "></textarea>
+
+      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:12px;">
+        <button id="copySummaryBtn" class="btn" style="padding:6px 14px; font-size:12px;">Copy</button>
+        <button id="closeSummaryBtn" class="btn btn-secondary" style="padding:6px 14px; font-size:12px;">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+
   <script type="module">
     import { supabase } from './supabase-config.js';
 
@@ -548,6 +595,15 @@
     const prevWeekBtn = document.getElementById('prevWeekBtn');
     const nextWeekBtn = document.getElementById('nextWeekBtn');
     const siteFilterEl = document.getElementById('siteFilter');
+
+    const generateSummaryBtn = document.getElementById('generateSummaryBtn');
+    const summaryModal = document.getElementById('summaryModal');
+    const summaryOutput = document.getElementById('summaryOutput');
+    const closeSummaryBtn = document.getElementById('closeSummaryBtn');
+    const copySummaryBtn = document.getElementById('copySummaryBtn');
+
+    // Store last filtered rows for summary
+    window._latestRowsForSummary = [];
 
     // Week navigation state
     let currentWeekOffset = 0;     // 0 = latest week, 1 = previous, etc.
@@ -701,6 +757,8 @@
       if (hospBusiestLineEl) {
         hospBusiestLineEl.textContent = 'Busiest event day: –';
       }
+
+      window._latestRowsForSummary = [];
     }
 
     function applySiteFilter(allRows) {
@@ -748,6 +806,9 @@
       // Apply site/area filter
       const rows = applySiteFilter(allRows);
 
+      // Store for summary generation
+      window._latestRowsForSummary = rows.slice();
+
       if (!rows || rows.length === 0) {
         setEmptyState();
         return;
@@ -775,7 +836,7 @@
         kpiLogsBySiteSubEl.textContent = 'No site data';
       }
 
-      // Staffing totals + per date+site rows
+      // Staffing totals + per date+site+area rows
       let totalSick = 0;
       let totalHoliday = 0;
       let totalAgency = 0;
@@ -989,7 +1050,7 @@
         kpiRetailSpecialsSubEl.textContent = `${retailSpecialsCount} lunch specials`;
       }
 
-      // Newcastle hot lunch & busiest day (always only Newcastle logs)
+      // Newcastle hot lunch & busiest day (Newcastle rows only)
       let totalDishes = 0;
       const dishesByDate = {};
 
@@ -1101,7 +1162,100 @@
       }
     }
 
-    // Buttons
+    // -----------------------------
+    // SUMMARY GENERATION FEATURE
+    // -----------------------------
+    function buildSummaryText() {
+      const rows = window._latestRowsForSummary || [];
+
+      if (!rows || rows.length === 0) {
+        return 'No data available for this week.';
+      }
+
+      let text = '';
+
+      // Header
+      text += `Weekly Ops Summary\n`;
+      text += `---------------------\n`;
+      text += `Week: ${rangeLabelEl.textContent}\n`;
+      text += `Filter: ${siteFilterEl.options[siteFilterEl.selectedIndex].text}\n\n`;
+
+      // Log counts
+      text += `Total Logs: ${rows.length}\n\n`;
+
+      // Staffing summary
+      let sick = 0, hol = 0, agency = 0;
+      rows.forEach(r => {
+        sick += parseCount(r.sickness_count);
+        hol += parseCount(r.holiday_count);
+        agency += parseCount(r.agency_count);
+      });
+
+      text += `Staffing Impact\n`;
+      text += `---------------------\n`;
+      text += `• Sick: ${sick}\n`;
+      text += `• Holiday: ${hol}\n`;
+      text += `• Agency: ${agency}\n\n`;
+
+      // Incidents
+      const incidents = rows.filter(r =>
+        (r.maintenance_issue && r.maintenance_issue !== 'None') ||
+        (r.hs_issue && r.hs_issue !== 'None')
+      );
+
+      text += `Incidents / H&S\n`;
+      text += `---------------------\n`;
+      if (incidents.length === 0) {
+        text += `No incidents reported.\n\n`;
+      } else {
+        incidents.forEach(i => {
+          const date = i.log_date || (i.created_at ? i.created_at.substring(0, 10) : '');
+          text += `• ${i.site || 'Unknown'} – ${i.area || ''} – ${date}\n`;
+          text += `  Maintenance: ${i.maintenance_issue || 'None'} | H&S: ${i.hs_issue || 'None'}\n`;
+          if (i.maintenance_notes) text += `  Maint notes: ${i.maintenance_notes}\n`;
+          if (i.hs_notes) text += `  H&S notes: ${i.hs_notes}\n`;
+          text += `\n`;
+        });
+      }
+
+      // Notes
+      const notes = rows.filter(r => r.notes && r.notes.trim() !== '');
+      text += `Daily Notes\n`;
+      text += `---------------------\n`;
+      if (notes.length === 0) {
+        text += `No notes recorded.\n`;
+      } else {
+        notes.forEach(n => {
+          const date = n.log_date || (n.created_at ? n.created_at.substring(0, 10) : '');
+          text += `• ${n.site || 'Unknown'} – ${n.area || ''} – ${date}\n`;
+          text += `  ${n.notes.trim()}\n\n`;
+        });
+      }
+
+      return text;
+    }
+
+    generateSummaryBtn.addEventListener('click', () => {
+      const text = buildSummaryText();
+      summaryOutput.value = text;
+      summaryModal.style.display = 'block';
+    });
+
+    closeSummaryBtn.addEventListener('click', () => {
+      summaryModal.style.display = 'none';
+    });
+
+    copySummaryBtn.addEventListener('click', () => {
+      navigator.clipboard.writeText(summaryOutput.value || '');
+      copySummaryBtn.textContent = 'Copied!';
+      setTimeout(() => {
+        copySummaryBtn.textContent = 'Copy';
+      }, 1000);
+    });
+
+    // -----------------------------
+    // Buttons & initial load
+    // -----------------------------
     refreshBtn.addEventListener('click', () => {
       // Jump back to latest week
       currentWeekOffset = 0;
