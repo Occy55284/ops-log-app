@@ -17,38 +17,58 @@
     }
 
     .card {
-      background: #020617;
-      border-radius: 16px;
-      padding: 24px 20px;
-      max-width: 460px;
       width: 100%;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
-      border: 1px solid #1f2937;
+      max-width: 720px;
+      background: radial-gradient(circle at top left, rgba(30, 64, 175, 0.4), rgba(15, 23, 42, 0.98));
+      border-radius: 18px;
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      box-shadow:
+        0 0 0 1px rgba(15, 23, 42, 1),
+        0 18px 40px rgba(15, 23, 42, 0.9);
+      padding: 20px 18px 18px;
+      box-sizing: border-box;
     }
 
     h1 {
-      font-size: 1.6rem;
-      margin-bottom: 0.25rem;
+      margin: 0 0 4px;
+      font-size: 1.25rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #e5e7eb;
     }
 
     .site-label {
-      font-size: 0.95rem;
+      font-size: 0.9rem;
       color: #9ca3af;
-      margin-bottom: 0.4rem;
+      margin-bottom: 6px;
     }
 
     .info {
-      font-size: 0.9rem;
+      font-size: 0.8rem;
       color: #9ca3af;
-      margin-bottom: 1rem;
+      margin-bottom: 12px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.85rem;
+      margin-bottom: 4px;
+    }
+
+    .section-heading {
+      margin-top: 12px;
+      margin-bottom: 6px;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: #9ca3af;
     }
 
     .log-date-row {
       display: flex;
-      justify-content: space-between;
       align-items: center;
       gap: 8px;
-      margin-bottom: 1rem;
+      margin-bottom: 8px;
     }
 
     .log-date-block {
@@ -56,7 +76,9 @@
     }
 
     .log-date-label {
-      font-size: 0.8rem;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
       color: #9ca3af;
       margin-bottom: 4px;
     }
@@ -64,61 +86,30 @@
     .log-date-input {
       width: 100%;
       border-radius: 999px;
-      padding: 6px 10px;
+      padding: 8px 10px;
       background: #0f172a;
       color: #e5e7eb;
       border: 1px solid #334155;
-      font-size: 0.85rem;
+      font-size: 0.9rem;
     }
 
     .log-day-label {
-      font-size: 0.85rem;
-      color: #e5e7eb;
+      min-width: 80px;
       text-align: right;
-    }
-
-    .section-heading {
-      font-size: 0.9rem;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: #6b7280;
-      margin-top: 1rem;
-      margin-bottom: 0.4rem;
-    }
-
-    label {
-      font-size: 0.9rem;
-      display: block;
-      margin-bottom: 6px;
-    }
-
-    .small-label {
       font-size: 0.8rem;
       color: #9ca3af;
-      margin-bottom: 4px;
     }
 
     textarea {
       width: 100%;
-      border-radius: 12px;
-      padding: 10px;
+      border-radius: 8px;
+      padding: 8px 10px;
       background: #0f172a;
       color: #f1f5f9;
       border: 1px solid #334155;
       font-size: 0.9rem;
       margin-bottom: 10px;
       resize: vertical;
-    }
-
-    select {
-      width: 100%;
-      border-radius: 999px;
-      padding: 8px 10px;
-      background: #0f172a;
-      color: #e5e7eb;
-      border: 1px solid #334155;
-      font-size: 0.9rem;
-      margin-bottom: 6px;
     }
 
     input[type="number"] {
@@ -144,12 +135,19 @@
     .hs-block,
     .newcastle-block,
     .retail-block,
-    .hospitality-block {
+    .hospitality-block,
+    .photo-block {
       margin-bottom: 10px;
       padding: 8px 10px;
       border-radius: 12px;
       background: #020617;
       border: 1px solid #111827;
+    }
+
+    input[type="file"] {
+      width: 100%;
+      font-size: 0.85rem;
+      margin-top: 4px;
     }
 
     button.save {
@@ -161,10 +159,9 @@
       color: #e5e7eb;
       font-weight: 600;
       box-shadow: 0 0 0 1px #374151;
-      transition: 0.15s ease;
-      margin-top: 4px;
-      margin-bottom: 10px;
-      width: 100%;
+      font-size: 0.9rem;
+      margin-top: 8px;
+      margin-bottom: 6px;
     }
 
     button.save:hover {
@@ -173,11 +170,26 @@
     }
 
     p#saveMessage {
-      font-size: 0.8rem;
-      color: #9ca3af;
-      margin-top: 3px;
-      margin-bottom: 12px;
+      font-size: 0.85rem;
       min-height: 1.2em;
+      margin: 4px 0 8px;
+    }
+
+    .small-label {
+      font-size: 0.75rem;
+      color: #9ca3af;
+      margin-bottom: 4px;
+    }
+
+    select {
+      width: 100%;
+      border-radius: 999px;
+      padding: 8px 10px;
+      background: #0f172a;
+      color: #e5e7eb;
+      border: 1px solid #334155;
+      font-size: 0.9rem;
+      margin-bottom: 6px;
     }
 
     a.button {
@@ -228,6 +240,16 @@
     <div>
       <label for="notes">General notes for today:</label>
       <textarea id="notes" rows="3" placeholder="Key events, issues, wins..."></textarea>
+    </div>
+
+    <!-- Photo upload -->
+    <div class="section-heading">Photo (optional)</div>
+    <div class="photo-block">
+      <label for="photoFile">Attach a photo from today (optional):</label>
+      <input id="photoFile" type="file" accept="image/*" />
+      <div class="small-label">
+        You can leave this blank if you don't need a photo.
+      </div>
     </div>
 
     <!-- Staffing Section -->
@@ -291,16 +313,16 @@
         <option value="Yes">Yes – issue today</option>
       </select>
 
-      <div id="maintenanceNotesWrapper" style="display: none; margin-top: 6px;">
-        <div class="small-label">Maintenance issue details:</div>
-        <textarea id="maintenanceNotes" rows="2" placeholder="Equipment, problem, area..."></textarea>
+      <div id="maintenanceNotesWrapper" style="display: none;">
+        <div class="small-label">Maintenance details:</div>
+        <textarea id="maintenanceNotes" rows="2" placeholder="Equipment, impact, temp fix..."></textarea>
       </div>
 
-      <div id="maintenanceReportedWrapper" style="display: none; margin-top: 6px;">
-        <div class="small-label">Has it been reported?</div>
+      <div id="maintenanceReportedWrapper" style="display: none;">
+        <div class="small-label">Has this been reported?</div>
         <select id="maintenanceReported">
           <option value="Yes">Yes</option>
-          <option value="No">No</option>
+          <option value="No">Not yet</option>
         </select>
       </div>
     </div>
@@ -309,47 +331,48 @@
     <div class="section-heading">H&amp;S / Food Safety</div>
 
     <div class="hs-block">
-      <label for="hsIssue">Any H&amp;S or Food Safety issues today?</label>
+      <label for="hsIssue">Any H&amp;S / Food Safety incidents or near misses?</label>
       <select id="hsIssue">
-        <option value="None">No issues</option>
-        <option value="Yes">Yes – issue today</option>
+        <option value="None">No incidents</option>
+        <option value="Yes">Yes – incident / near miss</option>
       </select>
 
-      <div id="hsNotesWrapper" style="display: none; margin-top: 6px;">
-        <div class="small-label">H&amp;S / Food Safety issue details:</div>
-        <textarea id="hsNotes" rows="2" placeholder="What happened? Area / impact..."></textarea>
+      <div id="hsNotesWrapper" style="display: none;">
+        <div class="small-label">H&amp;S / Food Safety details:</div>
+        <textarea id="hsNotes" rows="2" placeholder="What happened, who was involved, actions..."></textarea>
       </div>
 
-      <div id="hsReportedWrapper" style="display: none; margin-top: 6px;">
-        <div class="small-label">Has it been reported?</div>
+      <div id="hsReportedWrapper" style="display: none;">
+        <div class="small-label">Has this been reported?</div>
         <select id="hsReported">
           <option value="Yes">Yes</option>
-          <option value="No">No</option>
+          <option value="No">Not yet</option>
         </select>
       </div>
     </div>
 
     <!-- Newcastle-specific Section -->
     <div id="newcastleSection" style="display: none;">
-      <div class="section-heading">Newcastle – Hot Lunch Service</div>
+      <div class="section-heading">Newcastle – Hot Lunch &amp; Service</div>
       <div class="newcastle-block">
-        <label for="hotLunchDishes">How many hot lunch dishes were sold today?</label>
+        <label for="hotLunchDishes">Number of hot lunch dishes sold:</label>
         <input
           id="hotLunchDishes"
           type="number"
           min="0"
-          placeholder="Enter number of hot lunch dishes"
+          placeholder="Total hot lunch dishes"
         />
+        <div class="small-label">Approximate is fine.</div>
 
-        <div class="small-label" style="margin-top: 6px;">
-          How was service?
+        <div style="margin-top: 8px;">
+          <label for="serviceLevel">How was service today?</label>
+          <select id="serviceLevel">
+            <option value="">Select service level</option>
+            <option value="Busier">Busier than normal</option>
+            <option value="Normal">Normal</option>
+            <option value="Quieter">Quieter than normal</option>
+          </select>
         </div>
-        <select id="serviceLevel">
-          <option value="">Select service level</option>
-          <option value="Busier">Busier than normal</option>
-          <option value="Normal">Normal</option>
-          <option value="Quieter">Quieter than normal</option>
-        </select>
       </div>
     </div>
 
@@ -386,7 +409,7 @@
           placeholder="Number of daytime events"
         />
 
-        <label for="hospNightEvents" style="margin-top: 10px;">Night events / hospitality bookings:</label>
+        <label for="hospNightEvents" style="margin-top: 6px;">Evening events:</label>
         <input
           id="hospNightEvents"
           type="number"
@@ -420,6 +443,8 @@
     // Log date elements
     const logDateEl = document.getElementById('logDate');
     const logDayLabelEl = document.getElementById('logDayLabel');
+
+    const photoFileInput = document.getElementById('photoFile');
 
     const sicknessCountEl = document.getElementById('sicknessCount');
     const sicknessNotesWrapper = document.getElementById('sicknessNotesWrapper');
@@ -462,31 +487,49 @@
     if (site) {
       if (site === 'London' && area) {
         siteLabel.textContent = `Site: ${site} • Area: ${area}`;
+        info.textContent =
+          'Capture today’s notes, staffing, maintenance, and any London-specific details for this area.';
 
         if (area === 'Retail') {
           retailSection.style.display = 'block';
+        } else {
+          retailSection.style.display = 'none';
         }
 
         if (area === 'Hospitality') {
           hospitalitySection.style.display = 'block';
+        } else {
+          hospitalitySection.style.display = 'none';
+        }
+
+        if (area === 'Kitchen') {
+          hospitalitySection.style.display = 'none';
+          retailSection.style.display = 'none';
         }
       } else if (site === 'Newcastle') {
         siteLabel.textContent = 'Site: Newcastle';
+        info.textContent =
+          'Capture today’s notes, staffing, maintenance, H&S, and hot lunch performance for Newcastle.';
         newcastleSection.style.display = 'block';
+        retailSection.style.display = 'none';
+        hospitalitySection.style.display = 'none';
       } else {
         siteLabel.textContent = `Site: ${site}`;
+        newcastleSection.style.display = 'none';
+        retailSection.style.display = 'none';
+        hospitalitySection.style.display = 'none';
       }
     } else {
-      siteLabel.textContent = 'No site selected yet.';
-      info.textContent = 'Go back and choose your site first.';
+      siteLabel.textContent = 'No site selected';
+      info.textContent = 'Go back and select a site first.';
     }
 
-    // Set default log date to today and show day name
-    function setDefaultLogDateToToday() {
-      const today = new Date();
-      const year = today.getFullYear();
-      const month = String(today.getMonth() + 1).padStart(2, '0');
-      const day = String(today.getDate()).padStart(2, '0');
+    // Default log date to today (and show the day name)
+    function setTodayAsDefaultLogDate() {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
       logDateEl.value = `${year}-${month}-${day}`;
       updateLogDayLabel();
     }
@@ -524,8 +567,10 @@
       hsReportedWrapper.style.display = hasHSIssue ? 'block' : 'none';
 
       const hasRetailLunchSpecial = retailLunchSpecialEl.value === 'Yes';
+      const areaLocal = area || 'All';
+
       retailLunchDescWrapper.style.display =
-        hasRetailLunchSpecial && site === 'London' && area === 'Retail'
+        hasRetailLunchSpecial && site === 'London' && areaLocal === 'Retail'
           ? 'block'
           : 'none';
     }
@@ -536,10 +581,6 @@
     maintenanceIssueEl.addEventListener('change', updateVisibility);
     hsIssueEl.addEventListener('change', updateVisibility);
     retailLunchSpecialEl.addEventListener('change', updateVisibility);
-
-    // Initial state
-    setDefaultLogDateToToday();
-    updateVisibility();
 
     // Expose saveNotes to the global window so the button can call it
     window.saveNotes = async function saveNotes() {
@@ -602,21 +643,9 @@
       }
 
       // London Retail-specific values
-      let retailLunchSpecial = null;
-      let retailLunchDesc = null;
-
-      if (site === 'London' && area === 'Retail') {
-        retailLunchSpecial = retailLunchSpecialEl.value; // 'Yes' or 'No'
-        const descVal = retailLunchDescEl.value.trim();
-
-        if (retailLunchSpecial === 'Yes' && !descVal) {
-          saveMessage.textContent =
-            'For London Retail, please add a brief description of the lunch special.';
-          return;
-        }
-
-        retailLunchDesc = descVal || null;
-      }
+      const retailLunchSpecial = retailLunchSpecialEl.value;
+      const retailLunchDesc =
+        retailLunchSpecial === 'Yes' ? retailLunchDescEl.value.trim() : null;
 
       // London Hospitality-specific values
       let hospDayEvents = null;
@@ -669,11 +698,44 @@
         !hospHasEvents
       ) {
         saveMessage.textContent =
-          'Please add general notes, staffing details, a maintenance issue, an H&S/Food Safety issue, a Retail lunch special, or (for Hospitality) event numbers before saving.';
+          'Please add general notes, staffing details, a maintenance / H&S item, a retail lunch special, or (for Hospitality) event numbers before saving.';
         return;
       }
 
       saveMessage.textContent = 'Saving...';
+
+      let photoUrl = null;
+
+      if (photoFileInput && photoFileInput.files && photoFileInput.files[0]) {
+        const file = photoFileInput.files[0];
+
+        const ext = file.name.includes('.') ? file.name.split('.').pop() : 'jpg';
+        const safeSite = (site || 'Unknown').replace(/\s+/g, '-');
+        const safeArea = (effectiveArea || 'All').replace(/\s+/g, '-');
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+        const path = `${safeSite}/${safeArea}/${logDateValue}_${timestamp}.${ext}`;
+
+        const { data: uploadData, error: uploadError } = await supabase
+          .storage
+          .from('ops-photos')
+          .upload(path, file, {
+            cacheControl: '3600',
+            upsert: false
+          });
+
+        if (uploadError) {
+          console.error('Photo upload error:', uploadError);
+          saveMessage.textContent = `Photo upload failed: ${uploadError.message}`;
+          return;
+        }
+
+        const { data: publicUrlData } = supabase
+          .storage
+          .from('ops-photos')
+          .getPublicUrl(uploadData.path);
+
+        photoUrl = publicUrlData?.publicUrl || null;
+      }
 
       const { data, error } = await supabase
         .from('ops_logs')
@@ -683,6 +745,7 @@
             site: site,
             area: effectiveArea,
             notes: notes || null,
+            photo_url: photoUrl,
 
             sickness_count: sicknessCount,
             sickness_notes: sicknessNotes || null,
@@ -739,11 +802,18 @@
       hsIssueEl.value = 'None';
       hsReportedEl.value = 'Yes';
       retailLunchSpecialEl.value = 'No';
+      if (photoFileInput) {
+        photoFileInput.value = '';
+      }
 
       updateVisibility();
 
       saveMessage.textContent = 'Daily log saved to Supabase ✅';
     };
+
+    // Initialise defaults on load
+    setTodayAsDefaultLogDate();
+    updateVisibility();
   </script>
 </body>
 </html>
