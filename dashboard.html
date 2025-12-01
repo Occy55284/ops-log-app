@@ -333,6 +333,29 @@
       color: #9ca3af;
       margin-top: 4px;
     }
+
+    /* Thumbnail for photos in notes */
+    .note-photo-thumb {
+      margin-top: 6px;
+      border-radius: 10px;
+      max-width: 120px;
+      max-height: 90px;
+      object-fit: cover;
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      display: block;
+    }
+
+    .note-photo-link {
+      font-size: 11px;
+      margin-top: 4px;
+      display: inline-block;
+      color: #7dd3fc;
+      text-decoration: none;
+    }
+
+    .note-photo-link:hover {
+      text-decoration: underline;
+    }
   </style>
 </head>
 <body>
@@ -1130,13 +1153,14 @@
       kpiDataHealthEl.textContent = `${completeness}%`;
       kpiDataHealthSubEl.textContent = `${completeCount}/${rows.length} logs with core detail`;
 
-      // Notes section
+      // Notes section (now includes logs with photos even if notes are empty)
       const notes = rows
-        .filter(r => r.notes && r.notes.trim() !== '')
+        .filter(r => (r.notes && r.notes.trim() !== '') || r.photo_url)
         .map(r => ({
-          notes: r.notes.trim(),
+          notes: (r.notes || '').trim(),
           site: r.site || 'Unknown',
           area: r.area || '',
+          photoUrl: r.photo_url || null,
           dateKey: r.log_date || (r.created_at ? r.created_at.substring(0, 10) : '')
         }))
         .sort((a, b) => a.dateKey < b.dateKey ? -1 : 1);
@@ -1150,13 +1174,30 @@
         notes.forEach(note => {
           const dateObj = new Date(note.dateKey);
           const dateStr = isNaN(dateObj) ? note.dateKey : formatDate(dateObj);
-          const div = document.createElement('div');
-          div.className = 'metric';
-          div.innerHTML = `
+
+          let html = `
             <div class="metric-label">Notes • ${note.site}${note.area ? ' • ' + note.area : ''}</div>
             <div class="metric-sub"><strong>${dateStr}</strong></div>
-            <div class="metric-sub">${note.notes}</div>
           `;
+
+          if (note.notes) {
+            html += `<div class="metric-sub">${note.notes}</div>`;
+          } else {
+            html += `<div class="metric-sub"><span style="opacity:0.7;">No text notes – photo only.</span></div>`;
+          }
+
+          if (note.photoUrl) {
+            html += `
+              <a class="note-photo-link" href="${note.photoUrl}" target="_blank" rel="noopener noreferrer">
+                View photo in full size
+              </a>
+              <img class="note-photo-thumb" src="${note.photoUrl}" alt="Log photo thumbnail" />
+            `;
+          }
+
+          const div = document.createElement('div');
+          div.className = 'metric';
+          div.innerHTML = html;
           notesListEl.appendChild(div);
         });
       }
@@ -1181,7 +1222,11 @@
       text += `Filter: ${siteFilterEl.options[siteFilterEl.selectedIndex].text}\n\n`;
 
       // Log counts
-      text += `Total Logs: ${rows.length}\n\n`;
+      text += `Total Logs: ${rows.length}\n`;
+
+      // Photos
+      const photoCount = rows.filter(r => r.photo_url).length;
+      text += `Logs with photos: ${photoCount}\n\n`;
 
       // Staffing summary
       let sick = 0, hol = 0, agency = 0;
@@ -1218,9 +1263,9 @@
         });
       }
 
-      // Notes
-      const notes = rows.filter(r => r.notes && r.notes.trim() !== '');
-      text += `Daily Notes\n`;
+      // Notes (include logs with photos even if notes empty)
+      const notes = rows.filter(r => (r.notes && r.notes.trim() !== '') || r.photo_url);
+      text += `Daily Notes & Photos\n`;
       text += `---------------------\n`;
       if (notes.length === 0) {
         text += `No notes recorded.\n`;
@@ -1228,7 +1273,15 @@
         notes.forEach(n => {
           const date = n.log_date || (n.created_at ? n.created_at.substring(0, 10) : '');
           text += `• ${n.site || 'Unknown'} – ${n.area || ''} – ${date}\n`;
-          text += `  ${n.notes.trim()}\n\n`;
+          if (n.notes && n.notes.trim() !== '') {
+            text += `  ${n.notes.trim()}\n`;
+          } else {
+            text += `  (No text notes – photo only)\n`;
+          }
+          if (n.photo_url) {
+            text += `  Photo URL: ${n.photo_url}\n`;
+          }
+          text += `\n`;
         });
       }
 
