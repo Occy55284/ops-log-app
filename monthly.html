@@ -186,7 +186,7 @@
       </div>
       <div id="load-status" class="loading"></div>
 
-      <div class="stats-grid" id="stats-grid">
+      <div class="stats-grid">
         <div class="stat-card">
           <div class="stat-label">Total Logs</div>
           <div class="stat-value" id="stat-total-logs">0</div>
@@ -195,22 +195,22 @@
         <div class="stat-card">
           <div class="stat-label">Sick</div>
           <div class="stat-value" id="stat-sick">0</div>
-          <div class="stat-desc">Total sick count</div>
+          <div class="stat-desc">Total sickness_count</div>
         </div>
         <div class="stat-card">
           <div class="stat-label">Holiday</div>
           <div class="stat-value" id="stat-holiday">0</div>
-          <div class="stat-desc">Total holiday count</div>
+          <div class="stat-desc">Total holiday_count</div>
         </div>
         <div class="stat-card">
           <div class="stat-label">Agency</div>
           <div class="stat-value" id="stat-agency">0</div>
-          <div class="stat-desc">Total agency shifts</div>
+          <div class="stat-desc">Total agency_count</div>
         </div>
         <div class="stat-card">
           <div class="stat-label">Incidents</div>
           <div class="stat-value" id="stat-incidents">0</div>
-          <div class="stat-desc">Logs with incidents</div>
+          <div class="stat-desc">Logs with H&S issues</div>
         </div>
       </div>
     </section>
@@ -240,26 +240,6 @@
     const notesListEl = document.getElementById('notes-list');
     const notesEmptyEl = document.getElementById('notes-empty');
 
-    // ---- helpers for dynamic column names ----
-    const FIELD_MAP = {
-      sick: ['sick', 'sickness', 'sick_count', 'staff_sick'],
-      holiday: ['holiday', 'holidays', 'holiday_count', 'staff_holiday'],
-      agency: ['agency', 'agency_count', 'agency_shifts', 'staff_agency'],
-      incidents: ['incidents', 'incident', 'incident_notes', 'hs_incidents'],
-      notes: ['notes', 'note', 'daily_notes', 'log_notes'],
-      site: ['site', 'location'],
-      area: ['area', 'department'],
-    };
-
-    function resolveField(row, names) {
-      for (const name of names) {
-        if (Object.prototype.hasOwnProperty.call(row, name) && row[name] != null) {
-          return row[name];
-        }
-      }
-      return null;
-    }
-
     function safeNumber(val) {
       const num = Number(val);
       return Number.isFinite(num) ? num : 0;
@@ -279,10 +259,8 @@
     function getMonthRange(year, monthIndexZeroBased) {
       const start = new Date(year, monthIndexZeroBased, 1);
       const end = new Date(year, monthIndexZeroBased + 1, 0);
-
       const startISO = start.toISOString().slice(0, 10);
       const endISO = end.toISOString().slice(0, 10);
-
       return { start, end, startISO, endISO };
     }
 
@@ -330,11 +308,6 @@
         statusEl.textContent = '';
         const rows = data || [];
 
-        // Debug one example row to console so you can see exact field names if needed
-        if (rows.length) {
-          console.log('Sample ops_logs row for monthly dashboard:', rows[0]);
-        }
-
         updateStats(rows);
         updateNotes(rows);
       } catch (err) {
@@ -352,16 +325,19 @@
       let incidentCount = 0;
 
       for (const row of rows) {
-        const sickVal = resolveField(row, FIELD_MAP.sick);
-        const holidayVal = resolveField(row, FIELD_MAP.holiday);
-        const agencyVal = resolveField(row, FIELD_MAP.agency);
-        const incidentsVal = resolveField(row, FIELD_MAP.incidents);
+        sickTotal += safeNumber(row.sickness_count);
+        holidayTotal += safeNumber(row.holiday_count);
+        agencyTotal += safeNumber(row.agency_count);
 
-        sickTotal += safeNumber(sickVal);
-        holidayTotal += safeNumber(holidayVal);
-        agencyTotal += safeNumber(agencyVal);
+        const hsIssue = (row.hs_issue || '').toString().trim();
+        const hsReported = (row.hs_reported || '').toString().trim().toLowerCase();
+        const hsNotes = (row.hs_notes || '').toString().trim();
 
-        if (incidentsVal && String(incidentsVal).trim() !== '') {
+        if (
+          hsIssue ||
+          hsNotes ||
+          (hsReported && hsReported !== 'no' && hsReported !== 'n')
+        ) {
           incidentCount += 1;
         }
       }
@@ -421,11 +397,10 @@
           const meta = document.createElement('div');
           meta.className = 'note-meta';
 
-          const siteVal = resolveField(row, FIELD_MAP.site);
-          const areaVal = resolveField(row, FIELD_MAP.area);
+          const site = (row.site || '').toString();
+          const area = (row.area || '').toString();
 
-          if (siteVal) {
-            const site = String(siteVal);
+          if (site) {
             const siteSpan = document.createElement('span');
             siteSpan.className =
               'pill ' +
@@ -438,21 +413,17 @@
             meta.appendChild(siteSpan);
           }
 
-          if (areaVal) {
+          if (area) {
             const areaSpan = document.createElement('span');
             areaSpan.className = 'pill pill-area';
-            areaSpan.textContent = String(areaVal);
+            areaSpan.textContent = area;
             meta.appendChild(areaSpan);
           }
 
-          const sickVal = resolveField(row, FIELD_MAP.sick);
-          const holidayVal = resolveField(row, FIELD_MAP.holiday);
-          const agencyVal = resolveField(row, FIELD_MAP.agency);
-
+          const s = safeNumber(row.sickness_count);
+          const h = safeNumber(row.holiday_count);
+          const a = safeNumber(row.agency_count);
           const countsSummary = [];
-          const s = safeNumber(sickVal);
-          const h = safeNumber(holidayVal);
-          const a = safeNumber(agencyVal);
           if (s) countsSummary.push('Sick: ' + s);
           if (h) countsSummary.push('Holiday: ' + h);
           if (a) countsSummary.push('Agency: ' + a);
@@ -471,17 +442,33 @@
           const text = document.createElement('div');
           text.className = 'note-text';
 
-          const notesVal = resolveField(row, FIELD_MAP.notes);
-          const incidentsVal = resolveField(row, FIELD_MAP.incidents);
+          const baseNotes = (row.notes || '').toString().trim();
+          const sicknessNotes = (row.sickness_notes || '').toString().trim();
+          const holidayNotes = (row.holiday_notes || '').toString().trim();
+          const agencyNotes = (row.agency_notes || '').toString().trim();
+          const hsIssue = (row.hs_issue || '').toString().trim();
+          const hsNotes = (row.hs_notes || '').toString().trim();
+          const hsReported = (row.hs_reported || '').toString().trim();
 
-          const notesField = (notesVal || '').toString().trim();
-          const incidentsField = (incidentsVal || '').toString().trim();
+          let combined = baseNotes;
 
-          let combined = notesField;
-          if (incidentsField) {
-            combined = combined
-              ? combined + '\n\nIncidents: ' + incidentsField
-              : 'Incidents: ' + incidentsField;
+          if (sicknessNotes) {
+            combined += (combined ? '\n\n' : '') + 'Sickness notes: ' + sicknessNotes;
+          }
+          if (holidayNotes) {
+            combined += (combined ? '\n\n' : '') + 'Holiday notes: ' + holidayNotes;
+          }
+          if (agencyNotes) {
+            combined += (combined ? '\n\n' : '') + 'Agency notes: ' + agencyNotes;
+          }
+          if (hsIssue) {
+            combined += (combined ? '\n\n' : '') + 'H&S issue: ' + hsIssue;
+          }
+          if (hsNotes) {
+            combined += (combined ? '\n\n' : '') + 'H&S notes: ' + hsNotes;
+          }
+          if (hsReported) {
+            combined += (combined ? '\n\n' : '') + 'H&S reported: ' + hsReported;
           }
 
           text.textContent = combined || 'No notes recorded.';
@@ -507,7 +494,6 @@
           .limit(1);
 
         let monthVal;
-
         if (!error && data && data.length && data[0].log_date) {
           const d = new Date(data[0].log_date);
           const year = d.getFullYear();
