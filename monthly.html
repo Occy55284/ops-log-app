@@ -2,338 +2,421 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <title>Ops Log • Monthly Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Monthly Dashboard • Ops Log</title>
-  <link rel="stylesheet" href="brand.css" />
   <style>
-    .wrap {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 16px;
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #0b1220;
+      color: #f9fafb;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
     }
 
-    .page-header {
+    .page {
+      max-width: 1200px;
+      width: 100%;
+      padding: 24px;
+      box-sizing: border-box;
+    }
+
+    .header {
       display: flex;
       flex-wrap: wrap;
       align-items: center;
       justify-content: space-between;
       gap: 12px;
-      margin-bottom: 16px;
+      margin-bottom: 20px;
     }
 
-    .page-title-block {
+    .title-wrap {
       display: flex;
       flex-direction: column;
       gap: 4px;
     }
 
-    .page-title {
-      font-size: 1.6rem;
-      font-weight: 700;
+    h1 {
+      margin: 0;
+      font-size: 24px;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      color: #e5e7eb;
     }
 
-    .page-subtitle {
-      font-size: 0.9rem;
-      color: #6b7280;
+    .subtitle {
+      font-size: 13px;
+      color: #9ca3af;
     }
 
-    .page-nav {
+    .controls {
       display: flex;
+      align-items: center;
+      gap: 10px;
       flex-wrap: wrap;
-      gap: 8px;
     }
 
-    .page-nav a {
+    .pill {
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      padding: 6px 12px;
+      font-size: 12px;
+      color: #e5e7eb;
       display: inline-flex;
       align-items: center;
-      justify-content: center;
-      padding: 6px 12px;
+      gap: 6px;
+    }
+
+    .pill-label {
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-size: 11px;
+      color: #9ca3af;
+    }
+
+    .pill-value {
+      font-weight: 500;
+    }
+
+    .pill-input {
+      border: none;
+      background: transparent;
+      color: #e5e7eb;
+      font-size: 12px;
+      padding: 2px 4px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .pill-input::-webkit-calendar-picker-indicator {
+      filter: invert(1);
+      cursor: pointer;
+    }
+
+    .btn {
       border-radius: 999px;
-      font-size: 0.8rem;
+      border: 1px solid rgba(94, 234, 212, 0.5);
+      background: radial-gradient(circle at top left, rgba(45, 212, 191, 0.35), rgba(15, 23, 42, 1));
+      color: #ecfeff;
+      padding: 8px 14px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow:
+        0 0 0 1px rgba(15, 23, 42, 1),
+        0 8px 18px rgba(45, 212, 191, 0.2);
+      transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.1s ease, opacity 0.1s ease;
       text-decoration: none;
-      border: 1px solid #e5e7eb;
-      background: #ffffff;
-      color: #111827;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.04);
-      transition: background 0.12s ease, box-shadow 0.12s ease,
-        transform 0.12s ease;
     }
 
-    .page-nav a:hover {
-      background: #f3f4f6;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+    .btn:hover:not(:disabled) {
       transform: translateY(-1px);
+      box-shadow:
+        0 0 0 1px rgba(15, 23, 42, 1),
+        0 12px 26px rgba(45, 212, 191, 0.28);
     }
 
-    .page-nav a.page-nav-current {
-      border-color: #4f46e5;
-      color: #312e81;
-      background: #eef2ff;
-      font-weight: 600;
+    .btn:disabled {
+      opacity: 0.4;
+      cursor: default;
+      box-shadow:
+        0 0 0 1px rgba(15, 23, 42, 1),
+        0 4px 10px rgba(15, 23, 42, 0.6);
+    }
+
+    .btn-icon {
+      font-size: 15px;
+    }
+
+    .btn-secondary {
+      border-color: rgba(148, 163, 184, 0.6);
+      background: radial-gradient(circle at top left, rgba(30, 64, 175, 0.4), rgba(15, 23, 42, 1));
     }
 
     .card {
-      background: #ffffff;
-      border-radius: 16px;
-      border: 1px solid #e5e7eb;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
-      padding: 16px;
-      margin-bottom: 16px;
+      background: radial-gradient(circle at top left, rgba(30, 64, 175, 0.4), rgba(15, 23, 42, 0.98));
+      border-radius: 18px;
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      box-shadow:
+        0 0 0 1px rgba(15, 23, 42, 1),
+        0 18px 40px rgba(15, 23, 42, 0.9);
+      padding: 14px;
+      box-sizing: border-box;
     }
 
-    .filters-row {
+    .card-header {
       display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      align-items: center;
-      margin-bottom: 8px;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 10px;
     }
 
-    .filters-row label {
-      font-size: 0.85rem;
-      font-weight: 600;
-      color: #374151;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
+    .card-title {
+      font-size: 14px;
+      letter-spacing: 0.11em;
+      text-transform: uppercase;
+      color: #e5e7eb;
     }
 
-    .filters-row input[type="month"] {
-      padding: 6px 10px;
-      border-radius: 10px;
-      border: 1px solid #d1d5db;
-      font-size: 0.9rem;
+    .card-subtitle {
+      font-size: 11px;
+      color: #9ca3af;
     }
 
-    #current-range {
-      font-size: 0.8rem;
-      color: #6b7280;
-      margin-left: 4px;
-    }
-
-    .stats-grid {
+    .metric-row {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-      gap: 12px;
-      margin-top: 8px;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
     }
 
-    .stat-card {
-      background: #f9fafb;
+    @media (max-width: 900px) {
+      .metric-row {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      .page {
+        padding: 16px;
+      }
+    }
+
+    .metric {
+      background: radial-gradient(circle at top left, rgba(15, 23, 42, 0.9), rgba(15, 23, 42, 1));
       border-radius: 14px;
-      padding: 10px 12px;
-      border: 1px solid #e5e7eb;
+      padding: 10px 10px 10px;
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      box-shadow:
+        0 0 0 1px rgba(15, 23, 42, 1),
+        0 8px 18px rgba(15, 23, 42, 0.9);
     }
 
-    .stat-label {
-      font-size: 0.8rem;
-      color: #6b7280;
-      margin-bottom: 4px;
+    .metric-label {
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #9ca3af;
+      margin-bottom: 6px;
     }
 
-    .stat-value {
-      font-size: 1.3rem;
-      font-weight: 700;
-      color: #111827;
+    .metric-value {
+      font-size: 20px;
+      font-weight: 600;
+      color: #e5e7eb;
     }
 
-    .stat-desc {
-      font-size: 0.75rem;
+    .metric-sub {
+      font-size: 11px;
       color: #9ca3af;
       margin-top: 2px;
     }
 
-    .section-title {
-      font-size: 1rem;
-      font-weight: 600;
-      margin-bottom: 8px;
-      color: #111827;
+    .divider {
+      height: 1px;
+      background: linear-gradient(to right, transparent, rgba(148, 163, 184, 0.4), transparent);
+      margin: 12px 0;
+    }
+
+    .section-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: #6b7280;
+      margin: 18px 0 8px;
+    }
+
+    .error-banner {
+      display: none;
+      border-radius: 10px;
+      border: 1px solid rgba(248, 113, 113, 0.7);
+      background: rgba(127, 29, 29, 0.7);
+      color: #fee2e2;
+      padding: 8px 10px;
+      font-size: 12px;
+      margin-bottom: 12px;
+    }
+
+    .empty-text {
+      font-size: 11px;
+      color: #9ca3af;
+      margin-top: 4px;
     }
 
     .notes-list {
       display: flex;
       flex-direction: column;
-      gap: 10px;
-      max-height: 500px;
-      overflow-y: auto;
+      gap: 8px;
     }
 
-    .day-header {
-      font-size: 0.9rem;
-      font-weight: 600;
-      color: #111827;
-      margin-bottom: 4px;
+    .note-photo-thumb {
+      margin-top: 6px;
+      border-radius: 10px;
+      max-width: 120px;
+      max-height: 90px;
+      object-fit: cover;
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      display: block;
     }
 
-    .day-chip {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 0.8rem;
-      padding: 2px 8px;
-      border-radius: 999px;
-      background: #eef2ff;
-      color: #4f46e5;
-      margin-left: 4px;
-    }
-
-    .note-item {
-      padding: 10px 12px;
-      border-radius: 12px;
-      border: 1px solid #e5e7eb;
-      background: #f9fafb;
-    }
-
-    .note-meta {
-      font-size: 0.8rem;
-      font-weight: 500;
-      color: #4b5563;
-      margin-bottom: 4px;
-    }
-
-    .note-text {
-      font-size: 0.85rem;
-      color: #111827;
-      white-space: pre-wrap;
-    }
-
-    .pill {
+    .note-photo-link {
+      font-size: 11px;
+      margin-top: 4px;
       display: inline-block;
-      padding: 2px 8px;
-      border-radius: 999px;
-      font-size: 0.7rem;
-      margin-right: 4px;
-      background: #e5e7eb;
-      color: #374151;
+      color: #7dd3fc;
+      text-decoration: none;
     }
 
-    .pill-site-london {
-      background: #dbeafe;
-      color: #1d4ed8;
+    .note-photo-link:hover {
+      text-decoration: underline;
     }
 
-    .pill-site-newcastle {
-      background: #dcfce7;
-      color: #15803d;
-    }
-
-    .pill-area {
-      background: #fef3c7;
-      color: #b45309;
-    }
-
-    .loading {
-      font-size: 0.85rem;
-      color: #6b7280;
-      margin-top: 4px;
-    }
-
-    .error {
-      font-size: 0.85rem;
-      color: #b91c1c;
-      margin-top: 4px;
-    }
-
-    @media (max-width: 600px) {
-      .page-title {
-        font-size: 1.3rem;
+    @media (max-width: 900px) {
+      .header {
+        align-items: flex-start;
       }
     }
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <header class="page-header">
-      <div class="page-title-block">
-        <div class="page-title">Monthly Dashboard</div>
-        <div class="page-subtitle">
-          High-level summary by month from <strong>ops_logs</strong>.
+  <div class="page">
+    <div class="header">
+      <div class="title-wrap">
+        <h1>Monthly Ops Dashboard</h1>
+        <div class="subtitle">
+          Snapshot of logs, staffing, incidents and notes for the selected month.
         </div>
       </div>
-      <nav class="page-nav">
-        <a href="log.html">Daily Log</a>
-        <a href="weekly.html">Weekly Dashboard</a>
-        <a href="monthly.html" class="page-nav-current">Monthly Dashboard</a>
-      </nav>
-    </header>
+      <div class="controls">
+        <div class="pill">
+          <div class="pill-label">Month</div>
+          <input type="month" id="monthInput" class="pill-input" />
+        </div>
+        <div class="pill">
+          <div class="pill-label">Range</div>
+          <div class="pill-value" id="rangeLabel">–</div>
+        </div>
+        <button class="btn btn-secondary" id="prevMonthBtn">
+          <span class="btn-icon">◀</span>
+          Previous
+        </button>
+        <button class="btn btn-secondary" id="nextMonthBtn">
+          <span class="btn-icon">▶</span>
+          Next
+        </button>
+        <button class="btn" id="latestMonthBtn">
+          <span class="btn-icon">⟳</span>
+          Latest month
+        </button>
+        <a href="dashboard.html" class="btn btn-secondary">Weekly view</a>
+        <a href="log.html" class="btn">Daily log</a>
+      </div>
+    </div>
 
-    <section class="card">
-      <div class="filters-row">
-        <label>
-          Month
-          <input type="month" id="month-input" />
-        </label>
-        <div id="current-range"></div>
-      </div>
-      <div id="load-status" class="loading"></div>
+    <div id="errorMessage" class="error-banner"></div>
 
-      <div class="stats-grid">
-        <div class="stat-card">
-          <div class="stat-label">Total Logs</div>
-          <div class="stat-value" id="stat-total-logs">0</div>
-          <div class="stat-desc">Entries in ops_logs</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Sick</div>
-          <div class="stat-value" id="stat-sick">0</div>
-          <div class="stat-desc">Total sickness_count</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Holiday</div>
-          <div class="stat-value" id="stat-holiday">0</div>
-          <div class="stat-desc">Total holiday_count</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Agency</div>
-          <div class="stat-value" id="stat-agency">0</div>
-          <div class="stat-desc">Total agency_count</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Incidents</div>
-          <div class="stat-value" id="stat-incidents">0</div>
-          <div class="stat-desc">Logs with H&S issues</div>
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Monthly Overview</div>
+          <div class="card-subtitle">Totals across ops_logs for the selected calendar month.</div>
         </div>
       </div>
-    </section>
 
-    <section class="card">
-      <div class="section-title">Daily Notes (combined)</div>
-      <div id="notes-empty" class="loading" style="display:none;">
-        No logs found for this month.
+      <div class="metric-row">
+        <div class="metric">
+          <div class="metric-label">Total Logs</div>
+          <div class="metric-value" id="kpiTotalLogs">0</div>
+          <div class="metric-sub" id="kpiTotalLogsSub">No logs this month</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Staffing Summary</div>
+          <div class="metric-value" id="kpiStaffingTotals">–</div>
+          <div class="metric-sub" id="kpiStaffingTotalsSub">Sick / Holiday / Agency</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Incidents</div>
+          <div class="metric-value" id="kpiIncidentsTotals">–</div>
+          <div class="metric-sub" id="kpiIncidentsTotalsSub">Maintenance &amp; H&amp;S</div>
+        </div>
       </div>
-      <div id="notes-list" class="notes-list"></div>
-    </section>
+
+      <div class="metric-row" style="margin-top:10px;">
+        <div class="metric">
+          <div class="metric-label">Logs by Site</div>
+          <div class="metric-value" id="kpiLogsBySite">–</div>
+          <div class="metric-sub" id="kpiLogsBySiteSub">Site split</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Data Completeness</div>
+          <div class="metric-value" id="kpiDataHealth">–</div>
+          <div class="metric-sub" id="kpiDataHealthSub">Logs with core detail</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Status</div>
+          <div class="metric-value" id="kpiStatus">–</div>
+          <div class="metric-sub" id="statusText">Loading…</div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="section-label">Daily notes &amp; photos</div>
+      <div id="notesEmptyNote" class="empty-text">No notes captured this month.</div>
+      <div id="notesList" class="notes-list"></div>
+    </div>
   </div>
 
   <script type="module">
     import { supabase } from './supabase-config.js';
 
-    const monthInput = document.getElementById('month-input');
-    const statusEl = document.getElementById('load-status');
-    const rangeEl = document.getElementById('current-range');
+    const monthInput = document.getElementById('monthInput');
+    const rangeLabelEl = document.getElementById('rangeLabel');
+    const errorMessageEl = document.getElementById('errorMessage');
 
-    const statTotalLogs = document.getElementById('stat-total-logs');
-    const statSick = document.getElementById('stat-sick');
-    const statHoliday = document.getElementById('stat-holiday');
-    const statAgency = document.getElementById('stat-agency');
-    const statIncidents = document.getElementById('stat-incidents');
+    const prevMonthBtn = document.getElementById('prevMonthBtn');
+    const nextMonthBtn = document.getElementById('nextMonthBtn');
+    const latestMonthBtn = document.getElementById('latestMonthBtn');
 
-    const notesListEl = document.getElementById('notes-list');
-    const notesEmptyEl = document.getElementById('notes-empty');
+    const kpiTotalLogsEl = document.getElementById('kpiTotalLogs');
+    const kpiTotalLogsSubEl = document.getElementById('kpiTotalLogsSub');
+    const kpiStaffingTotalsEl = document.getElementById('kpiStaffingTotals');
+    const kpiStaffingTotalsSubEl = document.getElementById('kpiStaffingTotalsSub');
+    const kpiIncidentsTotalsEl = document.getElementById('kpiIncidentsTotals');
+    const kpiIncidentsTotalsSubEl = document.getElementById('kpiIncidentsTotalsSub');
+    const kpiLogsBySiteEl = document.getElementById('kpiLogsBySite');
+    const kpiLogsBySiteSubEl = document.getElementById('kpiLogsBySiteSub');
+    const kpiDataHealthEl = document.getElementById('kpiDataHealth');
+    const kpiDataHealthSubEl = document.getElementById('kpiDataHealthSub');
+    const kpiStatusEl = document.getElementById('kpiStatus');
+    const statusTextEl = document.getElementById('statusText');
 
-    function safeNumber(val) {
-      const num = Number(val);
-      return Number.isFinite(num) ? num : 0;
+    const notesEmptyNoteEl = document.getElementById('notesEmptyNote');
+    const notesListEl = document.getElementById('notesList');
+
+    let latestMonthKey = null; // "YYYY-MM"
+
+    function parseCount(value) {
+      if (!value) return 0;
+      if (value === '3+') return 3;
+      const n = parseInt(value, 10);
+      return isNaN(n) ? 0 : n;
     }
 
-    function formatDate(dateStr) {
+    function safeNumber(val) {
+      const n = Number(val);
+      return Number.isFinite(n) ? n : 0;
+    }
+
+    function formatDateLabel(dateStr) {
       const d = new Date(dateStr);
-      if (Number.isNaN(d.getTime())) return dateStr;
+      if (isNaN(d)) return dateStr;
       return d.toLocaleDateString('en-GB', {
-        weekday: 'short',
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric',
+        day: 'numeric',
+        month: 'short'
       });
     }
 
@@ -345,9 +428,89 @@
       return { start, end, startISO, endISO };
     }
 
+    function setButtonsState() {
+      if (!latestMonthKey) {
+        nextMonthBtn.disabled = true;
+        return;
+      }
+      const current = monthInput.value || latestMonthKey;
+      nextMonthBtn.disabled = current >= latestMonthKey;
+    }
+
+    function setEmptyState(message = 'No logs for this month.') {
+      kpiTotalLogsEl.textContent = '0';
+      kpiTotalLogsSubEl.textContent = 'No logs this month';
+
+      kpiStaffingTotalsEl.textContent = '–';
+      kpiStaffingTotalsSubEl.textContent = 'No staffing data';
+
+      kpiIncidentsTotalsEl.textContent = '0';
+      kpiIncidentsTotalsSubEl.textContent = 'No incidents recorded';
+
+      kpiLogsBySiteEl.textContent = '–';
+      kpiLogsBySiteSubEl.textContent = 'No site data';
+
+      kpiDataHealthEl.textContent = '–';
+      kpiDataHealthSubEl.textContent = 'No logs';
+
+      kpiStatusEl.textContent = 'OK';
+      statusTextEl.textContent = message;
+
+      notesListEl.innerHTML = '';
+      notesEmptyNoteEl.style.display = 'block';
+    }
+
+    async function initMonthly() {
+      errorMessageEl.style.display = 'none';
+      errorMessageEl.textContent = '';
+
+      try {
+        const { data, error } = await supabase
+          .from('ops_logs')
+          .select('log_date')
+          .not('log_date', 'is', null)
+          .order('log_date', { ascending: false })
+          .limit(1);
+
+        if (error) {
+          console.error('Error loading latest month:', error);
+          errorMessageEl.textContent = 'There was an error loading monthly data.';
+          errorMessageEl.style.display = 'block';
+          setEmptyState('Error loading monthly data.');
+          return;
+        }
+
+        if (!data || data.length === 0 || !data[0].log_date) {
+          latestMonthKey = null;
+          monthInput.value = '';
+          rangeLabelEl.textContent = '–';
+          setButtonsState();
+          setEmptyState('No logs available yet.');
+          return;
+        }
+
+        const latestDate = new Date(data[0].log_date);
+        const year = latestDate.getFullYear();
+        const month = String(latestDate.getMonth() + 1).padStart(2, '0');
+        latestMonthKey = `${year}-${month}`;
+
+        monthInput.value = latestMonthKey;
+        setButtonsState();
+        await loadMonthlyData();
+      } catch (err) {
+        console.error('Error initialising monthly dashboard:', err);
+        errorMessageEl.textContent = 'There was an error initialising monthly data.';
+        errorMessageEl.style.display = 'block';
+        setEmptyState('Error initialising monthly data.');
+      }
+    }
+
     async function loadMonthlyData() {
-      const monthVal = monthInput.value;
-      if (!monthVal) return;
+      const monthVal = monthInput.value || latestMonthKey;
+      if (!monthVal) {
+        setEmptyState('No month selected.');
+        return;
+      }
 
       const [yearStr, monthStr] = monthVal.split('-');
       const year = parseInt(yearStr, 10);
@@ -355,7 +518,7 @@
 
       const { start, end, startISO, endISO } = getMonthRange(year, monthIdx);
 
-      rangeEl.textContent =
+      rangeLabelEl.textContent =
         start.toLocaleDateString('en-GB', {
           day: '2-digit',
           month: 'short',
@@ -368,8 +531,11 @@
           year: 'numeric',
         });
 
-      statusEl.textContent = 'Loading monthly data...';
-      statusEl.className = 'loading';
+      statusTextEl.textContent = 'Loading monthly data…';
+      kpiStatusEl.textContent = '…';
+
+      errorMessageEl.style.display = 'none';
+      errorMessageEl.textContent = '';
 
       try {
         const { data, error } = await supabase
@@ -377,230 +543,236 @@
           .select('*')
           .gte('log_date', startISO)
           .lte('log_date', endISO)
-          .order('log_date', { ascending: true });
+          .order('log_date', { ascending: true })
+          .order('created_at', { ascending: true });
 
         if (error) {
-          console.error(error);
-          statusEl.textContent = 'Error loading data: ' + error.message;
-          statusEl.className = 'error';
+          console.error('Error loading monthly data:', error);
+          errorMessageEl.textContent = 'There was an error loading monthly data.';
+          errorMessageEl.style.display = 'block';
+          setEmptyState('Error loading monthly data.');
           return;
         }
 
-        statusEl.textContent = '';
         const rows = data || [];
 
-        updateStats(rows);
-        updateNotes(rows);
+        if (!rows.length) {
+          setEmptyState('No logs for this month.');
+          return;
+        }
+
+        populateOverview(rows);
+        populateNotes(rows);
+
+        kpiStatusEl.textContent = 'OK';
+        statusTextEl.textContent = 'Data loaded.';
       } catch (err) {
-        console.error(err);
-        statusEl.textContent = 'Error loading data.';
-        statusEl.className = 'error';
+        console.error('Error loading monthly data:', err);
+        errorMessageEl.textContent = 'There was an error loading monthly data.';
+        errorMessageEl.style.display = 'block';
+        setEmptyState('Error loading monthly data.');
       }
     }
 
-    function updateStats(rows) {
+    function populateOverview(rows) {
       const totalLogs = rows.length;
-      let sickTotal = 0;
-      let holidayTotal = 0;
-      let agencyTotal = 0;
-      let incidentCount = 0;
+      kpiTotalLogsEl.textContent = totalLogs.toString();
+      kpiTotalLogsSubEl.textContent = `Logs captured across ${new Set(rows.map(r => r.site)).size} sites`;
 
-      for (const row of rows) {
-        sickTotal += safeNumber(row.sickness_count);
-        holidayTotal += safeNumber(row.holiday_count);
-        agencyTotal += safeNumber(row.agency_count);
+      // Staffing totals
+      let totalSick = 0;
+      let totalHoliday = 0;
+      let totalAgency = 0;
 
-        const hsIssue = (row.hs_issue || '').toString().trim();
-        const hsReported = (row.hs_reported || '').toString().trim().toLowerCase();
-        const hsNotes = (row.hs_notes || '').toString().trim();
-
-        if (
-          hsIssue ||
-          hsNotes ||
-          (hsReported && hsReported !== 'no' && hsReported !== 'n')
-        ) {
-          incidentCount += 1;
-        }
-      }
-
-      statTotalLogs.textContent = totalLogs;
-      statSick.textContent = sickTotal;
-      statHoliday.textContent = holidayTotal;
-      statAgency.textContent = agencyTotal;
-      statIncidents.textContent = incidentCount;
-    }
-
-    function updateNotes(rows) {
-      notesListEl.innerHTML = '';
-
-      if (!rows.length) {
-        notesEmptyEl.style.display = 'block';
-        return;
-      }
-      notesEmptyEl.style.display = 'none';
-
-      const byDate = new Map();
-
-      for (const row of rows) {
-        const dateKey = row.log_date || row.created_at;
-        if (!byDate.has(dateKey)) {
-          byDate.set(dateKey, []);
-        }
-        byDate.get(dateKey).push(row);
-      }
-
-      const sortedDates = Array.from(byDate.keys()).sort((a, b) => {
-        const da = new Date(a);
-        const db = new Date(b);
-        return da - db;
+      rows.forEach(row => {
+        totalSick += parseCount(row.sickness_count);
+        totalHoliday += parseCount(row.holiday_count);
+        totalAgency += parseCount(row.agency_count);
       });
 
-      for (const dateKey of sortedDates) {
-        const rowsForDay = byDate.get(dateKey) || [];
-        const dayContainer = document.createElement('div');
+      const staffingTotal = totalSick + totalHoliday + totalAgency;
+      kpiStaffingTotalsEl.textContent = staffingTotal.toString();
+      kpiStaffingTotalsSubEl.textContent =
+        `Sick: ${totalSick} • Holiday: ${totalHoliday} • Agency: ${totalAgency}`;
 
-        const header = document.createElement('div');
-        header.className = 'day-header';
-        header.textContent = formatDate(dateKey);
+      // Incidents
+      let maintenanceCount = 0;
+      let maintenanceReported = 0;
+      let hsCount = 0;
+      let hsReported = 0;
 
-        const chip = document.createElement('span');
-        chip.className = 'day-chip';
-        chip.textContent =
-          rowsForDay.length + (rowsForDay.length === 1 ? ' log' : ' logs');
-        header.appendChild(chip);
-
-        dayContainer.appendChild(header);
-
-        for (const row of rowsForDay) {
-          const noteItem = document.createElement('div');
-          noteItem.className = 'note-item';
-
-          const meta = document.createElement('div');
-          meta.className = 'note-meta';
-
-          const site = (row.site || '').toString();
-          const area = (row.area || '').toString();
-
-          if (site) {
-            const siteSpan = document.createElement('span');
-            siteSpan.className =
-              'pill ' +
-              (site.toLowerCase().includes('london')
-                ? 'pill-site-london'
-                : site.toLowerCase().includes('newcastle')
-                ? 'pill-site-newcastle'
-                : '');
-            siteSpan.textContent = site;
-            meta.appendChild(siteSpan);
+      rows.forEach(row => {
+        if (row.maintenance_issue && row.maintenance_issue !== 'None') {
+          maintenanceCount++;
+          if (row.maintenance_reported === 'Yes') {
+            maintenanceReported++;
           }
-
-          if (area) {
-            const areaSpan = document.createElement('span');
-            areaSpan.className = 'pill pill-area';
-            areaSpan.textContent = area;
-            meta.appendChild(areaSpan);
-          }
-
-          const s = safeNumber(row.sickness_count);
-          const h = safeNumber(row.holiday_count);
-          const a = safeNumber(row.agency_count);
-          const countsSummary = [];
-          if (s) countsSummary.push('Sick: ' + s);
-          if (h) countsSummary.push('Holiday: ' + h);
-          if (a) countsSummary.push('Agency: ' + a);
-
-          if (countsSummary.length) {
-            const span = document.createElement('span');
-            span.style.marginLeft = '4px';
-            span.style.fontSize = '0.75rem';
-            span.style.color = '#6b7280';
-            span.textContent = '(' + countsSummary.join(' • ') + ')';
-            meta.appendChild(span);
-          }
-
-          noteItem.appendChild(meta);
-
-          const text = document.createElement('div');
-          text.className = 'note-text';
-
-          const baseNotes = (row.notes || '').toString().trim();
-          const sicknessNotes = (row.sickness_notes || '').toString().trim();
-          const holidayNotes = (row.holiday_notes || '').toString().trim();
-          const agencyNotes = (row.agency_notes || '').toString().trim();
-          const hsIssue = (row.hs_issue || '').toString().trim();
-          const hsNotes = (row.hs_notes || '').toString().trim();
-          const hsReported = (row.hs_reported || '').toString().trim();
-
-          let combined = baseNotes;
-
-          if (sicknessNotes) {
-            combined += (combined ? '\n\n' : '') + 'Sickness notes: ' + sicknessNotes;
-          }
-          if (holidayNotes) {
-            combined += (combined ? '\n\n' : '') + 'Holiday notes: ' + holidayNotes;
-          }
-          if (agencyNotes) {
-            combined += (combined ? '\n\n' : '') + 'Agency notes: ' + agencyNotes;
-          }
-          if (hsIssue) {
-            combined += (combined ? '\n\n' : '') + 'H&S issue: ' + hsIssue;
-          }
-          if (hsNotes) {
-            combined += (combined ? '\n\n' : '') + 'H&S notes: ' + hsNotes;
-          }
-          if (hsReported) {
-            combined += (combined ? '\n\n' : '') + 'H&S reported: ' + hsReported;
-          }
-
-          text.textContent = combined || 'No notes recorded.';
-          noteItem.appendChild(text);
-
-          dayContainer.appendChild(noteItem);
         }
 
-        notesListEl.appendChild(dayContainer);
+        if (row.hs_issue && row.hs_issue !== 'None') {
+          hsCount++;
+          if (row.hs_reported === 'Yes') {
+            hsReported++;
+          }
+        }
+      });
+
+      const totalIncidents = maintenanceCount + hsCount;
+      if (totalIncidents === 0) {
+        kpiIncidentsTotalsEl.textContent = '0';
+        kpiIncidentsTotalsSubEl.textContent = 'No incidents recorded';
+      } else {
+        kpiIncidentsTotalsEl.textContent = `${totalIncidents}`;
+        kpiIncidentsTotalsSubEl.textContent =
+          `Maint: ${maintenanceCount} (reported ${maintenanceReported}) • ` +
+          `H&S: ${hsCount} (reported ${hsReported})`;
       }
+
+      // Logs by site
+      const logsBySiteMap = {};
+      rows.forEach(row => {
+        if (!row.site) return;
+        logsBySiteMap[row.site] = (logsBySiteMap[row.site] || 0) + 1;
+      });
+
+      const siteEntries = Object.entries(logsBySiteMap)
+        .sort((a, b) => b[1] - a[1]);
+
+      if (siteEntries.length > 0) {
+        const [topSite, topCount] = siteEntries[0];
+        kpiLogsBySiteEl.textContent = `${topCount}`;
+        const detail = siteEntries.map(([site, count]) => `${site} (${count})`).join(' • ');
+        kpiLogsBySiteSubEl.textContent = detail;
+      } else {
+        kpiLogsBySiteEl.textContent = '–';
+        kpiLogsBySiteSubEl.textContent = 'No site data';
+      }
+
+      // Data completeness (same logic as weekly)
+      let completeCount = 0;
+      rows.forEach(row => {
+        const hasCore =
+          (row.sickness_count && row.sickness_count !== '0') ||
+          (row.holiday_count && row.holiday_count !== '0') ||
+          (row.agency_count && row.agency_count !== '0') ||
+          (row.notes && row.notes.trim() !== '');
+
+        if (hasCore) completeCount++;
+      });
+
+      const completeness = rows.length > 0
+        ? Math.round((completeCount / rows.length) * 100)
+        : 0;
+
+      kpiDataHealthEl.textContent = `${completeness}%`;
+      kpiDataHealthSubEl.textContent = `${completeCount}/${rows.length} logs with core detail`;
     }
 
-    async function initMonthly() {
-      statusEl.textContent = 'Loading latest month...';
-      statusEl.className = 'loading';
+    function populateNotes(rows) {
+      const notes = rows
+        .filter(r => (r.notes && r.notes.trim() !== '') || r.photo_url)
+        .map(r => ({
+          notes: (r.notes || '').trim(),
+          site: r.site || 'Unknown',
+          area: r.area || '',
+          photoUrl: r.photo_url || null,
+          dateKey: r.log_date || (r.created_at ? r.created_at.substring(0, 10) : '')
+        }))
+        .sort((a, b) => a.dateKey < b.dateKey ? -1 : 1);
 
-      try {
-        const { data, error } = await supabase
-          .from('ops_logs')
-          .select('log_date')
-          .not('log_date', 'is', null)
-          .order('log_date', { ascending: false })
-          .limit(1);
+      notesListEl.innerHTML = '';
 
-        let monthVal;
-        if (!error && data && data.length && data[0].log_date) {
-          const d = new Date(data[0].log_date);
-          const year = d.getFullYear();
-          const month = String(d.getMonth() + 1).padStart(2, '0');
-          monthVal = `${year}-${month}`;
+      if (!notes.length) {
+        notesEmptyNoteEl.style.display = 'block';
+        return;
+      }
+
+      notesEmptyNoteEl.style.display = 'none';
+
+      notes.forEach(note => {
+        const dateStr = note.dateKey ? formatDateLabel(note.dateKey) : 'Unknown';
+
+        let html = `
+          <div class="metric-label">Notes • ${note.site}${note.area ? ' • ' + note.area : ''}</div>
+          <div class="metric-sub"><strong>${dateStr}</strong></div>
+        `;
+
+        if (note.notes) {
+          html += `<div class="metric-sub">${note.notes}</div>`;
         } else {
-          const now = new Date();
-          const year = now.getFullYear();
-          const month = String(now.getMonth() + 1).padStart(2, '0');
-          monthVal = `${year}-${month}`;
+          html += `<div class="metric-sub"><span style="opacity:0.7;">No text notes – photo only.</span></div>`;
         }
 
-        monthInput.value = monthVal;
-        await loadMonthlyData();
-      } catch (err) {
-        console.error(err);
-        statusEl.textContent = 'Error initialising monthly dashboard.';
-        statusEl.className = 'error';
-      }
+        if (note.photoUrl) {
+          html += `
+            <a class="note-photo-link" href="${note.photoUrl}" target="_blank" rel="noopener noreferrer">
+              View photo in full size
+            </a>
+            <img class="note-photo-thumb" src="${note.photoUrl}" alt="Log photo thumbnail" />
+          `;
+        }
+
+        const div = document.createElement('div');
+        div.className = 'metric';
+        div.innerHTML = html;
+        notesListEl.appendChild(div);
+      });
     }
 
+    function changeMonth(delta) {
+      if (!latestMonthKey) return;
+
+      const current = monthInput.value || latestMonthKey;
+      const [yearStr, monthStr] = current.split('-');
+      let year = parseInt(yearStr, 10);
+      let monthIndex = parseInt(monthStr, 10) - 1;
+
+      monthIndex += delta; // delta can be -1 or +1
+
+      if (monthIndex < 0) {
+        year -= 1;
+        monthIndex += 12;
+      } else if (monthIndex > 11) {
+        year += 1;
+        monthIndex -= 12;
+      }
+
+      const newMonth = String(monthIndex + 1).padStart(2, '0');
+      const newKey = `${year}-${newMonth}`;
+
+      // Don't go into future beyond latestMonthKey
+      if (delta > 0 && latestMonthKey && newKey > latestMonthKey) {
+        return;
+      }
+
+      monthInput.value = newKey;
+      setButtonsState();
+      loadMonthlyData();
+    }
+
+    // Event handlers
     monthInput.addEventListener('change', () => {
+      setButtonsState();
       loadMonthlyData();
     });
 
-    window.addEventListener('DOMContentLoaded', initMonthly);
+    prevMonthBtn.addEventListener('click', () => {
+      changeMonth(-1);
+    });
+
+    nextMonthBtn.addEventListener('click', () => {
+      changeMonth(1);
+    });
+
+    latestMonthBtn.addEventListener('click', () => {
+      if (!latestMonthKey) return;
+      monthInput.value = latestMonthKey;
+      setButtonsState();
+      loadMonthlyData();
+    });
+
+    // Init
+    initMonthly();
   </script>
 </body>
 </html>
