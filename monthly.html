@@ -11,16 +11,67 @@
       margin: 0 auto;
       padding: 16px;
     }
+
+    .page-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .page-title-block {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
     .page-title {
       font-size: 1.6rem;
       font-weight: 700;
-      margin-bottom: 4px;
     }
+
     .page-subtitle {
       font-size: 0.9rem;
       color: #6b7280;
-      margin-bottom: 16px;
     }
+
+    .page-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .page-nav a {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      text-decoration: none;
+      border: 1px solid #e5e7eb;
+      background: #ffffff;
+      color: #111827;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.04);
+      transition: background 0.12s ease, box-shadow 0.12s ease,
+        transform 0.12s ease;
+    }
+
+    .page-nav a:hover {
+      background: #f3f4f6;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+      transform: translateY(-1px);
+    }
+
+    .page-nav a.page-nav-current {
+      border-color: #4f46e5;
+      color: #312e81;
+      background: #eef2ff;
+      font-weight: 600;
+    }
+
     .card {
       background: #ffffff;
       border-radius: 16px;
@@ -29,6 +80,7 @@
       padding: 16px;
       margin-bottom: 16px;
     }
+
     .filters-row {
       display: flex;
       flex-wrap: wrap;
@@ -36,6 +88,7 @@
       align-items: center;
       margin-bottom: 8px;
     }
+
     .filters-row label {
       font-size: 0.85rem;
       font-weight: 600;
@@ -44,50 +97,59 @@
       flex-direction: column;
       gap: 4px;
     }
+
     .filters-row input[type="month"] {
       padding: 6px 10px;
       border-radius: 10px;
       border: 1px solid #d1d5db;
       font-size: 0.9rem;
     }
+
     #current-range {
       font-size: 0.8rem;
       color: #6b7280;
       margin-left: 4px;
     }
+
     .stats-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
       gap: 12px;
       margin-top: 8px;
     }
+
     .stat-card {
       background: #f9fafb;
       border-radius: 14px;
       padding: 10px 12px;
       border: 1px solid #e5e7eb;
     }
+
     .stat-label {
       font-size: 0.8rem;
       color: #6b7280;
       margin-bottom: 4px;
     }
+
     .stat-value {
       font-size: 1.3rem;
       font-weight: 700;
       color: #111827;
     }
+
     .stat-desc {
       font-size: 0.75rem;
       color: #9ca3af;
       margin-top: 2px;
     }
+
     .section-title {
       font-size: 1rem;
       font-weight: 600;
       margin-bottom: 8px;
       color: #111827;
     }
+
     .notes-list {
       display: flex;
       flex-direction: column;
@@ -95,12 +157,14 @@
       max-height: 500px;
       overflow-y: auto;
     }
+
     .day-header {
       font-size: 0.9rem;
       font-weight: 600;
       color: #111827;
       margin-bottom: 4px;
     }
+
     .day-chip {
       display: inline-flex;
       align-items: center;
@@ -112,23 +176,27 @@
       color: #4f46e5;
       margin-left: 4px;
     }
+
     .note-item {
       padding: 10px 12px;
       border-radius: 12px;
       border: 1px solid #e5e7eb;
       background: #f9fafb;
     }
+
     .note-meta {
       font-size: 0.8rem;
       font-weight: 500;
       color: #4b5563;
       margin-bottom: 4px;
     }
+
     .note-text {
       font-size: 0.85rem;
       color: #111827;
       white-space: pre-wrap;
     }
+
     .pill {
       display: inline-block;
       padding: 2px 8px;
@@ -138,28 +206,34 @@
       background: #e5e7eb;
       color: #374151;
     }
+
     .pill-site-london {
       background: #dbeafe;
       color: #1d4ed8;
     }
+
     .pill-site-newcastle {
       background: #dcfce7;
       color: #15803d;
     }
+
     .pill-area {
       background: #fef3c7;
       color: #b45309;
     }
+
     .loading {
       font-size: 0.85rem;
       color: #6b7280;
       margin-top: 4px;
     }
+
     .error {
       font-size: 0.85rem;
       color: #b91c1c;
       margin-top: 4px;
     }
+
     @media (max-width: 600px) {
       .page-title {
         font-size: 1.3rem;
@@ -169,11 +243,18 @@
 </head>
 <body>
   <div class="wrap">
-    <header style="margin-bottom: 12px;">
-      <div class="page-title">Monthly Dashboard</div>
-      <div class="page-subtitle">
-        High-level summary by month from <strong>ops_logs</strong>.
+    <header class="page-header">
+      <div class="page-title-block">
+        <div class="page-title">Monthly Dashboard</div>
+        <div class="page-subtitle">
+          High-level summary by month from <strong>ops_logs</strong>.
+        </div>
       </div>
+      <nav class="page-nav">
+        <a href="log.html">Daily Log</a>
+        <a href="weekly.html">Weekly Dashboard</a>
+        <a href="monthly.html" class="page-nav-current">Monthly Dashboard</a>
+      </nav>
     </header>
 
     <section class="card">
