@@ -6,10 +6,6 @@
   <title>Monthly Dashboard • Ops Log</title>
   <link rel="stylesheet" href="brand.css" />
   <style>
-    body {
-      background: #f3f4f6;
-      color: #111827;
-    }
     .wrap {
       max-width: 1100px;
       margin: 0 auto;
@@ -53,6 +49,11 @@
       border-radius: 10px;
       border: 1px solid #d1d5db;
       font-size: 0.9rem;
+    }
+    #current-range {
+      font-size: 0.8rem;
+      color: #6b7280;
+      margin-left: 4px;
     }
     .stats-grid {
       display: grid;
@@ -181,7 +182,7 @@
           Month
           <input type="month" id="month-input" />
         </label>
-        <div id="current-range" style="font-size:0.8rem;color:#6b7280;"></div>
+        <div id="current-range"></div>
       </div>
       <div id="load-status" class="loading"></div>
 
@@ -257,19 +258,12 @@
       const startISO = start.toISOString().slice(0, 10);
       const endISO = end.toISOString().slice(0, 10);
 
-      return {
-        start,
-        end,
-        startISO,
-        endISO,
-      };
+      return { start, end, startISO, endISO };
     }
 
-    function setDefaultMonth() {
-      const now = new Date();
-      const year = now.getFullYear();
-      const month = String(now.getMonth() + 1).padStart(2, '0');
-      monthInput.value = \`\${year}-\${month}\`;
+    function safeNumber(val) {
+      const num = Number(val);
+      return Number.isFinite(num) ? num : 0;
     }
 
     async function loadMonthlyData() {
@@ -282,15 +276,18 @@
 
       const { start, end, startISO, endISO } = getMonthRange(year, monthIdx);
 
-      rangeEl.textContent = \`\${start.toLocaleDateString('en-GB', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric',
-      })} – \${end.toLocaleDateString('en-GB', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric',
-      })}\`;
+      rangeEl.textContent =
+        start.toLocaleDateString('en-GB', {
+          day: '2-digit',
+          month: 'short',
+          year: 'numeric',
+        }) +
+        ' – ' +
+        end.toLocaleDateString('en-GB', {
+          day: '2-digit',
+          month: 'short',
+          year: 'numeric',
+        });
 
       statusEl.textContent = 'Loading monthly data...';
       statusEl.className = 'loading';
@@ -311,18 +308,14 @@
         }
 
         statusEl.textContent = '';
-        updateStats(data || []);
-        updateNotes(data || []);
+        const rows = data || [];
+        updateStats(rows);
+        updateNotes(rows);
       } catch (err) {
         console.error(err);
         statusEl.textContent = 'Error loading data.';
         statusEl.className = 'error';
       }
-    }
-
-    function safeNumber(val) {
-      const num = Number(val);
-      return Number.isFinite(num) ? num : 0;
     }
 
     function updateStats(rows) {
@@ -337,7 +330,7 @@
         holidayTotal += safeNumber(row.holiday);
         agencyTotal += safeNumber(row.agency);
 
-        // If you use a different incidents field, adjust here.
+        // Adjust if your incidents field is named differently
         if (row.incidents && String(row.incidents).trim() !== '') {
           incidentCount += 1;
         }
@@ -359,7 +352,6 @@
       }
       notesEmptyEl.style.display = 'none';
 
-      // Group by log_date
       const byDate = new Map();
 
       for (const row of rows) {
@@ -370,7 +362,6 @@
         byDate.get(dateKey).push(row);
       }
 
-      // Sort dates ascending
       const sortedDates = Array.from(byDate.keys()).sort((a, b) => {
         const da = new Date(a);
         const db = new Date(b);
@@ -379,7 +370,6 @@
 
       for (const dateKey of sortedDates) {
         const rowsForDay = byDate.get(dateKey) || [];
-
         const dayContainer = document.createElement('div');
 
         const header = document.createElement('div');
@@ -388,7 +378,8 @@
 
         const chip = document.createElement('span');
         chip.className = 'day-chip';
-        chip.textContent = rowsForDay.length + (rowsForDay.length === 1 ? ' log' : ' logs');
+        chip.textContent =
+          rowsForDay.length + (rowsForDay.length === 1 ? ' log' : ' logs');
         header.appendChild(chip);
 
         dayContainer.appendChild(header);
@@ -423,14 +414,13 @@
             meta.appendChild(areaSpan);
           }
 
-          // Small counts summary
           const countsSummary = [];
           const s = safeNumber(row.sick);
           const h = safeNumber(row.holiday);
           const a = safeNumber(row.agency);
-          if (s) countsSummary.push(\`Sick: \${s}\`);
-          if (h) countsSummary.push(\`Holiday: \${h}\`);
-          if (a) countsSummary.push(\`Agency: \${a}\`);
+          if (s) countsSummary.push('Sick: ' + s);
+          if (h) countsSummary.push('Holiday: ' + h);
+          if (a) countsSummary.push('Agency: ' + a);
 
           if (countsSummary.length) {
             const span = document.createElement('span');
@@ -466,13 +456,48 @@
       }
     }
 
+    async function initMonthly() {
+      statusEl.textContent = 'Loading latest month...';
+      statusEl.className = 'loading';
+
+      try {
+        // Find the most recent log_date so we default to a month that definitely has data
+        const { data, error } = await supabase
+          .from('ops_logs')
+          .select('log_date')
+          .not('log_date', 'is', null)
+          .order('log_date', { ascending: false })
+          .limit(1);
+
+        let monthVal;
+
+        if (!error && data && data.length && data[0].log_date) {
+          const d = new Date(data[0].log_date);
+          const year = d.getFullYear();
+          const month = String(d.getMonth() + 1).padStart(2, '0');
+          monthVal = `${year}-${month}`;
+        } else {
+          // Fallback to current month if no logs or error
+          const now = new Date();
+          const year = now.getFullYear();
+          const month = String(now.getMonth() + 1).padStart(2, '0');
+          monthVal = `${year}-${month}`;
+        }
+
+        monthInput.value = monthVal;
+        await loadMonthlyData();
+      } catch (err) {
+        console.error(err);
+        statusEl.textContent = 'Error initialising monthly dashboard.';
+        statusEl.className = 'error';
+      }
+    }
+
     monthInput.addEventListener('change', () => {
       loadMonthlyData();
     });
 
-    // Init
-    setDefaultMonth();
-    loadMonthlyData();
+    window.addEventListener('DOMContentLoaded', initMonthly);
   </script>
 </body>
 </html>
