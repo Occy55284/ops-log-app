@@ -356,6 +356,49 @@
     .note-photo-link:hover {
       text-decoration: underline;
     }
+
+    /* Photo gallery grid */
+    .photos-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+      gap: 8px;
+    }
+
+    .photo-card {
+      background: radial-gradient(circle at top left, rgba(15, 23, 42, 0.95), rgba(15, 23, 42, 1));
+      border-radius: 12px;
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      padding: 4px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    .photo-card img {
+      border-radius: 8px;
+      max-width: 100%;
+      max-height: 80px;
+      object-fit: cover;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .photo-card-caption {
+      font-size: 10px;
+      color: #9ca3af;
+      line-height: 1.3;
+    }
+
+    .photo-card a {
+      text-decoration: none;
+    }
+
+    .photo-card a:focus img,
+    .photo-card a:hover img {
+      outline: 1px solid rgba(96, 165, 250, 0.8);
+      outline-offset: 1px;
+    }
   </style>
 </head>
 <body>
@@ -407,12 +450,12 @@
     <div id="errorMessage" class="error-banner"></div>
 
     <div class="grid">
-      <!-- LEFT: Main KPIs, Incidents, Notes -->
+      <!-- LEFT: Main KPIs, Incidents, Photos, Notes -->
       <div class="card">
         <div class="card-header">
           <div>
             <div class="card-title">Overview</div>
-            <div class="card-subtitle">Logs, site mix, staffing, incidents &amp; notes.</div>
+            <div class="card-subtitle">Logs, site mix, staffing, incidents, photos &amp; notes.</div>
           </div>
           <div class="pill-pill">
             <span class="pill-dot"></span>
@@ -496,6 +539,11 @@
             </div>
           </div>
         </div>
+
+        <!-- Photo gallery -->
+        <div class="section-label">Photo gallery</div>
+        <div id="photosEmptyNote" class="empty-text">No photos uploaded this week.</div>
+        <div id="photosGrid" class="photos-grid"></div>
 
         <!-- Notes section -->
         <div class="section-label">Daily notes</div>
@@ -613,6 +661,9 @@
 
     const notesEmptyNoteEl = document.getElementById('notesEmptyNote');
     const notesListEl = document.getElementById('notesList');
+
+    const photosEmptyNoteEl = document.getElementById('photosEmptyNote');
+    const photosGridEl = document.getElementById('photosGrid');
 
     const refreshBtn = document.getElementById('refreshBtn');
     const prevWeekBtn = document.getElementById('prevWeekBtn');
@@ -772,6 +823,13 @@
       }
       if (notesEmptyNoteEl) {
         notesEmptyNoteEl.style.display = 'block';
+      }
+
+      if (photosGridEl) {
+        photosGridEl.innerHTML = '';
+      }
+      if (photosEmptyNoteEl) {
+        photosEmptyNoteEl.style.display = 'block';
       }
 
       if (newcastleBusiestLineEl) {
@@ -1153,7 +1211,45 @@
       kpiDataHealthEl.textContent = `${completeness}%`;
       kpiDataHealthSubEl.textContent = `${completeCount}/${rows.length} logs with core detail`;
 
-      // Notes section (now includes logs with photos even if notes are empty)
+      // Photo gallery (all logs with photo_url)
+      const photos = rows
+        .filter(r => r.photo_url)
+        .map(r => ({
+          photoUrl: r.photo_url,
+          site: r.site || 'Unknown',
+          area: r.area || '',
+          dateKey: r.log_date || (r.created_at ? r.created_at.substring(0, 10) : '')
+        }))
+        .sort((a, b) => a.dateKey < b.dateKey ? -1 : 1);
+
+      if (!photos || photos.length === 0) {
+        photosEmptyNoteEl.style.display = 'block';
+        photosGridEl.innerHTML = '';
+      } else {
+        photosEmptyNoteEl.style.display = 'none';
+        photosGridEl.innerHTML = '';
+        photos.forEach(photo => {
+          const dateObj = new Date(photo.dateKey);
+          const dateStr = isNaN(dateObj) ? photo.dateKey : formatDate(dateObj);
+
+          const card = document.createElement('div');
+          card.className = 'photo-card';
+
+          card.innerHTML = `
+            <a href="${photo.photoUrl}" target="_blank" rel="noopener noreferrer">
+              <img src="${photo.photoUrl}" alt="Site photo" />
+            </a>
+            <div class="photo-card-caption">
+              ${dateStr}<br/>
+              ${photo.site}${photo.area ? ' • ' + photo.area : ''}
+            </div>
+          `;
+
+          photosGridEl.appendChild(card);
+        });
+      }
+
+      // Notes section (logs with text notes OR photos)
       const notes = rows
         .filter(r => (r.notes && r.notes.trim() !== '') || r.photo_url)
         .map(r => ({
