@@ -240,6 +240,31 @@
     const notesListEl = document.getElementById('notes-list');
     const notesEmptyEl = document.getElementById('notes-empty');
 
+    // ---- helpers for dynamic column names ----
+    const FIELD_MAP = {
+      sick: ['sick', 'sickness', 'sick_count', 'staff_sick'],
+      holiday: ['holiday', 'holidays', 'holiday_count', 'staff_holiday'],
+      agency: ['agency', 'agency_count', 'agency_shifts', 'staff_agency'],
+      incidents: ['incidents', 'incident', 'incident_notes', 'hs_incidents'],
+      notes: ['notes', 'note', 'daily_notes', 'log_notes'],
+      site: ['site', 'location'],
+      area: ['area', 'department'],
+    };
+
+    function resolveField(row, names) {
+      for (const name of names) {
+        if (Object.prototype.hasOwnProperty.call(row, name) && row[name] != null) {
+          return row[name];
+        }
+      }
+      return null;
+    }
+
+    function safeNumber(val) {
+      const num = Number(val);
+      return Number.isFinite(num) ? num : 0;
+    }
+
     function formatDate(dateStr) {
       const d = new Date(dateStr);
       if (Number.isNaN(d.getTime())) return dateStr;
@@ -259,11 +284,6 @@
       const endISO = end.toISOString().slice(0, 10);
 
       return { start, end, startISO, endISO };
-    }
-
-    function safeNumber(val) {
-      const num = Number(val);
-      return Number.isFinite(num) ? num : 0;
     }
 
     async function loadMonthlyData() {
@@ -309,6 +329,12 @@
 
         statusEl.textContent = '';
         const rows = data || [];
+
+        // Debug one example row to console so you can see exact field names if needed
+        if (rows.length) {
+          console.log('Sample ops_logs row for monthly dashboard:', rows[0]);
+        }
+
         updateStats(rows);
         updateNotes(rows);
       } catch (err) {
@@ -326,12 +352,16 @@
       let incidentCount = 0;
 
       for (const row of rows) {
-        sickTotal += safeNumber(row.sick);
-        holidayTotal += safeNumber(row.holiday);
-        agencyTotal += safeNumber(row.agency);
+        const sickVal = resolveField(row, FIELD_MAP.sick);
+        const holidayVal = resolveField(row, FIELD_MAP.holiday);
+        const agencyVal = resolveField(row, FIELD_MAP.agency);
+        const incidentsVal = resolveField(row, FIELD_MAP.incidents);
 
-        // Adjust if your incidents field is named differently
-        if (row.incidents && String(row.incidents).trim() !== '') {
+        sickTotal += safeNumber(sickVal);
+        holidayTotal += safeNumber(holidayVal);
+        agencyTotal += safeNumber(agencyVal);
+
+        if (incidentsVal && String(incidentsVal).trim() !== '') {
           incidentCount += 1;
         }
       }
@@ -391,10 +421,11 @@
           const meta = document.createElement('div');
           meta.className = 'note-meta';
 
-          const site = (row.site || '').toString();
-          const area = (row.area || '').toString();
+          const siteVal = resolveField(row, FIELD_MAP.site);
+          const areaVal = resolveField(row, FIELD_MAP.area);
 
-          if (site) {
+          if (siteVal) {
+            const site = String(siteVal);
             const siteSpan = document.createElement('span');
             siteSpan.className =
               'pill ' +
@@ -407,17 +438,21 @@
             meta.appendChild(siteSpan);
           }
 
-          if (area) {
+          if (areaVal) {
             const areaSpan = document.createElement('span');
             areaSpan.className = 'pill pill-area';
-            areaSpan.textContent = area;
+            areaSpan.textContent = String(areaVal);
             meta.appendChild(areaSpan);
           }
 
+          const sickVal = resolveField(row, FIELD_MAP.sick);
+          const holidayVal = resolveField(row, FIELD_MAP.holiday);
+          const agencyVal = resolveField(row, FIELD_MAP.agency);
+
           const countsSummary = [];
-          const s = safeNumber(row.sick);
-          const h = safeNumber(row.holiday);
-          const a = safeNumber(row.agency);
+          const s = safeNumber(sickVal);
+          const h = safeNumber(holidayVal);
+          const a = safeNumber(agencyVal);
           if (s) countsSummary.push('Sick: ' + s);
           if (h) countsSummary.push('Holiday: ' + h);
           if (a) countsSummary.push('Agency: ' + a);
@@ -436,8 +471,11 @@
           const text = document.createElement('div');
           text.className = 'note-text';
 
-          const notesField = (row.notes || row.note || '').toString().trim();
-          const incidentsField = (row.incidents || '').toString().trim();
+          const notesVal = resolveField(row, FIELD_MAP.notes);
+          const incidentsVal = resolveField(row, FIELD_MAP.incidents);
+
+          const notesField = (notesVal || '').toString().trim();
+          const incidentsField = (incidentsVal || '').toString().trim();
 
           let combined = notesField;
           if (incidentsField) {
@@ -461,7 +499,6 @@
       statusEl.className = 'loading';
 
       try {
-        // Find the most recent log_date so we default to a month that definitely has data
         const { data, error } = await supabase
           .from('ops_logs')
           .select('log_date')
@@ -477,7 +514,6 @@
           const month = String(d.getMonth() + 1).padStart(2, '0');
           monthVal = `${year}-${month}`;
         } else {
-          // Fallback to current month if no logs or error
           const now = new Date();
           const year = now.getFullYear();
           const month = String(now.getMonth() + 1).padStart(2, '0');
