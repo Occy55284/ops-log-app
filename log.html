@@ -379,6 +379,12 @@
     <!-- London Retail-specific Section -->
     <div id="retailSection" style="display: none;">
       <div class="section-heading">London Retail – Lunch Offer</div>
+
+      <!-- NEW: Sales Breakdown button (visible daily for Retail) -->
+      <a href="sales.html" class="button" id="salesBreakdownBtn" style="margin-bottom: 8px;">
+        Sales Breakdown
+      </a>
+
       <div class="retail-block">
         <label for="retailLunchSpecial">Did you run any lunch special today?</label>
         <select id="retailLunchSpecial">
@@ -741,7 +747,7 @@
         .from('ops_logs')
         .insert([
           {
-            log_date: logDateValue,  // NEW: log date stored as YYYY-MM-DD
+            log_date: logDateValue,
             site: site,
             area: effectiveArea,
             notes: notes || null,
