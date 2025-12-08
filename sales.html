@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Ops Log • Sales Breakdown</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #0b1220;
+      color: #f9fafb;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+
+    .page {
+      max-width: 1200px;
+      width: 100%;
+      padding: 24px;
+      box-sizing: border-box;
+    }
+
+    .header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .title-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 24px;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      color: #e5e7eb;
+    }
+
+    .subtitle {
+      font-size: 13px;
+      color: #9ca3af;
+    }
+
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .pill {
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      padding: 6px 12px;
+      font-size: 12px;
+      color: #e5e7eb;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .pill-label {
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-size: 11px;
+      color: #9ca3af;
+    }
+
+    .pill-value {
+      font-weight: 500;
+    }
+
+    .pill-input {
+      border: none;
+      background: transparent;
+      color: #e5e7eb;
+      font-size: 12px;
+      padding: 2px 4px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .pill-input::-webkit-calendar-picker-indicator {
+      filter: invert(1);
+      cursor: pointer;
+    }
+
+    .btn {
+      border-radius: 999px;
+      border: 1px solid rgba(94, 234, 212, 0.5);
+      background: radial-gradient(circle at top left, rgba(45, 212, 191, 0.35), rgba(15, 23, 42, 1));
+      color: #ecfeff;
+      padding: 8px 14px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow:
+        0 0 0 1px rgba(15, 23, 42, 1),
+        0 8px 18px rgba(45, 212, 191, 0.2);
+      transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.1s ease, opacity 0.1s ease;
+      text-decoration: none;
+    }
+
+    .btn:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow:
+        0 0 0 1px rgba(15, 23, 42, 1),
+        0 12px 26px rgba(45, 212, 191, 0.28);
+    }
+
+    .btn:disabled {
+      opacity: 0.4;
+      cursor: default;
+      box-shadow:
+        0 0 0 1px rgba(15, 23, 42, 1),
+        0 4px 10px rgba(15, 23, 42, 0.6);
+    }
+
+    .btn-secondary {
+      border-color: rgba(148, 163, 184, 0.6);
+      background: radial-gradient(circle at top left, rgba(30, 64, 175, 0.4), rgba(15, 23, 42, 1));
+    }
+
+    .btn-icon {
+      font-size: 15px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.4fr) minmax(0, 1.6fr);
+      gap: 14px;
+    }
+
+    @media (max-width: 900px) {
+      .grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      .page {
+        padding: 16px;
+      }
+    }
+
+    .card {
+      background: radial-gradient(circle at top left, rgba(30, 64, 175, 0.4), rgba(15, 23, 42, 0.98));
+      border-radius: 18px;
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      box-shadow:
+        0 0 0 1px rgba(15, 23, 42, 1),
+        0 18px 40px rgba(15, 23, 42, 0.9);
+      padding: 14px;
+      box-sizing: border-box;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .card-title {
+      font-size: 14px;
+      letter-spacing: 0.11em;
+      text-transform: uppercase;
+      color: #e5e7eb;
+    }
+
+    .card-subtitle {
+      font-size: 11px;
+      color: #9ca3af;
+    }
+
+    .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-bottom: 10px;
+    }
+
+    .field-label {
+      font-size: 11px;
+      color: #9ca3af;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+    }
+
+    .field-input,
+    .field-select {
+      border-radius: 10px;
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      background: rgba(15, 23, 42, 0.9);
+      color: #e5e7eb;
+      padding: 6px 8px;
+      font-size: 13px;
+      outline: none;
+      box-sizing: border-box;
+    }
+
+    .field-input:focus,
+    .field-select:focus {
+      border-color: rgba(96, 165, 250, 0.9);
+      box-shadow: 0 0 0 1px rgba(15, 23, 42, 1), 0 0 0 2px rgba(96, 165, 250, 0.8);
+    }
+
+    .field-help {
+      font-size: 11px;
+      color: #6b7280;
+    }
+
+    .metric-row {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    @media (max-width: 700px) {
+      .metric-row {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .metric {
+      background: radial-gradient(circle at top left, rgba(15, 23, 42, 0.9), rgba(15, 23, 42, 1));
+      border-radius: 14px;
+      padding: 10px 10px 10px;
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      box-shadow:
+        0 0 0 1px rgba(15, 23, 42, 1),
+        0 8px 18px rgba(15, 23, 42, 0.9);
+    }
+
+    .metric-label {
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #9ca3af;
+      margin-bottom: 6px;
+    }
+
+    .metric-value {
+      font-size: 20px;
+      font-weight: 600;
+      color: #e5e7eb;
+    }
+
+    .metric-sub {
+      font-size: 11px;
+      color: #9ca3af;
+      margin-top: 2px;
+    }
+
+    .section-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: #6b7280;
+      margin: 14px 0 6px;
+    }
+
+    .error-banner {
+      display: none;
+      border-radius: 10px;
+      border: 1px solid rgba(248, 113, 113, 0.7);
+      background: rgba(127, 29, 29, 0.7);
+      color: #fee2e2;
+      padding: 8px 10px;
+      font-size: 12px;
+      margin-bottom: 12px;
+    }
+
+    .status-text {
+      font-size: 11px;
+      color: #9ca3af;
+      margin-top: 6px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      color: #9ca3af;
+    }
+
+    .badge-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: radial-gradient(circle at center, #22c55e, #16a34a);
+      box-shadow: 0 0 8px rgba(34, 197, 94, 0.8);
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="header">
+      <div class="title-wrap">
+        <h1>Retail Sales Breakdown</h1>
+        <div class="subtitle">
+          Daily sales &amp; transactions by level, with weekly totals, wastage and SPH (Sales per Head).
+        </div>
+      </div>
+      <div class="controls">
+        <div class="pill">
+          <div class="pill-label">Week</div>
+          <div class="pill-value" id="weekLabel">–</div>
+        </div>
+        <button class="btn btn-secondary" id="prevWeekBtn">
+          <span class="btn-icon">◀</span>
+          Previous
+        </button>
+        <button class="btn btn-secondary" id="nextWeekBtn">
+          <span class="btn-icon">▶</span>
+          Next
+        </button>
+        <button class="btn" id="latestWeekBtn">
+          <span class="btn-icon">⟳</span>
+          Latest week
+        </button>
+        <a href="dashboard.html" class="btn btn-secondary">Weekly Ops</a>
+        <a href="log.html" class="btn">Daily Log</a>
+      </div>
+    </div>
+
+    <div id="errorMessage" class="error-banner"></div>
+
+    <div class="grid">
+      <!-- LEFT: DAILY ENTRY -->
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Daily Sales Entry</div>
+            <div class="card-subtitle">Enter sales &amp; transactions for each level. SPH &amp; wastage calculated automatically.</div>
+          </div>
+          <div class="badge">
+            <span class="badge-dot"></span>
+            Sales to be entered daily
+          </div>
+        </div>
+
+        <div class="field-group">
+          <div class="field-label">Sales Date</div>
+          <input type="date" id="salesDateInput" class="field-input" />
+          <div class="field-help">Use the trading date (you can backfill previous days).</div>
+        </div>
+
+        <div class="field-group">
+          <div class="field-label">Level</div>
+          <select id="levelInput" class="field-select">
+            <option value="Level 7">Level 7</option>
+            <option value="Level 5">Level 5</option>
+            <option value="Level 4">Level 4</option>
+            <option value="Level 3">Level 3</option>
+          </select>
+        </div>
+
+        <div class="field-group">
+          <div class="field-label">Sales (£)</div>
+          <input type="number" id="salesInput" class="field-input" step="0.01" min="0" />
+          <div class="field-help">Total gross sales for that level on that day.</div>
+        </div>
+
+        <div class="field-group">
+          <div class="field-label">Transactions</div>
+          <input type="number" id="transactionsInput" class="field-input" step="1" min="0" />
+          <div class="field-help">Number of transactions (used to calculate SPH).</div>
+        </div>
+
+        <div class="section-label">Calculated</div>
+        <div class="metric-row">
+          <div class="metric">
+            <div class="metric-label">SPH (Sales per Head)</div>
+            <div class="metric-value" id="dailySphValue">–</div>
+            <div class="metric-sub">Sales / Transactions for the selected level &amp; day.</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Wastage Cost (£)</div>
+            <div class="metric-value" id="dailyWastageValue">–</div>
+            <div class="metric-sub">2% of sales (4% wastage × 50% cost price).</div>
+          </div>
+        </div>
+
+        <div style="margin-top:14px; display:flex; gap:8px; align-items:center;">
+          <button class="btn" id="saveSalesBtn">Save Sales</button>
+          <div id="saveStatus" class="status-text"></div>
+        </div>
+      </div>
+
+      <!-- RIGHT: WEEKLY SUMMARY -->
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Weekly Totals by Level</div>
+            <div class="card-subtitle">Summed from daily sales entries for the selected Mon–Fri week.</div>
+          </div>
+        </div>
+
+        <div class="metric-row">
+          <div class="metric">
+            <div class="metric-label">Level 7</div>
+            <div class="metric-value" id="lvl7Sales">£0.00</div>
+            <div class="metric-sub" id="lvl7Sub">Transactions: 0 • SPH: – • Wastage: £0.00</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Level 5</div>
+            <div class="metric-value" id="lvl5Sales">£0.00</div>
+            <div class="metric-sub" id="lvl5Sub">Transactions: 0 • SPH: – • Wastage: £0.00</div>
+          </div>
+        </div>
+
+        <div class="metric-row" style="margin-top:10px;">
+          <div class="metric">
+            <div class="metric-label">Level 4</div>
+            <div class="metric-value" id="lvl4Sales">£0.00</div>
+            <div class="metric-sub" id="lvl4Sub">Transactions: 0 • SPH: – • Wastage: £0.00</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Level 3</div>
+            <div class="metric-value" id="lvl3Sales">£0.00</div>
+            <div class="metric-sub" id="lvl3Sub">Transactions: 0 • SPH: – • Wastage: £0.00</div>
+          </div>
+        </div>
+
+        <div class="section-label">Notes</div>
+        <div class="status-text" id="weekSummaryStatus">
+          No sales captured for this week yet.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { supabase } from './supabase-config.js';
+
+    const weekLabelEl = document.getElementById('weekLabel');
+    const errorMessageEl = document.getElementById('errorMessage');
+
+    const salesDateInput = document.getElementById('salesDateInput');
+    const levelInput = document.getElementById('levelInput');
+    const salesInput = document.getElementById('salesInput');
+    const transactionsInput = document.getElementById('transactionsInput');
+
+    const dailySphValueEl = document.getElementById('dailySphValue');
+    const dailyWastageValueEl = document.getElementById('dailyWastageValue');
+    const saveSalesBtn = document.getElementById('saveSalesBtn');
+    const saveStatusEl = document.getElementById('saveStatus');
+
+    const prevWeekBtn = document.getElementById('prevWeekBtn');
+    const nextWeekBtn = document.getElementById('nextWeekBtn');
+    const latestWeekBtn = document.getElementById('latestWeekBtn');
+
+    const lvl7SalesEl = document.getElementById('lvl7Sales');
+    const lvl5SalesEl = document.getElementById('lvl5Sales');
+    const lvl4SalesEl = document.getElementById('lvl4Sales');
+    const lvl3SalesEl = document.getElementById('lvl3Sales');
+
+    const lvl7SubEl = document.getElementById('lvl7Sub');
+    const lvl5SubEl = document.getElementById('lvl5Sub');
+    const lvl4SubEl = document.getElementById('lvl4Sub');
+    const lvl3SubEl = document.getElementById('lvl3Sub');
+
+    const weekSummaryStatusEl = document.getElementById('weekSummaryStatus');
+
+    let currentWeekOffset = 0; // 0 = latest sales week, 1 = previous, etc.
+    let latestWeekMonday = null; // anchor Monday for the latest week with data
+
+    function toISODate(d) {
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+
+    function formatWeekRange(start, end) {
+      const optsStart = { day: 'numeric', month: 'short' };
+      const optsEnd = { day: 'numeric', month: 'short', year: 'numeric' };
+      const startStr = start.toLocaleDateString('en-GB', optsStart);
+      const endStr = end.toLocaleDateString('en-GB', optsEnd);
+      return `${startStr} – ${endStr}`;
+    }
+
+    function getMonday(date) {
+      const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+      const day = d.getDay(); // 0=Sun, 1=Mon, ...
+      const diffToMonday = day === 0 ? -6 : 1 - day;
+      d.setDate(d.getDate() + diffToMonday);
+      return d;
+    }
+
+    function calcSph(sales, tx) {
+      if (!tx || tx <= 0) return null;
+      return sales / tx;
+    }
+
+    function calcWastage(sales) {
+      // 4% wastage x 50% cost price = 2% of sales
+      return sales * 0.02;
+    }
+
+    function updateDailyCalculated() {
+      const sales = parseFloat(salesInput.value || '0');
+      const tx = parseInt(transactionsInput.value || '0', 10);
+
+      const sph = calcSph(sales, tx);
+      const wastage = calcWastage(sales);
+
+      if (sph == null) {
+        dailySphValueEl.textContent = '–';
+      } else {
+        dailySphValueEl.textContent = '£' + sph.toFixed(2);
+      }
+
+      if (!sales) {
+        dailyWastageValueEl.textContent = '–';
+      } else {
+        dailyWastageValueEl.textContent = '£' + wastage.toFixed(2);
+      }
+    }
+
+    salesInput.addEventListener('input', updateDailyCalculated);
+    transactionsInput.addEventListener('input', updateDailyCalculated);
+
+    async function initSalesPage() {
+      errorMessageEl.style.display = 'none';
+      errorMessageEl.textContent = '';
+
+      try {
+        const { data, error } = await supabase
+          .from('retail_sales')
+          .select('sales_date')
+          .order('sales_date', { ascending: false })
+          .limit(1);
+
+        let anchorDate;
+        if (!error && data && data.length && data[0].sales_date) {
+          anchorDate = new Date(data[0].sales_date);
+        } else {
+          anchorDate = new Date();
+        }
+
+        latestWeekMonday = getMonday(anchorDate);
+        currentWeekOffset = 0;
+
+        // Default daily entry date = today
+        salesDateInput.value = toISODate(new Date());
+
+        await loadWeeklySales();
+      } catch (err) {
+        console.error('Error initialising sales page:', err);
+        errorMessageEl.textContent = 'There was an error initialising sales data.';
+        errorMessageEl.style.display = 'block';
+      }
+    }
+
+    async function loadWeeklySales() {
+      if (!latestWeekMonday) {
+        weekLabelEl.textContent = '–';
+        weekSummaryStatusEl.textContent = 'No sales data yet.';
+        resetWeeklyMetrics();
+        return;
+      }
+
+      // Compute Monday for this offset
+      const monday = new Date(
+        latestWeekMonday.getFullYear(),
+        latestWeekMonday.getMonth(),
+        latestWeekMonday.getDate() - currentWeekOffset * 7
+      );
+      const friday = new Date(monday);
+      friday.setDate(friday.getDate() + 4);
+
+      weekLabelEl.textContent = formatWeekRange(monday, friday);
+
+      // no future beyond latest week
+      nextWeekBtn.disabled = currentWeekOffset === 0;
+
+      const startISO = toISODate(monday);
+      const endISO = toISODate(friday);
+
+      try {
+        const { data, error } = await supabase
+          .from('retail_sales')
+          .select('*')
+          .gte('sales_date', startISO)
+          .lte('sales_date', endISO)
+          .order('sales_date', { ascending: true })
+          .order('level', { ascending: true });
+
+        if (error) {
+          console.error('Error loading weekly sales:', error);
+          errorMessageEl.textContent = 'There was an error loading weekly sales data.';
+          errorMessageEl.style.display = 'block';
+          resetWeeklyMetrics();
+          weekSummaryStatusEl.textContent = 'Error loading sales data.';
+          return;
+        }
+
+        const rows = data || [];
+        populateWeeklyMetrics(rows, monday, friday);
+      } catch (err) {
+        console.error('Error loading weekly sales:', err);
+        errorMessageEl.textContent = 'There was an error loading weekly sales data.';
+        errorMessageEl.style.display = 'block';
+        resetWeeklyMetrics();
+        weekSummaryStatusEl.textContent = 'Error loading sales data.';
+      }
+    }
+
+    function resetWeeklyMetrics() {
+      lvl7SalesEl.textContent = '£0.00';
+      lvl5SalesEl.textContent = '£0.00';
+      lvl4SalesEl.textContent = '£0.00';
+      lvl3SalesEl.textContent = '£0.00';
+
+      lvl7SubEl.textContent = 'Transactions: 0 • SPH: – • Wastage: £0.00';
+      lvl5SubEl.textContent = 'Transactions: 0 • SPH: – • Wastage: £0.00';
+      lvl4SubEl.textContent = 'Transactions: 0 • SPH: – • Wastage: £0.00';
+      lvl3SubEl.textContent = 'Transactions: 0 • SPH: – • Wastage: £0.00';
+    }
+
+    function populateWeeklyMetrics(rows, monday, friday) {
+      if (!rows.length) {
+        resetWeeklyMetrics();
+        weekSummaryStatusEl.textContent = 'No sales captured for this week yet.';
+        return;
+      }
+
+      const levels = {
+        'Level 7': { sales: 0, tx: 0 },
+        'Level 5': { sales: 0, tx: 0 },
+        'Level 4': { sales: 0, tx: 0 },
+        'Level 3': { sales: 0, tx: 0 },
+      };
+
+      rows.forEach(row => {
+        const lvl = row.level;
+        if (!levels[lvl]) return;
+        const sales = parseFloat(row.sales || 0);
+        const tx = parseInt(row.transactions || 0, 10);
+        levels[lvl].sales += sales;
+        levels[lvl].tx += tx;
+      });
+
+      function setLevelDisplay(levelName, salesEl, subEl) {
+        const data = levels[levelName];
+        const totalSales = data.sales;
+        const totalTx = data.tx;
+        const sph = calcSph(totalSales, totalTx);
+        const wastage = calcWastage(totalSales);
+
+        salesEl.textContent = '£' + totalSales.toFixed(2);
+        const sphText = sph == null ? '–' : '£' + sph.toFixed(2);
+        const wastageText = '£' + wastage.toFixed(2);
+
+        subEl.textContent = `Transactions: ${totalTx} • SPH: ${sphText} • Wastage: ${wastageText}`;
+      }
+
+      setLevelDisplay('Level 7', lvl7SalesEl, lvl7SubEl);
+      setLevelDisplay('Level 5', lvl5SalesEl, lvl5SubEl);
+      setLevelDisplay('Level 4', lvl4SalesEl, lvl4SubEl);
+      setLevelDisplay('Level 3', lvl3SalesEl, lvl3SubEl);
+
+      weekSummaryStatusEl.textContent = 'Sales totals are for Mon–Fri of the selected week.';
+    }
+
+    async function saveSales() {
+      saveStatusEl.textContent = '';
+      errorMessageEl.style.display = 'none';
+      errorMessageEl.textContent = '';
+
+      const dateVal = salesDateInput.value;
+      const levelVal = levelInput.value;
+      const salesVal = parseFloat(salesInput.value || '0');
+      const txVal = parseInt(transactionsInput.value || '0', 10);
+
+      if (!dateVal) {
+        saveStatusEl.textContent = 'Please select a sales date.';
+        return;
+      }
+      if (!levelVal) {
+        saveStatusEl.textContent = 'Please select a level.';
+        return;
+      }
+      if (!(salesVal > 0)) {
+        saveStatusEl.textContent = 'Please enter sales greater than 0.';
+        return;
+      }
+      if (!(txVal >= 0)) {
+        saveStatusEl.textContent = 'Please enter a valid transactions number.';
+        return;
+      }
+
+      saveSalesBtn.disabled = true;
+      saveStatusEl.textContent = 'Saving sales…';
+
+      try {
+        const { error } = await supabase
+          .from('retail_sales')
+          .upsert(
+            {
+              sales_date: dateVal,
+              level: levelVal,
+              site: 'London',
+              sales: salesVal,
+              transactions: txVal,
+            },
+            {
+              onConflict: 'sales_date,level',
+            }
+          );
+
+        if (error) {
+          console.error('Error saving sales:', error);
+          saveStatusEl.textContent = 'Error saving sales.';
+          errorMessageEl.textContent = 'There was an error saving sales data.';
+          errorMessageEl.style.display = 'block';
+        } else {
+          saveStatusEl.textContent = 'Sales saved.';
+          // refresh weekly view if the date falls in current week
+          await loadWeeklySales();
+        }
+      } catch (err) {
+        console.error('Error saving sales:', err);
+        saveStatusEl.textContent = 'Error saving sales.';
+        errorMessageEl.textContent = 'There was an error saving sales data.';
+        errorMessageEl.style.display = 'block';
+      } finally {
+        saveSalesBtn.disabled = false;
+      }
+    }
+
+    saveSalesBtn.addEventListener('click', () => {
+      saveSales();
+    });
+
+    prevWeekBtn.addEventListener('click', () => {
+      currentWeekOffset += 1;
+      loadWeeklySales();
+    });
+
+    nextWeekBtn.addEventListener('click', () => {
+      if (currentWeekOffset > 0) {
+        currentWeekOffset -= 1;
+        loadWeeklySales();
+      }
+    });
+
+    latestWeekBtn.addEventListener('click', async () => {
+      // reset anchor from latest data
+      try {
+        const { data, error } = await supabase
+          .from('retail_sales')
+          .select('sales_date')
+          .order('sales_date', { ascending: false })
+          .limit(1);
+
+        let anchorDate;
+        if (!error && data && data.length && data[0].sales_date) {
+          anchorDate = new Date(data[0].sales_date);
+        } else {
+          anchorDate = new Date();
+        }
+
+        latestWeekMonday = getMonday(anchorDate);
+        currentWeekOffset = 0;
+        await loadWeeklySales();
+      } catch (err) {
+        console.error('Error refreshing latest week anchor:', err);
+      }
+    });
+
+    // Auto-calc once on load for blank values
+    updateDailyCalculated();
+    // Init
+    initSalesPage();
+  </script>
+</body>
+</html>
