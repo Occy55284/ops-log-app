@@ -373,6 +373,20 @@
             <option value="Quieter">Quieter than normal</option>
           </select>
         </div>
+
+        <!-- Free Breakfast tracking -->
+        <div style="margin-top: 8px;">
+          <label for="freeBreakfastCount">Free breakfasts given today:</label>
+          <input
+            id="freeBreakfastCount"
+            type="number"
+            min="0"
+            placeholder="Number of free breakfasts"
+          />
+          <div class="small-label">
+            Use this only on days where breakfasts were given free to customers.
+          </div>
+        </div>
       </div>
     </div>
 
@@ -380,7 +394,7 @@
     <div id="retailSection" style="display: none;">
       <div class="section-heading">London Retail – Lunch Offer</div>
 
-      <!-- NEW: Sales Breakdown button (visible daily for Retail) -->
+      <!-- Sales Breakdown button -->
       <a href="sales.html" class="button" id="salesBreakdownBtn" style="margin-bottom: 8px;">
         Sales Breakdown
       </a>
@@ -477,6 +491,7 @@
     const newcastleSection = document.getElementById('newcastleSection');
     const hotLunchDishesEl = document.getElementById('hotLunchDishes');
     const serviceLevelEl = document.getElementById('serviceLevel');
+    const freeBreakfastCountEl = document.getElementById('freeBreakfastCount');
 
     // London Retail-specific elements
     const retailSection = document.getElementById('retailSection');
@@ -515,7 +530,7 @@
       } else if (site === 'Newcastle') {
         siteLabel.textContent = 'Site: Newcastle';
         info.textContent =
-          'Capture today’s notes, staffing, maintenance, H&S, and hot lunch performance for Newcastle.';
+          'Capture today’s notes, staffing, maintenance, H&S, hot lunch performance and any free breakfasts for Newcastle.';
         newcastleSection.style.display = 'block';
         retailSection.style.display = 'none';
         hospitalitySection.style.display = 'none';
@@ -633,10 +648,12 @@
       // Newcastle-specific values
       let hotLunchDishes = null;
       let serviceLevel = null;
+      let freeBreakfastCount = null;
 
       if (site === 'Newcastle') {
         const hotVal = hotLunchDishesEl.value.trim();
         const serviceVal = serviceLevelEl.value;
+        const freeBVal = freeBreakfastCountEl.value.trim();
 
         if (!hotVal || isNaN(hotVal) || Number(hotVal) < 0 || !serviceVal) {
           saveMessage.textContent =
@@ -646,6 +663,15 @@
 
         hotLunchDishes = Number(hotVal);
         serviceLevel = serviceVal;
+
+        if (freeBVal !== '') {
+          if (isNaN(freeBVal) || Number(freeBVal) < 0) {
+            saveMessage.textContent =
+              'Free breakfast count must be a number 0 or above.';
+            return;
+          }
+          freeBreakfastCount = Number(freeBVal);
+        }
       }
 
       // London Retail-specific values
@@ -772,6 +798,7 @@
 
             hot_lunch_dishes: hotLunchDishes,
             service_level: serviceLevel,
+            free_breakfast_count: freeBreakfastCount,
 
             retail_lunch_special: retailLunchSpecial,
             retail_lunch_desc: retailLunchDesc,
@@ -796,6 +823,7 @@
       document.getElementById('hsNotes').value = '';
       hotLunchDishesEl.value = '';
       serviceLevelEl.value = '';
+      if (freeBreakfastCountEl) freeBreakfastCountEl.value = '';
       retailLunchDescEl.value = '';
       hospDayEventsEl.value = '';
       hospNightEventsEl.value = '';
