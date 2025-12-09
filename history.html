@@ -17,44 +17,105 @@
     }
 
     .card {
-      background: #020617;
-      border-radius: 16px;
-      padding: 24px 20px;
-      max-width: 900px;
       width: 100%;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
-      border: 1px solid #1f2937;
+      max-width: 960px;
+      background: radial-gradient(circle at top left, rgba(56, 189, 248, 0.08), transparent 55%),
+        radial-gradient(circle at bottom right, rgba(45, 212, 191, 0.06), transparent 55%),
+        #020617;
+      border-radius: 18px;
+      border: 1px solid rgba(15, 23, 42, 0.9);
+      padding: 20px 20px 18px;
+      box-shadow:
+        0 24px 60px rgba(15, 23, 42, 0.75),
+        0 0 0 1px rgba(15, 23, 42, 0.9);
     }
 
     h1 {
-      font-size: 1.6rem;
-      margin-bottom: 0.25rem;
+      font-size: 1.4rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      margin: 0 0 4px;
+      color: #e5e7eb;
     }
 
     .subheading {
-      font-size: 0.9rem;
+      margin: 0 0 16px;
+      font-size: 0.90rem;
       color: #9ca3af;
-      margin-bottom: 1rem;
     }
 
-    .summary-row {
+    .controls {
       display: flex;
       flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
       gap: 12px;
       margin-bottom: 16px;
     }
 
+    .date-label {
+      font-size: 0.9rem;
+      color: #e5e7eb;
+    }
+
+    .date-label span {
+      font-weight: 600;
+      color: #facc15;
+    }
+
+    .buttons-right {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      justify-content: flex-end;
+    }
+
+    button,
+    .button-link {
+      border-radius: 999px;
+      border: 1px solid rgba(55, 65, 81, 1);
+      background: radial-gradient(circle at top, rgba(148, 163, 184, 0.15), rgba(15, 23, 42, 1));
+      color: #e5e7eb;
+      font-size: 0.8rem;
+      padding: 6px 12px;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.15s ease, transform 0.12s ease, box-shadow 0.12s ease;
+    }
+
+    button:hover,
+    .button-link:hover {
+      background: radial-gradient(circle at top, rgba(248, 250, 252, 0.12), rgba(15, 23, 42, 1));
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.9);
+      transform: translateY(-1px);
+    }
+
+    .nav {
+      border-color: rgba(75, 85, 99, 1);
+    }
+
+    .summary-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
     .summary-box {
-      flex: 1;
-      min-width: 160px;
-      background: #020617;
       border-radius: 12px;
       border: 1px solid #111827;
+      background: #020617;
       padding: 10px 12px;
     }
 
     .summary-label {
-      font-size: 0.8rem;
+      font-size: 0.72rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
       color: #9ca3af;
       margin-bottom: 4px;
     }
@@ -62,26 +123,27 @@
     .summary-value {
       font-size: 1.1rem;
       font-weight: 600;
+      color: #e5e7eb;
     }
 
-    .chip {
-      display: inline-flex;
-      align-items: center;
-      border-radius: 999px;
-      border: 1px solid #374151;
-      padding: 3px 8px;
-      font-size: 0.75rem;
+    .summary-value-small {
+      font-size: 0.82rem;
+      font-weight: 500;
       color: #e5e7eb;
-      margin-right: 6px;
-      margin-bottom: 4px;
+      line-height: 1.4;
     }
 
     .logs-title {
+      margin: 14px 0 8px;
       font-size: 0.9rem;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
+      font-weight: 500;
+      color: #e5e7eb;
+    }
+
+    .empty-state {
+      font-size: 0.85rem;
       color: #6b7280;
-      margin: 8px 0 6px;
+      margin-top: 6px;
     }
 
     .log-item {
@@ -111,79 +173,53 @@
       font-weight: 600;
     }
 
+    .chip {
+      border-radius: 999px;
+      background: rgba(31, 41, 55, 1);
+      color: #e5e7eb;
+      padding: 2px 8px;
+      font-size: 0.7rem;
+    }
+
     .log-time {
-      font-size: 0.8rem;
+      font-size: 0.75rem;
       color: #9ca3af;
     }
 
     .log-tags {
-      margin-bottom: 4px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin: 6px 0;
+    }
+
+    .tag {
+      font-size: 0.7rem;
+      border-radius: 999px;
+      padding: 2px 8px;
+      background: rgba(17, 24, 39, 1);
+      border: 1px solid rgba(55, 65, 81, 1);
+      color: #e5e7eb;
+      white-space: nowrap;
     }
 
     .log-notes {
-      font-size: 0.85rem;
+      font-size: 0.78rem;
       color: #d1d5db;
-      white-space: pre-wrap;
+      line-height: 1.5;
+      margin-top: 4px;
     }
 
-    .empty-state {
-      font-size: 0.9rem;
+    .log-notes strong {
       color: #9ca3af;
-      margin-top: 8px;
+      font-weight: 500;
     }
 
-    .controls {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 12px;
-      flex-wrap: wrap;
-    }
-
-    .date-label {
-      font-size: 0.9rem;
-      color: #e5e7eb;
-    }
-
-    .buttons-right {
-      display: flex;
-      gap: 8px;
-    }
-
-    button.nav {
-      padding: 6px 10px;
-      border-radius: 999px;
-      border: 1px solid #374151;
-      background: #020617;
-      color: #e5e7eb;
-      font-size: 0.8rem;
-      cursor: pointer;
-    }
-
-    button.nav:hover {
-      background: #111827;
-    }
-
-    a.button-link {
-      display: inline-block;
-      padding: 6px 10px;
-      border-radius: 999px;
-      border: 1px solid #374151;
-      text-decoration: none;
-      font-size: 0.8rem;
-      color: #e5e7eb;
-      background: #020617;
-    }
-
-    a.button-link:hover {
-      background: #111827;
-    }
-
-    @media (max-width: 600px) {
-      .log-header {
-        flex-direction: column;
-        align-items: flex-start;
+    @media (max-width: 640px) {
+      .card {
+        border-radius: 0;
+        min-height: 100vh;
+        max-width: 100%;
       }
     }
   </style>
@@ -192,7 +228,7 @@
   <div class="card">
     <h1>Daily Overview</h1>
     <p class="subheading">
-      Combined stats from all sites for a single day.
+      Combined stats from all sites for a single day, including retail sales.
     </p>
 
     <div class="controls">
@@ -203,11 +239,12 @@
         <button class="nav" id="prevDayBtn">◀ Previous day</button>
         <button class="nav" id="todayBtn">Today</button>
         <a href="dashboard.html" class="button-link">Weekly dashboard</a>
+        <a href="sales.html" class="button-link">Retail sales page</a>
         <a href="index.html" class="button-link">Back to site selection</a>
       </div>
     </div>
 
-    <!-- Summary -->
+    <!-- Ops summary -->
     <div class="summary-row">
       <div class="summary-box">
         <div class="summary-label">Total logs</div>
@@ -215,7 +252,19 @@
       </div>
       <div class="summary-box">
         <div class="summary-label">By site</div>
-        <div class="summary-value" id="siteBreakdown">–</div>
+        <div class="summary-value-small" id="siteBreakdown">–</div>
+      </div>
+    </div>
+
+    <!-- Retail sales summary -->
+    <div class="summary-row">
+      <div class="summary-box">
+        <div class="summary-label">Retail sales (all levels)</div>
+        <div class="summary-value" id="dailySalesTotal">£0.00</div>
+      </div>
+      <div class="summary-box">
+        <div class="summary-label">Retail sales by level</div>
+        <div class="summary-value-small" id="dailySalesLevels">No sales captured</div>
       </div>
     </div>
 
@@ -235,6 +284,9 @@
     const logsContainer = document.getElementById('logsContainer');
     const emptyStateEl = document.getElementById('emptyState');
 
+    const dailySalesTotalEl = document.getElementById('dailySalesTotal');
+    const dailySalesLevelsEl = document.getElementById('dailySalesLevels');
+
     const prevDayBtn = document.getElementById('prevDayBtn');
     const todayBtn = document.getElementById('todayBtn');
 
@@ -242,21 +294,86 @@
 
     function formatDateLabel(date) {
       return date.toLocaleDateString('en-GB', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'short',
         day: 'numeric',
-        month: 'long',
-        year: 'numeric'
       });
     }
 
     function toDateString(date) {
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const day = String(date.getDate()).padStart(2, '0');
-      return `${year}-${month}-${day}`;
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, '0');
+      const d = String(date.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
     }
 
-    function parseISODateOnly(isoString) {
-      return new Date(isoString);
+    function parseISODateOnly(iso) {
+      if (!iso) return null;
+      const d = new Date(iso);
+      if (Number.isNaN(d.getTime())) return null;
+      return d;
+    }
+
+    function resetSalesSummary() {
+      dailySalesTotalEl.textContent = '£0.00';
+      dailySalesLevelsEl.textContent = 'No sales captured';
+    }
+
+    async function loadSalesForDate(dateStr) {
+      resetSalesSummary();
+
+      try {
+        const { data, error } = await supabase
+          .from('retail_sales')
+          .select('*')
+          .eq('sales_date', dateStr);
+
+        if (error) {
+          console.error('Error loading retail sales:', error);
+          return;
+        }
+
+        if (!data || data.length === 0) {
+          return;
+        }
+
+        let totalSales = 0;
+        const byLevel = {};
+
+        data.forEach((row) => {
+          const level = row.level || 'Unknown';
+          const sales = parseFloat(row.sales ?? 0);
+          if (!Number.isFinite(sales)) return;
+
+          totalSales += sales;
+          byLevel[level] = (byLevel[level] || 0) + sales;
+        });
+
+        dailySalesTotalEl.textContent = '£' + totalSales.toFixed(2);
+
+        const orderedLevels = ['Level 7', 'Level 5', 'Level 4', 'Level 3'];
+        const parts = [];
+
+        orderedLevels.forEach((lvl) => {
+          if (byLevel[lvl]) {
+            const short = lvl.replace('Level ', 'L');
+            parts.push(`${short}: £${byLevel[lvl].toFixed(2)}`);
+          }
+        });
+
+        // Any other levels not in the standard list
+        Object.keys(byLevel).forEach((lvl) => {
+          if (!orderedLevels.includes(lvl)) {
+            parts.push(`${lvl}: £${byLevel[lvl].toFixed(2)}`);
+          }
+        });
+
+        dailySalesLevelsEl.textContent =
+          parts.length > 0 ? parts.join(' • ') : 'No sales captured';
+      } catch (err) {
+        console.error('Unexpected error loading retail sales:', err);
+      }
     }
 
     async function loadDataForDate(dateStr) {
@@ -271,13 +388,15 @@
       siteBreakdownEl.textContent = '…';
       emptyStateEl.style.display = 'none';
 
-      // 🔴 IMPORTANT CHANGE HERE:
-      // We now filter by log_date (the day the log is for),
-      // NOT by created_at (the day it was saved).
+      // reset sales while we load
+      resetSalesSummary();
+
+      // OPS LOGS
       const { data, error } = await supabase
         .from('ops_logs')
         .select('*')
         .eq('log_date', dateStr)
+        .order('log_date', { ascending: false })
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -286,6 +405,9 @@
         siteBreakdownEl.textContent = 'Error';
         emptyStateEl.textContent = 'There was an error loading data.';
         emptyStateEl.style.display = 'block';
+
+        // still attempt to load sales
+        await loadSalesForDate(dateStr);
         return;
       }
 
@@ -294,12 +416,15 @@
         siteBreakdownEl.textContent = 'No data';
         emptyStateEl.textContent = 'No logs found for this date yet.';
         emptyStateEl.style.display = 'block';
+
+        // still attempt to load sales
+        await loadSalesForDate(dateStr);
         return;
       }
 
-      // Summary
-      totalLogsEl.textContent = data.length.toString();
+      totalLogsEl.textContent = String(data.length);
 
+      // Site breakdown
       const siteCounts = data.reduce((acc, row) => {
         const site = row.site || 'Unknown';
         acc[site] = (acc[site] || 0) + 1;
@@ -337,35 +462,37 @@
         timeEl.textContent = created
           ? created.toLocaleTimeString('en-GB', {
               hour: '2-digit',
-              minute: '2-digit'
+              minute: '2-digit',
             })
           : '';
 
         headerLeft.appendChild(siteEl);
         headerLeft.appendChild(areaEl);
+
         header.appendChild(headerLeft);
         header.appendChild(timeEl);
+
         item.appendChild(header);
 
-        // Tags row
+        // Tags row: quick view
         const tags = document.createElement('div');
         tags.className = 'log-tags';
 
         function addTag(text) {
           const t = document.createElement('span');
-          t.className = 'chip';
+          t.className = 'tag';
           t.textContent = text;
           tags.appendChild(t);
         }
 
-        // Staffing chips
-        if (row.sickness_count && row.sickness_count !== '0') {
-          addTag(`Sickness: ${row.sickness_count}`);
+        // Staffing counts
+        if (row.sickness_count != null && row.sickness_count > 0) {
+          addTag(`Sick: ${row.sickness_count}`);
         }
-        if (row.holiday_count && row.holiday_count !== '0') {
-          addTag(`Holidays: ${row.holiday_count}`);
+        if (row.holiday_count != null && row.holiday_count > 0) {
+          addTag(`Holiday: ${row.holiday_count}`);
         }
-        if (row.agency_count && row.agency_count !== '0') {
+        if (row.agency_count != null && row.agency_count > 0) {
           addTag(`Agency: ${row.agency_count}`);
         }
 
@@ -378,39 +505,20 @@
 
         // H&S / Food Safety
         if (row.hs_issue === 'Yes') {
-          addTag(
-            `H&S / Food Safety issue (reported: ${row.hs_reported || 'n/a'})`
-          );
+          addTag(`H&S issue (reported: ${row.hs_reported || 'n/a'})`);
         }
 
-        // Newcastle
+        // Newcastle hot lunches
         if (row.site === 'Newcastle' && row.hot_lunch_dishes != null) {
-          addTag(
-            `Hot lunch: ${row.hot_lunch_dishes} (${row.service_level || '-'})`
-          );
+          addTag(`Hot lunch dishes: ${row.hot_lunch_dishes}`);
         }
 
-        // London Retail
-        if (
-          row.site === 'London' &&
-          row.area === 'Retail' &&
-          row.retail_lunch_special
-        ) {
-          addTag(
-            `Retail lunch special: ${row.retail_lunch_special}${
-              row.retail_lunch_desc ? ' ✓' : ''
-            }`
-          );
-        }
-
-        // London Hospitality
+        // London Hospitality events
         if (row.site === 'London' && row.area === 'Hospitality') {
-          if (row.hosp_day_events != null || row.hosp_night_events != null) {
-            addTag(
-              `Events – Day: ${row.hosp_day_events ?? 0}, Night: ${
-                row.hosp_night_events ?? 0
-              }`
-            );
+          const dayEv = row.hosp_day_events ?? 0;
+          const nightEv = row.hosp_night_events ?? 0;
+          if (dayEv || nightEv) {
+            addTag(`Events – Day: ${dayEv} • Night: ${nightEv}`);
           }
         }
 
@@ -418,40 +526,50 @@
           item.appendChild(tags);
         }
 
-        // Notes section – includes all detailed comments
+        // Notes section – detailed info
         const detailLines = [];
 
         if (row.notes) {
-          detailLines.push(`General: ${row.notes}`);
+          detailLines.push(`<strong>General:</strong> ${row.notes}`);
         }
         if (row.sickness_notes) {
-          detailLines.push(`Sickness notes: ${row.sickness_notes}`);
+          detailLines.push(`<strong>Sickness:</strong> ${row.sickness_notes}`);
         }
         if (row.holiday_notes) {
-          detailLines.push(`Holiday notes: ${row.holiday_notes}`);
+          detailLines.push(`<strong>Holiday:</strong> ${row.holiday_notes}`);
         }
         if (row.agency_notes) {
-          detailLines.push(`Agency notes: ${row.agency_notes}`);
+          detailLines.push(`<strong>Agency:</strong> ${row.agency_notes}`);
         }
         if (row.maintenance_notes) {
-          detailLines.push(`Maintenance: ${row.maintenance_notes}`);
+          detailLines.push(
+            `<strong>Maintenance:</strong> ${row.maintenance_notes}`
+          );
         }
         if (row.hs_notes) {
-          detailLines.push(`H&S / Food Safety: ${row.hs_notes}`);
+          detailLines.push(`<strong>H&S:</strong> ${row.hs_notes}`);
         }
-        if (row.retail_lunch_desc) {
-          detailLines.push(`Retail lunch: ${row.retail_lunch_desc}`);
+        if (row.retail_lunch_special || row.retail_lunch_desc) {
+          const desc = `${row.retail_lunch_special || ''}${
+            row.retail_lunch_desc ? ' – ' + row.retail_lunch_desc : ''
+          }`.trim();
+          if (desc) {
+            detailLines.push(`<strong>Retail lunch:</strong> ${desc}`);
+          }
         }
 
         if (detailLines.length > 0) {
           const notes = document.createElement('div');
           notes.className = 'log-notes';
-          notes.textContent = detailLines.join('\n');
+          notes.innerHTML = detailLines.join('<br />');
           item.appendChild(notes);
         }
 
         logsContainer.appendChild(item);
       });
+
+      // Finally load sales for this date
+      await loadSalesForDate(dateStr);
     }
 
     function goToToday() {
