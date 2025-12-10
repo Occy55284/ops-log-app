@@ -728,63 +728,76 @@
     // -----------------------------------------------------
     // 🔥 WEEKLY RETAIL SALES LOADING FUNCTION
     // -----------------------------------------------------
-    async function loadWeeklyRetailSales(startDateStr, endDateStr) {
-      const { data, error } = await supabase
-        .from('retail_sales')
-        .select('*')
-        .gte('sales_date', startDateStr)
-        .lte('sales_date', endDateStr);
+   async function loadWeeklyRetailSales(startDateStr, endDateStr) {
+  const { data, error } = await supabase
+    .from('retail_sales')
+    .select('*')
+    .gte('sales_date', startDateStr)
+    .lte('sales_date', endDateStr);
 
-      if (error) {
-        console.error('Retail sales error:', error);
-        return;
-      }
+  if (error) {
+    console.error('Retail sales error:', error);
+    return;
+  }
 
-      let totals = {
-        allSales: 0,
-        allTrans: 0,
-        L7: { sales: 0, trans: 0 },
-        L5: { sales: 0, trans: 0 },
-        L4: { sales: 0, trans: 0 },
-        L3: { sales: 0, trans: 0 }
-      };
+  let totals = {
+    allSales: 0,
+    allTrans: 0,
+    L7: { sales: 0, trans: 0 },
+    L5: { sales: 0, trans: 0 },
+    L4: { sales: 0, trans: 0 },
+    L3: { sales: 0, trans: 0 }
+  };
 
-      data.forEach(row => {
-        const sales = Number(row.sales) || 0;
-        const trans = Number(row.transactions) || 0;
+  data.forEach(row => {
+    const sales = Number(row.sales) || 0;
+    const trans = Number(row.transactions) || 0;
 
-        totals.allSales += sales;
-        totals.allTrans += trans;
+    totals.allSales += sales;
+    totals.allTrans += trans;
 
-        if (!row.level) return;
+    if (!row.level) return;
 
-        const lvl = row.level.toString().trim().toLowerCase();
-        let bucket = null;
-        if (lvl === 'level 7' || lvl === 'l7') bucket = 'L7';
-        else if (lvl === 'level 5' || lvl === 'l5') bucket = 'L5';
-        else if (lvl === 'level 4' || lvl === 'l4') bucket = 'L4';
-        else if (lvl === 'level 3' || lvl === 'l3') bucket = 'L3';
+    const lvl = row.level.toString().trim().toLowerCase();
+    let bucket = null;
+    if (lvl === 'level 7' || lvl === 'l7') bucket = 'L7';
+    else if (lvl === 'level 5' || lvl === 'l5') bucket = 'L5';
+    else if (lvl === 'level 4' || lvl === 'l4') bucket = 'L4';
+    else if (lvl === 'level 3' || lvl === 'l3') bucket = 'L3';
 
-        if (bucket && totals[bucket]) {
-          totals[bucket].sales += sales;
-          totals[bucket].trans += trans;
-        }
-      });
-
-      document.getElementById('retailTotalSales').textContent =
-        `£${totals.allSales.toFixed(2)}`;
-      document.getElementById('retailTotalTrans').textContent =
-        `${totals.allTrans} transactions`;
-
-      document.getElementById('retailL7').textContent =
-        `L7: £${totals.L7.sales.toFixed(2)} (${totals.L7.trans})`;
-      document.getElementById('retailL5').textContent =
-        `L5: £${totals.L5.sales.toFixed(2)} (${totals.L5.trans})`;
-      document.getElementById('retailL4').textContent =
-        `L4: £${totals.L4.sales.toFixed(2)} (${totals.L4.trans})`;
-      document.getElementById('retailL3').textContent =
-        `L3: £${totals.L3.sales.toFixed(2)} (${totals.L3.trans})`;
+    if (bucket && totals[bucket]) {
+      totals[bucket].sales += sales;
+      totals[bucket].trans += trans;
     }
+  });
+
+  // Overall SPH
+  const overallSPH = totals.allTrans ? totals.allSales / totals.allTrans : 0;
+
+  document.getElementById('retailTotalSales').textContent =
+    `£${totals.allSales.toFixed(2)}`;
+  document.getElementById('retailTotalTrans').textContent =
+    totals.allTrans
+      ? `${totals.allTrans} transactions • SPH £${overallSPH.toFixed(2)}`
+      : '0 transactions';
+
+  // SPH by level
+  const sphL7 = totals.L7.trans ? totals.L7.sales / totals.L7.trans : 0;
+  const sphL5 = totals.L5.trans ? totals.L5.sales / totals.L5.trans : 0;
+  const sphL4 = totals.L4.trans ? totals.L4.sales / totals.L4.trans : 0;
+  const sphL3 = totals.L3.trans ? totals.L3.sales / totals.L3.trans : 0;
+
+  document.getElementById('retailL7').textContent =
+    `L7: £${totals.L7.sales.toFixed(2)} (${totals.L7.trans} • SPH £${sphL7.toFixed(2)})`;
+  document.getElementById('retailL5').textContent =
+    `L5: £${totals.L5.sales.toFixed(2)} (${totals.L5.trans} • SPH £${sphL5.toFixed(2)})`;
+  document.getElementById('retailL4').textContent =
+    `L4: £${totals.L4.sales.toFixed(2)} (${totals.L4.trans} • SPH £${sphL4.toFixed(2)})`;
+  document.getElementById('retailL3').textContent =
+    `L3: £${totals.L3.sales.toFixed(2)} (${totals.L3.trans} • SPH £${sphL3.toFixed(2)})`;
+}
+ 
+    
 
     // -----------------------------------------------------
     // LOAD WEEKLY OPS LOGS + SALES
@@ -1142,8 +1155,10 @@
         });
       }
 
-      // HOSPITALITY & RETAIL KPIs
+            // HOSPITALITY & RETAIL KPIs
       let totalHospEvents = 0;
+      let totalHospDay = 0;
+      let totalHospNight = 0;
       let hospitalityDaysWithEvents = 0;
       const hospEventsByDate = {};
       let retailSpecialsCount = 0;
@@ -1161,6 +1176,8 @@
 
         if (totalDayEvents > 0) {
           totalHospEvents += totalDayEvents;
+          totalHospDay += hospDay;
+          totalHospNight += hospNight;
           hospitalityDaysWithEvents++;
         }
 
@@ -1175,7 +1192,15 @@
       } else {
         kpiHospEventsEl.textContent = `${totalHospEvents}`;
         kpiHospEventsSubEl.textContent =
-          `${hospitalityDaysWithEvents} day(s) with events`;
+          `Day: ${totalHospDay}, Night: ${totalHospNight} • ${hospitalityDaysWithEvents} day(s) with events`;
+      }
+
+      if (retailSpecialsCount === 0) {
+        kpiRetailSpecialsEl.textContent = '0';
+        kpiRetailSpecialsSubEl.textContent = 'No specials';
+      } else {
+        kpiRetailSpecialsEl.textContent = `${retailSpecialsCount}`;
+        kpiRetailSpecialsSubEl.textContent = `${retailSpecialsCount} lunch specials`;
       }
 
       if (retailSpecialsCount === 0) {
