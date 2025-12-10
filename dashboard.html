@@ -643,7 +643,7 @@
       </div>
     </div>
   </div>
-  <script type="module">
+    <script type="module">
     import { supabase } from './supabase-config.js';
 
     const rangeLabelEl = document.getElementById('rangeLabel');
@@ -697,7 +697,7 @@
 
     // Week navigation state
     let currentWeekOffset = 0;     // 0 = latest week
-    let latestWeekMonday = null;   // real Monday of latest ops log
+    let latestWeekMonday = null;   // Monday of latest ops log week
     let currentSiteFilter = 'All';
 
     function formatDateRange(start, end) {
@@ -730,13 +730,13 @@
     // -----------------------------------------------------
     async function loadWeeklyRetailSales(startDateStr, endDateStr) {
       const { data, error } = await supabase
-        .from("retail_sales")
-        .select("*")
-        .gte("sales_date", startDateStr)
-        .lte("sales_date", endDateStr);
+        .from('retail_sales')
+        .select('*')
+        .gte('sales_date', startDateStr)
+        .lte('sales_date', endDateStr);
 
       if (error) {
-        console.error("Retail sales error:", error);
+        console.error('Retail sales error:', error);
         return;
       }
 
@@ -746,32 +746,43 @@
         L7: { sales: 0, trans: 0 },
         L5: { sales: 0, trans: 0 },
         L4: { sales: 0, trans: 0 },
-        L3: { sales: 0, trans: 0 },
+        L3: { sales: 0, trans: 0 }
       };
 
       data.forEach(row => {
-        totals.allSales += Number(row.sales);
-        totals.allTrans += Number(row.transactions);
+        const sales = Number(row.sales) || 0;
+        const trans = Number(row.transactions) || 0;
 
-        const key = row.level.replace(" ", "");
-        if (totals[key]) {
-          totals[key].sales += Number(row.sales);
-          totals[key].trans += Number(row.transactions);
+        totals.allSales += sales;
+        totals.allTrans += trans;
+
+        if (!row.level) return;
+
+        const lvl = row.level.toString().trim().toLowerCase();
+        let bucket = null;
+        if (lvl === 'level 7' || lvl === 'l7') bucket = 'L7';
+        else if (lvl === 'level 5' || lvl === 'l5') bucket = 'L5';
+        else if (lvl === 'level 4' || lvl === 'l4') bucket = 'L4';
+        else if (lvl === 'level 3' || lvl === 'l3') bucket = 'L3';
+
+        if (bucket && totals[bucket]) {
+          totals[bucket].sales += sales;
+          totals[bucket].trans += trans;
         }
       });
 
-      document.getElementById("retailTotalSales").textContent =
+      document.getElementById('retailTotalSales').textContent =
         `£${totals.allSales.toFixed(2)}`;
-      document.getElementById("retailTotalTrans").textContent =
+      document.getElementById('retailTotalTrans').textContent =
         `${totals.allTrans} transactions`;
 
-      document.getElementById("retailL7").textContent =
+      document.getElementById('retailL7').textContent =
         `L7: £${totals.L7.sales.toFixed(2)} (${totals.L7.trans})`;
-      document.getElementById("retailL5").textContent =
+      document.getElementById('retailL5').textContent =
         `L5: £${totals.L5.sales.toFixed(2)} (${totals.L5.trans})`;
-      document.getElementById("retailL4").textContent =
+      document.getElementById('retailL4').textContent =
         `L4: £${totals.L4.sales.toFixed(2)} (${totals.L4.trans})`;
-      document.getElementById("retailL3").textContent =
+      document.getElementById('retailL3').textContent =
         `L3: £${totals.L3.sales.toFixed(2)} (${totals.L3.trans})`;
     }
 
@@ -780,26 +791,28 @@
     // -----------------------------------------------------
     async function loadWeeklyData() {
       errorMessageEl.style.display = 'none';
+      errorMessageEl.textContent = '';
 
-      // Find Monday of latest ops log week
+      // Anchor latest week from latest ops log
       if (!latestWeekMonday) {
         const { data: latestRows, error: latestError } = await supabase
           .from('ops_logs')
           .select('log_date')
+          .not('log_date', 'is', null)
           .order('log_date', { ascending: false })
           .limit(1);
 
-        if (latestError || !latestRows?.length) {
-          errorMessageEl.textContent = 'Error loading weekly data.';
+        if (latestError || !latestRows || !latestRows.length) {
+          console.error('Error loading latest log date:', latestError);
+          errorMessageEl.textContent = 'There was an error loading weekly data.';
           errorMessageEl.style.display = 'block';
           setEmptyState();
           return;
         }
 
         const latestDate = new Date(latestRows[0].log_date);
-        const latestDay = latestDate.getDay();
+        const latestDay = latestDate.getDay(); // 0=Sun ... 6=Sat
         const diffToMonday = latestDay === 0 ? -6 : 1 - latestDay;
-
         latestWeekMonday = new Date(
           latestDate.getFullYear(),
           latestDate.getMonth(),
@@ -809,21 +822,20 @@
 
       nextWeekBtn.disabled = currentWeekOffset === 0;
 
-      // Compute selected week Monday → Friday
       const startLocal = new Date(
         latestWeekMonday.getFullYear(),
         latestWeekMonday.getMonth(),
         latestWeekMonday.getDate() - currentWeekOffset * 7
       );
       const endLocal = new Date(startLocal);
-      endLocal.setDate(endLocal.getDate() + 4);
+      endLocal.setDate(endLocal.getDate() + 4); // Mon–Fri
 
       const startDateStr = dateKey(startLocal);
       const endDateStr = dateKey(endLocal);
 
       rangeLabelEl.textContent = formatDateRange(startLocal, endLocal);
 
-      // 🔥 Load retail sales
+      // Load retail sales for same Mon–Fri
       loadWeeklyRetailSales(startDateStr, endDateStr);
 
       // Load ops logs
@@ -836,13 +848,14 @@
         .order('created_at', { ascending: false });
 
       if (error) {
-        errorMessageEl.textContent = 'Error loading weekly data.';
+        console.error('Error loading weekly ops data:', error);
+        errorMessageEl.textContent = 'There was an error loading weekly data.';
         errorMessageEl.style.display = 'block';
         setEmptyState();
         return;
       }
 
-      if (!data?.length) {
+      if (!data || !data.length) {
         setEmptyState();
         return;
       }
@@ -861,29 +874,32 @@
       kpiStaffingTotalsEl.textContent = '–';
       kpiStaffingTotalsSubEl.textContent = 'No staffing data';
       kpiIncidentsTotalsEl.textContent = '–';
-      kpiIncidentsTotalsSubEl.textContent = 'No incidents';
+      kpiIncidentsTotalsSubEl.textContent = 'No incidents recorded';
       kpiHospEventsEl.textContent = '–';
-      kpiHospEventsSubEl.textContent = 'No events';
+      kpiHospEventsSubEl.textContent = 'No events recorded';
       kpiRetailSpecialsEl.textContent = '–';
       kpiRetailSpecialsSubEl.textContent = 'No specials';
       kpiNewcastleHotEl.textContent = '–';
-      kpiNewcastleHotSubEl.textContent = 'No data';
+      kpiNewcastleHotSubEl.textContent = 'No hot lunch data';
       kpiDataHealthEl.textContent = '–';
       kpiDataHealthSubEl.textContent = 'No logs';
 
-      document.getElementById("retailTotalSales").textContent = "£0";
-      document.getElementById("retailTotalTrans").textContent = "0 transactions";
-      document.getElementById("retailL7").textContent = "L7: £0 (0)";
-      document.getElementById("retailL5").textContent = "L5: £0 (0)";
-      document.getElementById("retailL4").textContent = "L4: £0 (0)";
-      document.getElementById("retailL3").textContent = "L3: £0 (0)";
+      document.getElementById('retailTotalSales').textContent = '£0';
+      document.getElementById('retailTotalTrans').textContent = '0 transactions';
+      document.getElementById('retailL7').textContent = 'L7: £0 (0)';
+      document.getElementById('retailL5').textContent = 'L5: £0 (0)';
+      document.getElementById('retailL4').textContent = 'L4: £0 (0)';
+      document.getElementById('retailL3').textContent = 'L3: £0 (0)';
 
       staffingTableBody.innerHTML = '';
       staffingHighlightsEl.textContent = 'No logs this week.';
+
       incidentListEl.innerHTML = '';
       incidentsEmptyNoteEl.style.display = 'block';
+
       notesListEl.innerHTML = '';
       notesEmptyNoteEl.style.display = 'block';
+
       photosGridEl.innerHTML = '';
       photosEmptyNoteEl.style.display = 'block';
 
@@ -898,27 +914,22 @@
     // -----------------------------------------------------
     function applySiteFilter(allRows) {
       const filter = currentSiteFilter;
-
       if (filter === 'All') return allRows;
 
-      const isLondon = site => site?.toLowerCase().includes('london');
-      const isNewcastle = site => site?.toLowerCase().includes('newcastle');
+      const isLondon = site => site && site.toLowerCase().includes('london');
+      const isNewcastle = site => site && site.toLowerCase().includes('newcastle');
 
       if (filter === 'LondonAll') {
         return allRows.filter(r => isLondon(r.site));
       }
       if (filter === 'LondonKitchen') {
-        return allRows.filter(r => isLondon(r.site) && r.area?.toLowerCase() === 'kitchen');
+        return allRows.filter(r => isLondon(r.site) && (r.area || '').toLowerCase() === 'kitchen');
       }
       if (filter === 'LondonHospitality') {
-        return allRows.filter(
-          r => isLondon(r.site) && r.area?.toLowerCase() === 'hospitality'
-        );
+        return allRows.filter(r => isLondon(r.site) && (r.area || '').toLowerCase() === 'hospitality');
       }
       if (filter === 'LondonRetail') {
-        return allRows.filter(
-          r => isLondon(r.site) && r.area?.toLowerCase() === 'retail'
-        );
+        return allRows.filter(r => isLondon(r.site) && (r.area || '').toLowerCase() === 'retail');
       }
       if (filter === 'Newcastle') {
         return allRows.filter(r => isNewcastle(r.site));
@@ -933,233 +944,325 @@
     function populateDashboard(allRows) {
       const rows = applySiteFilter(allRows);
 
-      window._latestRowsForSummary = [...rows];
+      window._latestRowsForSummary = rows.slice();
 
-      if (!rows?.length) {
+      if (!rows || !rows.length) {
         setEmptyState();
         return;
       }
 
-      // -------------------------
       // TOTAL LOGS
-      // -------------------------
       const totalLogs = rows.length;
-      kpiTotalLogsEl.textContent = totalLogs;
+      kpiTotalLogsEl.textContent = totalLogs.toString();
       kpiTotalLogsSubEl.textContent =
-        `Logs across ${new Set(rows.map(r => r.site)).size} sites`;
+        `Logs captured across ${new Set(rows.map(r => r.site)).size} sites`;
 
-      // -------------------------
       // LOGS BY SITE
-      // -------------------------
-      const siteCounts = {};
-      rows.forEach(r => {
-        if (!r.site) return;
-        siteCounts[r.site] = (siteCounts[r.site] || 0) + 1;
+      const logsBySiteMap = {};
+      rows.forEach(row => {
+        if (!row.site) return;
+        logsBySiteMap[row.site] = (logsBySiteMap[row.site] || 0) + 1;
       });
+      const siteEntries = Object.entries(logsBySiteMap).sort((a, b) => b[1] - a[1]);
 
-      const rankings = Object.entries(siteCounts).sort((a, b) => b[1] - a[1]);
-
-      if (rankings.length) {
-        kpiLogsBySiteEl.textContent = rankings[0][1];
-        kpiLogsBySiteSubEl.textContent = rankings
-          .map(([s, c]) => `${s} (${c})`)
-          .join(' • ');
+      if (siteEntries.length > 0) {
+        const [topSite, topCount] = siteEntries[0];
+        kpiLogsBySiteEl.textContent = `${topCount}`;
+        const detail = siteEntries.map(([site, count]) => `${site} (${count})`).join(' • ');
+        kpiLogsBySiteSubEl.textContent = detail;
       } else {
         kpiLogsBySiteEl.textContent = '–';
-        kpiLogsBySiteSubEl.textContent = '';
+        kpiLogsBySiteSubEl.textContent = 'No site data';
       }
 
-      // -------------------------
-      // STAFFING CALCULATION
-      // -------------------------
-      let totalSick = 0, totalHoliday = 0, totalAgency = 0;
-      const staffingDetails = {};
+      // STAFFING TOTALS + TABLE
+      let totalSick = 0;
+      let totalHoliday = 0;
+      let totalAgency = 0;
 
-      rows.forEach(r => {
-        const date = r.log_date;
-        const site = r.site;
-        const area = r.area;
-        const key = `${date}|${site}|${area}`;
+      const staffingByDateSite = {};
 
-        if (!staffingDetails[key]) {
-          staffingDetails[key] = {
-            date, site, area,
-            sick: 0, holiday: 0, agency: 0
+      rows.forEach(row => {
+        const dateKeyStr = row.log_date || (row.created_at ? row.created_at.substring(0, 10) : 'unknown');
+        const site = row.site || 'Unknown';
+        const key = `${dateKeyStr}|${site}|${row.area || ''}`;
+
+        if (!staffingByDateSite[key]) {
+          staffingByDateSite[key] = {
+            dateKey: dateKeyStr,
+            site,
+            area: row.area || '',
+            sick: 0,
+            holiday: 0,
+            agency: 0
           };
         }
 
-        const sick = parseCount(r.sickness_count);
-        const hol = parseCount(r.holiday_count);
-        const ag = parseCount(r.agency_count);
+        const sick = parseCount(row.sickness_count);
+        const hol = parseCount(row.holiday_count);
+        const ag = parseCount(row.agency_count);
 
-        staffingDetails[key].sick += sick;
-        staffingDetails[key].holiday += hol;
-        staffingDetails[key].agency += ag;
+        staffingByDateSite[key].sick += sick;
+        staffingByDateSite[key].holiday += hol;
+        staffingByDateSite[key].agency += ag;
 
         totalSick += sick;
         totalHoliday += hol;
         totalAgency += ag;
       });
 
-      kpiStaffingTotalsEl.textContent = totalSick + totalHoliday + totalAgency;
+      const staffingEntries = Object.values(staffingByDateSite).sort((a, b) => {
+        if (a.dateKey === b.dateKey) {
+          const siteCompare = (a.site || '').localeCompare(b.site || '');
+          if (siteCompare !== 0) return siteCompare;
+          return (a.area || '').localeCompare(b.area || '');
+        }
+        return a.dateKey < b.dateKey ? -1 : 1;
+      });
+
+      kpiStaffingTotalsEl.textContent = `${totalSick + totalHoliday + totalAgency}`;
       kpiStaffingTotalsSubEl.textContent =
         `Sick: ${totalSick} • Holiday: ${totalHoliday} • Agency: ${totalAgency}`;
 
-      // STAFFING TABLE
       staffingTableBody.innerHTML = '';
-
-      const staffingRows = Object.values(staffingDetails)
-        .sort((a, b) => a.date < b.date ? -1 : 1);
-
-      staffingRows.forEach(s => {
-        const dateStr = formatDate(new Date(s.date));
-        staffingTableBody.innerHTML += `
-          <tr>
+      if (staffingEntries.length === 0) {
+        staffingHighlightsEl.textContent = 'No logs this week.';
+      } else {
+        staffingEntries.forEach(entry => {
+          const dateObj = new Date(entry.dateKey);
+          const dateStr = isNaN(dateObj) ? entry.dateKey : formatDate(dateObj);
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
             <td>${dateStr}</td>
-            <td>${s.site}</td>
-            <td>${s.area}</td>
-            <td>${s.sick}</td>
-            <td>${s.holiday}</td>
-            <td>${s.agency}</td>
-          </tr>
-        `;
-      });
+            <td>${entry.site || ''}</td>
+            <td>${entry.area || ''}</td>
+            <td>${entry.sick}</td>
+            <td>${entry.holiday}</td>
+            <td>${entry.agency}</td>
+          `;
+          staffingTableBody.appendChild(tr);
+        });
 
-      if (staffingRows.length) {
-        const busiest = staffingRows.reduce((a, b) =>
-          (b.sick + b.holiday + b.agency) > (a.sick + a.holiday + a.agency)
-            ? b : a
-        );
-        const dateStr = formatDate(new Date(busiest.date));
+        const busiest = staffingEntries.reduce((max, cur) => {
+          const maxTotal = max.sick + max.holiday + max.agency;
+          const curTotal = cur.sick + cur.holiday + cur.agency;
+          return curTotal > maxTotal ? cur : max;
+        }, staffingEntries[0]);
+
+        const busiestDateObj = new Date(busiest.dateKey);
+        const busiestDateStr = isNaN(busiestDateObj) ? busiest.dateKey : formatDate(busiestDateObj);
 
         staffingHighlightsEl.textContent =
-          `Busiest: ${dateStr} – ${busiest.site} • ${busiest.area} ` +
-          `(Sick ${busiest.sick}, Hol ${busiest.holiday}, Agency ${busiest.agency})`;
+          `Busiest: ${busiestDateStr} – ${busiest.site}${busiest.area ? ' • ' + busiest.area : ''} • Sick ${busiest.sick}, Holiday ${busiest.holiday}, Agency ${busiest.agency}`;
       }
 
-      // -------------------------
       // INCIDENTS
-      // -------------------------
+      let maintenanceCount = 0;
+      let maintenanceReported = 0;
+      let hsCount = 0;
+      let hsReported = 0;
       const incidents = [];
 
-      rows.forEach(r => {
-        const dateStr = formatDate(new Date(r.log_date));
+      rows.forEach(row => {
+        const created = row.created_at ? new Date(row.created_at) : null;
+        const logDateStr = row.log_date || (row.created_at ? row.created_at.substring(0, 10) : '');
+        const logDateObj = logDateStr ? new Date(logDateStr + 'T00:00:00') : null;
 
-        if (r.maintenance_issue && r.maintenance_issue !== 'None') {
+        const dateStr = logDateObj ? formatDate(logDateObj) : (created ? formatDate(created) : 'Unknown');
+        const timeStr = created
+          ? created.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
+          : '';
+
+        if (row.maintenance_issue && row.maintenance_issue !== 'None') {
+          maintenanceCount++;
+          if (row.maintenance_reported === 'Yes') {
+            maintenanceReported++;
+          }
           incidents.push({
             type: 'Maintenance',
-            site: r.site,
-            area: r.area,
-            date: dateStr,
-            note: r.maintenance_notes,
-            reported: r.maintenance_reported
+            site: row.site || 'Unknown',
+            area: row.area || '',
+            dateStr,
+            timeStr,
+            reported: row.maintenance_reported || 'n/a',
+            note: row.maintenance_notes || ''
           });
         }
 
-        if (r.hs_issue && r.hs_issue !== 'None') {
+        if (row.hs_issue && row.hs_issue !== 'None') {
+          hsCount++;
+          if (row.hs_reported === 'Yes') {
+            hsReported++;
+          }
           incidents.push({
             type: 'H&S',
-            site: r.site,
-            area: r.area,
-            date: dateStr,
-            note: r.hs_notes,
-            reported: r.hs_reported
+            site: row.site || 'Unknown',
+            area: row.area || '',
+            dateStr,
+            timeStr,
+            reported: row.hs_reported || 'n/a',
+            note: row.hs_notes || ''
           });
         }
       });
 
-      if (!incidents.length) {
+      const totalIncidents = maintenanceCount + hsCount;
+      if (totalIncidents === 0) {
+        kpiIncidentsTotalsEl.textContent = '0';
+        kpiIncidentsTotalsSubEl.textContent = 'No incidents recorded';
+      } else {
+        kpiIncidentsTotalsEl.textContent = `${totalIncidents}`;
+        kpiIncidentsTotalsSubEl.textContent =
+          `Maint: ${maintenanceCount} (reported ${maintenanceReported}) • ` +
+          `H&S: ${hsCount} (reported ${hsReported})`;
+      }
+
+      if (incidents.length === 0) {
         incidentsEmptyNoteEl.style.display = 'block';
         incidentListEl.innerHTML = '';
-        kpiIncidentsTotalsEl.textContent = '0';
-        kpiIncidentsTotalsSubEl.textContent = 'No incidents';
       } else {
         incidentsEmptyNoteEl.style.display = 'none';
         incidentListEl.innerHTML = '';
-
         incidents.forEach(inc => {
-          incidentListEl.innerHTML += `
-            <div class="metric">
-              <div class="metric-label">${inc.type} • ${inc.site} • ${inc.area}</div>
-              <div class="metric-sub"><strong>${inc.date}</strong></div>
-              <div class="metric-sub">${inc.note || '(No notes)'}</div>
-              <div class="metric-sub">Reported: ${inc.reported}</div>
+          const div = document.createElement('div');
+          div.className = 'metric';
+          div.innerHTML = `
+            <div class="metric-label">${inc.type} • ${inc.site}${inc.area ? ' • ' + inc.area : ''}</div>
+            <div class="metric-sub">
+              <strong>${inc.dateStr}</strong>${inc.timeStr ? ' • ' + inc.timeStr : ''} – ${inc.area || ''}
+            </div>
+            <div class="metric-sub">
+              ${inc.note ? inc.note : '<span style="opacity:0.7;">No additional notes.</span>'}
+            </div>
+            <div class="metric-sub">
+              Reported: <strong>${inc.reported}</strong>
             </div>
           `;
+          incidentListEl.appendChild(div);
         });
-
-        kpiIncidentsTotalsEl.textContent = incidents.length;
-        kpiIncidentsTotalsSubEl.textContent =
-          `${incidents.filter(i => i.type === 'Maintenance').length} maintenance ` +
-          `• ${incidents.filter(i => i.type === 'H&S').length} H&S`;
       }
 
-      // -------------------------
-      // HOSPITALITY EVENTS & RETAIL SPECIALS
-      // -------------------------
-      let hospEventsCount = 0;
-      let retailSpecials = 0;
+      // HOSPITALITY & RETAIL KPIs
+      let totalHospEvents = 0;
+      let hospitalityDaysWithEvents = 0;
+      const hospEventsByDate = {};
+      let retailSpecialsCount = 0;
 
-      let hospEventsByDate = {};
+      rows.forEach(row => {
+        const dayKey = row.log_date || (row.created_at ? row.created_at.substring(0, 10) : '');
+        const hospDay = parseCount(row.hosp_day_events);
+        const hospNight = parseCount(row.hosp_night_events);
+        const totalDayEvents = hospDay + hospNight;
 
-      rows.forEach(r => {
-        const date = r.log_date;
+        if (!hospEventsByDate[dayKey]) {
+          hospEventsByDate[dayKey] = 0;
+        }
+        hospEventsByDate[dayKey] += totalDayEvents;
 
-        const hosp = parseCount(r.hosp_day_events) + parseCount(r.hosp_night_events);
-        if (!hospEventsByDate[date]) hospEventsByDate[date] = 0;
-        hospEventsByDate[date] += hosp;
+        if (totalDayEvents > 0) {
+          totalHospEvents += totalDayEvents;
+          hospitalityDaysWithEvents++;
+        }
 
-        hospEventsCount += hosp;
-
-        if (r.retail_lunch_special && r.retail_lunch_special !== "No") {
-          retailSpecials++;
+        if (row.retail_lunch_special && row.retail_lunch_special !== 'No') {
+          retailSpecialsCount++;
         }
       });
 
-      kpiHospEventsEl.textContent = hospEventsCount;
-      kpiHospEventsSubEl.textContent =
-        `${Object.values(hospEventsByDate).filter(x => x > 0).length} days with events`;
-
-      kpiRetailSpecialsEl.textContent = retailSpecials;
-      kpiRetailSpecialsSubEl.textContent =
-        retailSpecials === 0 ? "No specials" : `${retailSpecials} lunch specials`;
-
-      // -------------------------
-      // NEWCASTLE HOT LUNCH
-      // -------------------------
-      let totalDishes = 0;
-      let dishesByDate = {};
-
-      rows.forEach(r => {
-        if (!r.site?.toLowerCase().includes("newcastle")) return;
-
-        const count = parseCount(r.hot_lunch_dishes);
-        totalDishes += count;
-
-        if (!dr.date) return;
-
-        if (!dishesByDate[r.log_date]) dishesByDate[r.log_date] = 0;
-        dishesByDate[r.log_date] += count;
-      });
-
-      kpiNewcastleHotEl.textContent = totalDishes;
-      kpiNewcastleHotSubEl.textContent =
-        totalDishes === 0 ? "No data" :
-        `Avg ${Math.round(totalDishes / Object.keys(dishesByDate).length)} per day`;
-
-      if (Object.keys(dishesByDate).length) {
-        const maxDate = Object.entries(dishesByDate)
-          .sort((a, b) => b[1] - a[1])[0];
-
-        const dateStr = formatDate(new Date(maxDate[0]));
-        newcastleBusiestLineEl.textContent =
-          `Busiest day: ${dateStr} (${maxDate[1]} dishes)`;
+      if (totalHospEvents === 0) {
+        kpiHospEventsEl.textContent = '0';
+        kpiHospEventsSubEl.textContent = 'No events recorded';
+      } else {
+        kpiHospEventsEl.textContent = `${totalHospEvents}`;
+        kpiHospEventsSubEl.textContent =
+          `${hospitalityDaysWithEvents} day(s) with events`;
       }
 
-      // -------------------------
+      if (retailSpecialsCount === 0) {
+        kpiRetailSpecialsEl.textContent = '0';
+        kpiRetailSpecialsSubEl.textContent = 'No specials';
+      } else {
+        kpiRetailSpecialsEl.textContent = `${retailSpecialsCount}`;
+        kpiRetailSpecialsSubEl.textContent = `${retailSpecialsCount} lunch specials`;
+      }
+
+      // NEWCASTLE HOT LUNCH
+      let totalDishes = 0;
+      const dishesByDate = {};
+
+      rows.forEach(row => {
+        if (!((row.site || '').toLowerCase().includes('newcastle'))) return;
+        const count = parseCount(row.hot_lunch_dishes);
+        if (count === 0) return;
+
+        totalDishes += count;
+
+        const dayKey = row.log_date || (row.created_at ? row.created_at.substring(0, 10) : '');
+        if (!dayKey) return;
+
+        if (!dishesByDate[dayKey]) {
+          dishesByDate[dayKey] = 0;
+        }
+        dishesByDate[dayKey] += count;
+      });
+
+      kpiNewcastleHotEl.textContent = `${totalDishes}`;
+      if (totalDishes === 0 || Object.keys(dishesByDate).length === 0) {
+        kpiNewcastleHotSubEl.textContent = 'No hot lunch data';
+        newcastleBusiestLineEl.textContent = 'Busiest day: –';
+      } else {
+        const activeDays = Object.keys(dishesByDate).length;
+        kpiNewcastleHotSubEl.textContent =
+          `Avg ${Math.round(totalDishes / activeDays)} per day`;
+
+        let maxKey = null;
+        let maxVal = -Infinity;
+        for (const [key, value] of Object.entries(dishesByDate)) {
+          if (value > maxVal) {
+            maxVal = value;
+            maxKey = key;
+          }
+        }
+        if (maxKey) {
+          const dateObj = new Date(maxKey);
+          const dateStr = isNaN(dateObj) ? maxKey : formatDate(dateObj);
+          newcastleBusiestLineEl.textContent = `Busiest day: ${dateStr} (${maxVal} dishes)`;
+        } else {
+          newcastleBusiestLineEl.textContent = 'Busiest day: –';
+        }
+      }
+
+      // Busiest hospitality event day
+      if (Object.keys(hospEventsByDate).length > 0) {
+        let maxKey = null;
+        let maxVal = -Infinity;
+        for (const [key, value] of Object.entries(hospEventsByDate)) {
+          if (value > maxVal) {
+            maxVal = value;
+            maxKey = key;
+          }
+        }
+        if (maxKey) {
+          const dateObj = new Date(maxKey);
+          const dateStr = isNaN(dateObj) ? maxKey : formatDate(dateObj);
+          hospBusiestLineEl.textContent = `Busiest event day: ${dateStr} (${maxVal} events)`;
+        } else {
+          hospBusiestLineEl.textContent = 'Busiest event day: –';
+        }
+      } else {
+        hospBusiestLineEl.textContent = 'Busiest event day: –';
+      }
+
       // PHOTO GALLERY
-      // -------------------------
-      const photos = rows.filter(r => r.photo_url);
+      const photos = rows
+        .filter(r => r.photo_url)
+        .map(r => ({
+          photoUrl: r.photo_url,
+          site: r.site || 'Unknown',
+          area: r.area || '',
+          dateKey: r.log_date || (r.created_at ? r.created_at.substring(0, 10) : '')
+        }))
+        .sort((a, b) => a.dateKey < b.dateKey ? -1 : 1);
 
       if (!photos.length) {
         photosEmptyNoteEl.style.display = 'block';
@@ -1167,28 +1270,35 @@
       } else {
         photosEmptyNoteEl.style.display = 'none';
         photosGridEl.innerHTML = '';
-
-        photos.forEach(p => {
-          const dateStr = formatDate(new Date(p.log_date));
-          photosGridEl.innerHTML += `
-            <div class="photo-card">
-              <a href="${p.photo_url}" target="_blank">
-                <img src="${p.photo_url}" />
-              </a>
-              <div class="photo-card-caption">
-                ${dateStr}<br>${p.site} • ${p.area}
-              </div>
+        photos.forEach(photo => {
+          const dateObj = new Date(photo.dateKey);
+          const dateStr = isNaN(dateObj) ? photo.dateKey : formatDate(dateObj);
+          const card = document.createElement('div');
+          card.className = 'photo-card';
+          card.innerHTML = `
+            <a href="${photo.photoUrl}" target="_blank" rel="noopener noreferrer">
+              <img src="${photo.photoUrl}" alt="Site photo" />
+            </a>
+            <div class="photo-card-caption">
+              ${dateStr}<br/>
+              ${photo.site}${photo.area ? ' • ' + photo.area : ''}
             </div>
           `;
+          photosGridEl.appendChild(card);
         });
       }
 
-      // -------------------------
-      // NOTES
-      // -------------------------
-      const notes = rows.filter(r =>
-        (r.notes && r.notes.trim() !== '') || r.photo_url
-      );
+      // NOTES (text and/or photos)
+      const notes = rows
+        .filter(r => (r.notes && r.notes.trim() !== '') || r.photo_url)
+        .map(r => ({
+          notes: (r.notes || '').trim(),
+          site: r.site || 'Unknown',
+          area: r.area || '',
+          photoUrl: r.photo_url || null,
+          dateKey: r.log_date || (r.created_at ? r.created_at.substring(0, 10) : '')
+        }))
+        .sort((a, b) => a.dateKey < b.dateKey ? -1 : 1);
 
       if (!notes.length) {
         notesEmptyNoteEl.style.display = 'block';
@@ -1196,69 +1306,73 @@
       } else {
         notesEmptyNoteEl.style.display = 'none';
         notesListEl.innerHTML = '';
-
-        notes.forEach(n => {
-          const dateStr = formatDate(new Date(n.log_date));
+        notes.forEach(note => {
+          const dateObj = new Date(note.dateKey);
+          const dateStr = isNaN(dateObj) ? note.dateKey : formatDate(dateObj);
 
           let html = `
-            <div class="metric-label">Notes • ${n.site} • ${n.area}</div>
+            <div class="metric-label">Notes • ${note.site}${note.area ? ' • ' + note.area : ''}</div>
             <div class="metric-sub"><strong>${dateStr}</strong></div>
           `;
 
-          if (n.notes?.trim()) {
-            html += `<div class="metric-sub">${n.notes}</div>`;
+          if (note.notes) {
+            html += `<div class="metric-sub">${note.notes}</div>`;
+          } else {
+            html += `<div class="metric-sub"><span style="opacity:0.7;">No text notes – photo only.</span></div>`;
           }
 
-          if (n.photo_url) {
+          if (note.photoUrl) {
             html += `
-              <a href="${n.photo_url}" class="note-photo-link" target="_blank">
-                View photo
+              <a class="note-photo-link" href="${note.photoUrl}" target="_blank" rel="noopener noreferrer">
+                View photo in full size
               </a>
-              <img class="note-photo-thumb" src="${n.photo_url}" />
+              <img class="note-photo-thumb" src="${note.photoUrl}" alt="Log photo thumbnail" />
             `;
           }
 
-          notesListEl.innerHTML += `<div class="metric">${html}</div>`;
+          const div = document.createElement('div');
+          div.className = 'metric';
+          div.innerHTML = html;
+          notesListEl.appendChild(div);
         });
       }
 
-      // -------------------------
       // DATA COMPLETENESS
-      // -------------------------
       let completeCount = 0;
-      rows.forEach(r => {
+      rows.forEach(row => {
         const hasCore =
-          parseCount(r.sickness_count) > 0 ||
-          parseCount(r.holiday_count) > 0 ||
-          parseCount(r.agency_count) > 0 ||
-          (r.notes && r.notes.trim() !== '');
+          parseCount(row.sickness_count) > 0 ||
+          parseCount(row.holiday_count) > 0 ||
+          parseCount(row.agency_count) > 0 ||
+          (row.notes && row.notes.trim() !== '');
         if (hasCore) completeCount++;
       });
-
-      const completeness = Math.round((completeCount / rows.length) * 100);
+      const completeness = rows.length > 0 ? Math.round((completeCount / rows.length) * 100) : 0;
       kpiDataHealthEl.textContent = `${completeness}%`;
-      kpiDataHealthSubEl.textContent =
-        `${completeCount}/${rows.length} logs with core detail`;
+      kpiDataHealthSubEl.textContent = `${completeCount}/${rows.length} logs with core detail`;
     }
 
     // -----------------------------------------------------
     // SUMMARY TEXT GENERATOR
     // -----------------------------------------------------
     function buildSummaryText() {
-      const rows = window._latestRowsForSummary;
+      const rows = window._latestRowsForSummary || [];
 
-      if (!rows?.length) {
-        return "No data available for this week.";
+      if (!rows.length) {
+        return 'No data available for this week.';
       }
 
-      let text = "";
+      let text = '';
+
       text += `Weekly Ops Summary\n`;
-      text += `------------------------------\n`;
+      text += `---------------------\n`;
       text += `Week: ${rangeLabelEl.textContent}\n`;
       text += `Filter: ${siteFilterEl.options[siteFilterEl.selectedIndex].text}\n\n`;
 
       text += `Total Logs: ${rows.length}\n`;
-      text += `Logs with photos: ${rows.filter(r => r.photo_url).length}\n\n`;
+
+      const photoCount = rows.filter(r => r.photo_url).length;
+      text += `Logs with photos: ${photoCount}\n\n`;
 
       let sick = 0, hol = 0, agency = 0;
       rows.forEach(r => {
@@ -1268,7 +1382,7 @@
       });
 
       text += `Staffing Impact\n`;
-      text += `------------------------------\n`;
+      text += `---------------------\n`;
       text += `• Sick: ${sick}\n`;
       text += `• Holiday: ${hol}\n`;
       text += `• Agency: ${agency}\n\n`;
@@ -1278,47 +1392,37 @@
         (r.hs_issue && r.hs_issue !== 'None')
       );
 
-      text += `Incidents\n`;
-      text += `------------------------------\n`;
-
+      text += `Incidents / H&S\n`;
+      text += `---------------------\n`;
       if (!incidents.length) {
         text += `No incidents reported.\n\n`;
       } else {
         incidents.forEach(i => {
-          text += `• ${i.site} – ${i.area} – ${i.log_date}\n`;
-          if (i.maintenance_issue) {
-            text += `  Maintenance: ${i.maintenance_issue}\n`;
-          }
-          if (i.hs_issue) {
-            text += `  H&S: ${i.hs_issue}\n`;
-          }
-          if (i.maintenance_notes) {
-            text += `  Maint notes: ${i.maintenance_notes}\n`;
-          }
-          if (i.hs_notes) {
-            text += `  H&S notes: ${i.hs_notes}\n`;
-          }
+          const date = i.log_date || (i.created_at ? i.created_at.substring(0, 10) : '');
+          text += `• ${i.site || 'Unknown'} – ${i.area || ''} – ${date}\n`;
+          text += `  Maintenance: ${i.maintenance_issue || 'None'} | H&S: ${i.hs_issue || 'None'}\n`;
+          if (i.maintenance_notes) text += `  Maint notes: ${i.maintenance_notes}\n`;
+          if (i.hs_notes) text += `  H&S notes: ${i.hs_notes}\n`;
           text += `\n`;
         });
       }
 
+      const notes = rows.filter(r => (r.notes && r.notes.trim() !== '') || r.photo_url);
       text += `Daily Notes & Photos\n`;
-      text += `------------------------------\n`;
-
-      const notes = rows.filter(r =>
-        (r.notes && r.notes.trim() !== '') || r.photo_url
-      );
-
+      text += `---------------------\n`;
       if (!notes.length) {
         text += `No notes recorded.\n`;
       } else {
         notes.forEach(n => {
-          text += `• ${n.site} – ${n.area} – ${n.log_date}\n`;
-          if (n.notes?.trim()) {
-            text += `  ${n.notes}\n`;
+          const date = n.log_date || (n.created_at ? n.created_at.substring(0, 10) : '');
+          text += `• ${n.site || 'Unknown'} – ${n.area || ''} – ${date}\n`;
+          if (n.notes && n.notes.trim() !== '') {
+            text += `  ${n.notes.trim()}\n`;
+          } else {
+            text += `  (No text notes – photo only)\n`;
           }
           if (n.photo_url) {
-            text += `  Photo: ${n.photo_url}\n`;
+            text += `  Photo URL: ${n.photo_url}\n`;
           }
           text += `\n`;
         });
@@ -1331,7 +1435,8 @@
     // SUMMARY MODAL HANDLERS
     // -----------------------------------------------------
     generateSummaryBtn.addEventListener('click', () => {
-      summaryOutput.value = buildSummaryText();
+      const text = buildSummaryText();
+      summaryOutput.value = text;
       summaryModal.style.display = 'block';
     });
 
@@ -1340,13 +1445,15 @@
     });
 
     copySummaryBtn.addEventListener('click', () => {
-      navigator.clipboard.writeText(summaryOutput.value);
-      copySummaryBtn.textContent = "Copied!";
-      setTimeout(() => (copySummaryBtn.textContent = "Copy"), 1000);
+      navigator.clipboard.writeText(summaryOutput.value || '');
+      copySummaryBtn.textContent = 'Copied!';
+      setTimeout(() => {
+        copySummaryBtn.textContent = 'Copy';
+      }, 1000);
     });
 
     // -----------------------------------------------------
-    // BUTTONS
+    // BUTTONS & INITIAL LOAD
     // -----------------------------------------------------
     refreshBtn.addEventListener('click', () => {
       currentWeekOffset = 0;
@@ -1355,26 +1462,22 @@
     });
 
     prevWeekBtn.addEventListener('click', () => {
-      currentWeekOffset++;
+      currentWeekOffset += 1;
       loadWeeklyData();
     });
 
     nextWeekBtn.addEventListener('click', () => {
       if (currentWeekOffset > 0) {
-        currentWeekOffset--;
+        currentWeekOffset -= 1;
         loadWeeklyData();
       }
     });
 
-    siteFilterEl.addEventListener('change', e => {
+    siteFilterEl.addEventListener('change', (e) => {
       currentSiteFilter = e.target.value;
       loadWeeklyData();
     });
 
-    // -----------------------------------------------------
-    // INITIAL LOAD
-    // -----------------------------------------------------
+    // Initial load
     loadWeeklyData();
   </script>
-</body>
-</html>
