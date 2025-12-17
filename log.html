@@ -594,6 +594,11 @@
         hasRetailLunchSpecial && site === 'London' && areaLocal === 'Retail'
           ? 'block'
           : 'none';
+
+      // ✅ NEW: if user switches to "No", clear the description to avoid stale text
+      if (!hasRetailLunchSpecial) {
+        retailLunchDescEl.value = '';
+      }
     }
 
     sicknessCountEl.addEventListener('change', updateVisibility);
@@ -678,6 +683,14 @@
       const retailLunchSpecial = retailLunchSpecialEl.value;
       const retailLunchDesc =
         retailLunchSpecial === 'Yes' ? retailLunchDescEl.value.trim() : null;
+
+      // ✅ NEW: enforce description when special is "Yes"
+      if (site === 'London' && area === 'Retail' && retailLunchSpecial === 'Yes') {
+        if (!retailLunchDesc) {
+          saveMessage.textContent = 'Please add a brief description of the lunch special before saving.';
+          return;
+        }
+      }
 
       // London Hospitality-specific values
       let hospDayEvents = null;
@@ -801,7 +814,12 @@
             free_breakfast_count: freeBreakfastCount,
 
             retail_lunch_special: retailLunchSpecial,
+
+            // ✅ Existing column (keep for backward compatibility)
             retail_lunch_desc: retailLunchDesc,
+
+            // ✅ NEW column used by the redesigned monthly dashboard
+            retail_lunch_special_details: retailLunchDesc,
 
             hosp_day_events: hospDayEvents,
             hosp_night_events: hospNightEvents
