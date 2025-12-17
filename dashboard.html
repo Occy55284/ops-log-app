@@ -556,6 +556,20 @@
             </div>
           </div>
         </div>
+        
+<div class="section-label">Newcastle Free Breakfast</div>
+<div class="metric-row" style="grid-template-columns: repeat(2, minmax(0, 1fr)); margin-bottom: 6px;">
+  <div class="metric">
+    <div class="metric-label">Total Free Breakfast</div>
+    <div class="metric-value" id="kpiFreeBreakfastTotal">0</div>
+    <div class="metric-sub" id="kpiFreeBreakfastSub">Newcastle only • Mon–Fri</div>
+  </div>
+  <div class="metric">
+    <div class="metric-label">Days Issued</div>
+    <div class="metric-value" id="kpiFreeBreakfastDays">0</div>
+    <div class="metric-sub" id="kpiFreeBreakfastDaysSub">Days with a value &gt; 0</div>
+  </div>
+</div>
 
         <!-- Photo gallery -->
         <div class="section-label">Photo gallery</div>
@@ -724,6 +738,24 @@
       const n = parseInt(value, 10);
       return isNaN(n) ? 0 : n;
     }
+
+      function parseNumber(value) {
+  if (value === null || value === undefined || value === '') return 0;
+  const n = Number(value);
+  return Number.isFinite(n) ? n : 0;
+}
+
+function getFreeBreakfastValue(row) {
+  // supports multiple possible column names to avoid “silent 0”
+  return parseNumber(
+    row.free_breakfast_count ??
+    row.free_breakfast ??
+    row.freeBreakfast ??
+    row.free_breakfast_total ??
+    row.free_breakfast_qty ??
+    0
+  );
+}
 
     // -----------------------------------------------------
     // 🔥 WEEKLY RETAIL SALES LOADING FUNCTION
@@ -956,6 +988,30 @@
     // -----------------------------------------------------
     function populateDashboard(allRows) {
       const rows = applySiteFilter(allRows);
+      // -----------------------------------------------------
+// FREE BREAKFAST (Newcastle only)
+// -----------------------------------------------------
+let freeBreakfastTotal = 0;
+const freeBreakfastDays = new Set();
+
+rows.forEach(r => {
+  const isNewcastle = (r.site || '').toLowerCase().includes('newcastle');
+  if (!isNewcastle) return;
+
+  const v = getFreeBreakfastValue(r);
+  if (v > 0) {
+    freeBreakfastTotal += v;
+    if (r.log_date) freeBreakfastDays.add(r.log_date);
+  }
+});
+
+document.getElementById('kpiFreeBreakfastTotal').textContent = `${freeBreakfastTotal}`;
+document.getElementById('kpiFreeBreakfastDays').textContent = `${freeBreakfastDays.size}`;
+document.getElementById('kpiFreeBreakfastSub').textContent =
+  freeBreakfastTotal > 0 ? `Newcastle only • Total issued this week` : `No free breakfasts logged this week`;
+document.getElementById('kpiFreeBreakfastDaysSub').textContent =
+  freeBreakfastDays.size > 0 ? `Logged on: ${[...freeBreakfastDays].sort().join(', ')}` : `No days with free breakfast`;
+
 
       window._latestRowsForSummary = rows.slice();
 
