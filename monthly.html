@@ -267,6 +267,12 @@
         <button class="btn btn-secondary" id="prevMonthBtn"><span class="btn-icon">◀</span> Previous</button>
         <button class="btn btn-secondary" id="nextMonthBtn"><span class="btn-icon">▶</span> Next</button>
         <button class="btn" id="latestMonthBtn"><span class="btn-icon">⟳</span> Latest month</button>
+
+        <!-- ✅ NEW: Monthly summary -->
+        <button class="btn" id="generateMonthlySummaryBtn">
+          <span class="btn-icon">📝</span>
+          Generate Summary Text
+        </button>
       </div>
     </div>
 
@@ -474,6 +480,50 @@
     </div>
   </div>
 
+  <!-- ✅ NEW: SUMMARY MODAL -->
+  <div id="summaryModal" style="
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.75);
+    backdrop-filter:blur(4px);
+    z-index:9999;
+    padding:40px;
+  ">
+    <div style="
+      max-width:900px;
+      margin:0 auto;
+      background:#111827;
+      padding:20px;
+      border-radius:14px;
+      border:1px solid #334155;
+      box-shadow:0 0 40px rgba(0,0,0,0.4);
+    ">
+      <h2 style="margin:0 0 12px; font-size:18px; color:#e5e7eb;">
+        Monthly Summary Text
+      </h2>
+
+      <textarea id="summaryOutput" style="
+        width:100%;
+        height:440px;
+        padding:12px;
+        border-radius:10px;
+        background:#0f172a;
+        color:#e2e8f0;
+        border:1px solid #475569;
+        font-size:13px;
+        line-height:1.5;
+      "></textarea>
+
+      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:12px;">
+        <button id="copySummaryBtn" class="btn" style="padding:6px 14px; font-size:12px;">Copy</button>
+        <button id="closeSummaryBtn" class="btn btn-secondary" style="padding:6px 14px; font-size:12px;">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+
   <script type="module">
     import { supabase } from './supabase-config.js';
 
@@ -535,6 +585,34 @@
     const photosEmptyEl = document.getElementById('photosEmpty');
     const photosGridEl = document.getElementById('photosGrid');
 
+    // ✅ NEW: summary UI
+    const generateMonthlySummaryBtn = document.getElementById('generateMonthlySummaryBtn');
+    const summaryModal = document.getElementById('summaryModal');
+    const summaryOutput = document.getElementById('summaryOutput');
+    const closeSummaryBtn = document.getElementById('closeSummaryBtn');
+    const copySummaryBtn = document.getElementById('copySummaryBtn');
+
+    // Store latest computed data for summary (commercial-focused)
+    window._monthlySummaryState = {
+      monthLabel: '',
+      filterLabel: '',
+      opsRows: [],
+      maintItems: [],
+      hsItems: [],
+      specials: [],
+      photos: [],
+      staffing: { sick: 0, hol: 0, agency: 0 },
+      hospitality: { day: 0, night: 0 },
+      newcastle: { freeBreakfastTotal: 0, freeBreakfastDays: [], hotTotal: 0, hotBusiestDay: null, hotBusiestVal: 0 },
+      retail: {
+        allSales: 0, allTrans: 0, allSPH: 0,
+        L7: { sales: 0, trans: 0, sph: 0 },
+        L5: { sales: 0, trans: 0, sph: 0 },
+        L4: { sales: 0, trans: 0, sph: 0 },
+        L3: { sales: 0, trans: 0, sph: 0 }
+      }
+    };
+
     let currentMonthOffset = 0;
     let latestMonthAnchor = null;
     let currentSiteFilter = 'All';
@@ -574,14 +652,12 @@
       );
     }
 
-    // ✅ FIX: Lunch special text resolver
     function getRetailLunchSpecialText(row) {
       const raw = (row.retail_lunch_special ?? '').toString().trim();
       if (!raw) return null;
 
       const norm = raw.toLowerCase();
 
-      // Treat these as "flag" values (not the special itself)
       const isYesFlag = (norm === 'yes' || norm === 'y' || norm === 'true' || norm === '1');
       const isNoFlag = (norm === 'no' || norm === 'n' || norm === 'false' || norm === '0' || norm === 'none');
 
@@ -589,9 +665,10 @@
 
       if (isYesFlag) {
         const detail =
-          (row.retail_lunch_special_text ?? '') ||
           (row.retail_lunch_special_details ?? '') ||
+          (row.retail_lunch_special_text ?? '') ||
           (row.retail_lunch_special_notes ?? '') ||
+          (row.retail_lunch_special_details ?? '') ||
           (row.retail_special_details ?? '') ||
           (row.retail_special_notes ?? '') ||
           (row.lunch_special_details ?? '') ||
@@ -601,7 +678,6 @@
         return cleaned ? cleaned : '(Special recorded – no details entered)';
       }
 
-      // Otherwise assume retail_lunch_special already contains the description
       return raw;
     }
 
@@ -732,6 +808,17 @@
       floor(salesL5El, salesL5SubEl, totals.L5);
       floor(salesL4El, salesL4SubEl, totals.L4);
       floor(salesL3El, salesL3SubEl, totals.L3);
+
+      // Store in summary state
+      const retailState = window._monthlySummaryState.retail;
+      retailState.allSales = totals.allSales;
+      retailState.allTrans = totals.allTrans;
+      retailState.allSPH = overallSPH;
+
+      retailState.L7 = { sales: totals.L7.sales, trans: totals.L7.trans, sph: totals.L7.trans ? totals.L7.sales / totals.L7.trans : 0 };
+      retailState.L5 = { sales: totals.L5.sales, trans: totals.L5.trans, sph: totals.L5.trans ? totals.L5.sales / totals.L5.trans : 0 };
+      retailState.L4 = { sales: totals.L4.sales, trans: totals.L4.trans, sph: totals.L4.trans ? totals.L4.sales / totals.L4.trans : 0 };
+      retailState.L3 = { sales: totals.L3.sales, trans: totals.L3.trans, sph: totals.L3.trans ? totals.L3.sales / totals.L3.trans : 0 };
     }
 
     function setEmptyLists() {
@@ -762,10 +849,17 @@
       nextMonthBtn.disabled = currentMonthOffset === 0;
 
       const { monthStart, monthEnd } = getMonthRange();
-      monthLabelEl.textContent = formatMonthLabel(monthStart);
+      const monthLabel = formatMonthLabel(monthStart);
+      monthLabelEl.textContent = monthLabel;
 
       const startStr = toISODate(monthStart);
       const endStr = toISODate(monthEnd);
+
+      const filterLabel = siteFilterEl.options[siteFilterEl.selectedIndex].text;
+
+      // Set up summary state basics
+      window._monthlySummaryState.monthLabel = monthLabel;
+      window._monthlySummaryState.filterLabel = filterLabel;
 
       const { data: opsRowsRaw, error: opsErr } = await supabase
         .from('ops_logs')
@@ -783,13 +877,14 @@
       }
 
       const opsRows = applySiteFilter(opsRowsRaw || []);
+      window._monthlySummaryState.opsRows = opsRows.slice();
 
       const retailTotals = await loadMonthlyRetailSales(startStr, endStr);
       renderRetailSales(retailTotals);
 
       kpiTotalLogsEl.textContent = `${opsRows.length}`;
       kpiTotalLogsSubEl.textContent = opsRows.length
-        ? `Filtered: ${siteFilterEl.options[siteFilterEl.selectedIndex].text}`
+        ? `Filtered: ${filterLabel}`
         : 'No logs for this filter/month';
 
       let sick = 0, hol = 0, agency = 0;
@@ -798,6 +893,9 @@
         hol += parseCount(r.holiday_count);
         agency += parseCount(r.agency_count);
       });
+
+      window._monthlySummaryState.staffing = { sick, hol, agency };
+
       kpiStaffingSumEl.textContent = `${sick + hol + agency}`;
       kpiStaffingSubEl.textContent = `Sick: ${sick} • Holiday: ${hol} • Agency: ${agency}`;
 
@@ -832,6 +930,9 @@
         }
       });
 
+      window._monthlySummaryState.maintItems = maintItems.slice();
+      window._monthlySummaryState.hsItems = hsItems.slice();
+
       kpiIncidentsSumEl.textContent = `${maintCount + hsCount}`;
       kpiIncidentsSubEl.textContent = `Maintenance: ${maintCount} • H&S: ${hsCount}`;
 
@@ -864,6 +965,9 @@
         hospDay += parseCount(r.hosp_day_events);
         hospNight += parseCount(r.hosp_night_events);
       });
+
+      window._monthlySummaryState.hospitality = { day: hospDay, night: hospNight };
+
       const hospTotal = hospDay + hospNight;
 
       hospDayTotalEl.textContent = `${hospDay}`;
@@ -874,7 +978,6 @@
       kpiHospTotalEl.textContent = `${hospTotal}`;
       kpiHospSubEl.textContent = `Day: ${hospDay} • Night: ${hospNight}`;
 
-      // ✅ FIXED SPECIALS: use resolved text, not the Yes flag
       const specials = opsRows
         .map(r => ({
           date: r.log_date || '',
@@ -883,6 +986,8 @@
           text: getRetailLunchSpecialText(r)
         }))
         .filter(x => x.text);
+
+      window._monthlySummaryState.specials = specials.slice();
 
       kpiRetailSpecialsEl.textContent = `${specials.length}`;
       kpiRetailSpecialsSubEl.textContent = specials.length ? 'See full list below' : 'No specials recorded';
@@ -923,6 +1028,22 @@
         }
       });
 
+      let busiestDay = null;
+      let busiestVal = 0;
+      if (Object.keys(hotByDay).length) {
+        const [bd, bv] = Object.entries(hotByDay).sort((a,b) => b[1]-a[1])[0];
+        busiestDay = bd;
+        busiestVal = bv;
+      }
+
+      window._monthlySummaryState.newcastle = {
+        freeBreakfastTotal: fbTotal,
+        freeBreakfastDays: [...fbDays].sort(),
+        hotTotal,
+        hotBusiestDay: busiestDay,
+        hotBusiestVal: busiestVal
+      };
+
       ncFreeBreakfastTotalEl.textContent = `${fbTotal}`;
       ncFreeBreakfastDaysEl.textContent = `${fbDays.size}`;
       ncFreeBreakfastSubEl.textContent = fbTotal ? 'Newcastle only • monthly total' : 'No free breakfasts recorded';
@@ -931,8 +1052,7 @@
       ncHotLunchTotalEl.textContent = `${hotTotal}`;
       ncHotLunchSubEl.textContent = hotTotal ? 'Newcastle only • monthly total' : 'No hot lunch dishes recorded';
 
-      if (Object.keys(hotByDay).length) {
-        const [busiestDay, busiestVal] = Object.entries(hotByDay).sort((a,b) => b[1]-a[1])[0];
+      if (busiestDay) {
         ncHotLunchBusiestEl.textContent = busiestDay;
         ncHotLunchBusiestSubEl.textContent = `${busiestVal} dishes`;
       } else {
@@ -948,6 +1068,8 @@
           site: r.site || 'Unknown',
           area: r.area || ''
         }));
+
+      window._monthlySummaryState.photos = photos.slice();
 
       if (photos.length) {
         photosEmptyEl.style.display = 'none';
@@ -970,6 +1092,161 @@
       }
     }
 
+    // -----------------------------
+    // ✅ MONTHLY SUMMARY GENERATION
+    // -----------------------------
+    function currency(n) {
+      const num = Number(n) || 0;
+      return `£${num.toFixed(2)}`;
+    }
+
+    function buildMonthlySummaryText() {
+      const s = window._monthlySummaryState || {};
+      const opsRows = s.opsRows || [];
+      const maint = s.maintItems || [];
+      const hs = s.hsItems || [];
+      const specials = s.specials || [];
+      const photos = s.photos || [];
+      const staffing = s.staffing || { sick: 0, hol: 0, agency: 0 };
+      const hosp = s.hospitality || { day: 0, night: 0 };
+      const nc = s.newcastle || { freeBreakfastTotal: 0, freeBreakfastDays: [], hotTotal: 0, hotBusiestDay: null, hotBusiestVal: 0 };
+      const retail = s.retail || {};
+
+      let text = '';
+      text += `Monthly Ops Summary (Commercial)\n`;
+      text += `-------------------------------\n`;
+      text += `Month: ${s.monthLabel || monthLabelEl.textContent || '–'}\n`;
+      text += `Filter: ${s.filterLabel || siteFilterEl.options[siteFilterEl.selectedIndex].text}\n\n`;
+
+      text += `Activity Snapshot\n`;
+      text += `-----------------\n`;
+      text += `• Total Ops Logs: ${opsRows.length}\n`;
+      text += `• Photos uploaded: ${photos.length}\n\n`;
+
+      text += `Retail Performance\n`;
+      text += `------------------\n`;
+      text += `• Total Retail Sales: ${currency(retail.allSales)}\n`;
+      text += `• Total Transactions: ${retail.allTrans || 0}\n`;
+      text += `• Overall SPH: ${currency(retail.allSPH)}\n\n`;
+
+      text += `Sales by Level (Sales • Tx • SPH)\n`;
+      text += `• Level 7: ${currency(retail.L7?.sales)} • ${retail.L7?.trans || 0} • ${currency(retail.L7?.sph)}\n`;
+      text += `• Level 5: ${currency(retail.L5?.sales)} • ${retail.L5?.trans || 0} • ${currency(retail.L5?.sph)}\n`;
+      text += `• Level 4: ${currency(retail.L4?.sales)} • ${retail.L4?.trans || 0} • ${currency(retail.L4?.sph)}\n`;
+      text += `• Level 3: ${currency(retail.L3?.sales)} • ${retail.L3?.trans || 0} • ${currency(retail.L3?.sph)}\n\n`;
+
+      text += `Hospitality Events\n`;
+      text += `------------------\n`;
+      text += `• Day events: ${hosp.day || 0}\n`;
+      text += `• Night events: ${hosp.night || 0}\n`;
+      text += `• Total events: ${(hosp.day || 0) + (hosp.night || 0)}\n\n`;
+
+      text += `Staffing Impact\n`;
+      text += `---------------\n`;
+      text += `• Sick: ${staffing.sick || 0}\n`;
+      text += `• Holiday: ${staffing.hol || 0}\n`;
+      text += `• Agency: ${staffing.agency || 0}\n\n`;
+
+      text += `Incidents\n`;
+      text += `---------\n`;
+      if ((maint.length + hs.length) === 0) {
+        text += `No incidents reported.\n\n`;
+      } else {
+        text += `Maintenance incidents: ${maint.length}\n`;
+        maint.forEach(i => {
+          text += `• ${i.site || 'Unknown'} – ${i.area || ''} – ${i.date}\n`;
+          text += `  Issue: ${i.issue || ''}\n`;
+          if (i.notes) text += `  Notes: ${String(i.notes).trim()}\n`;
+          if (i.reported) text += `  Reported: ${i.reported}\n`;
+          text += `\n`;
+        });
+
+        text += `H&S incidents: ${hs.length}\n`;
+        hs.forEach(i => {
+          text += `• ${i.site || 'Unknown'} – ${i.area || ''} – ${i.date}\n`;
+          text += `  Issue: ${i.issue || ''}\n`;
+          if (i.notes) text += `  Notes: ${String(i.notes).trim()}\n`;
+          if (i.reported) text += `  Reported: ${i.reported}\n`;
+          text += `\n`;
+        });
+      }
+
+      text += `Retail Lunch Specials\n`;
+      text += `--------------------\n`;
+      if (!specials.length) {
+        text += `No lunch specials recorded.\n\n`;
+      } else {
+        text += `Total specials: ${specials.length}\n`;
+        specials.forEach(spl => {
+          text += `• ${spl.date} – ${spl.site || 'Unknown'}${spl.area ? ' • ' + spl.area : ''}\n`;
+          text += `  ${String(spl.text || '').trim()}\n\n`;
+        });
+      }
+
+      text += `Newcastle Summary\n`;
+      text += `-----------------\n`;
+      text += `• Free breakfasts: ${nc.freeBreakfastTotal || 0} (days: ${(nc.freeBreakfastDays || []).length})\n`;
+      if ((nc.freeBreakfastDays || []).length) {
+        text += `  Days: ${(nc.freeBreakfastDays || []).join(', ')}\n`;
+      }
+      text += `• Hot lunch dishes: ${nc.hotTotal || 0}\n`;
+      if (nc.hotBusiestDay) {
+        text += `  Busiest day: ${nc.hotBusiestDay} (${nc.hotBusiestVal} dishes)\n`;
+      }
+      text += `\n`;
+
+      // Lightweight commercial takeaways (derived, not “AI guesswork”)
+      const floors = [
+        { name: 'Level 7', ...retail.L7 },
+        { name: 'Level 5', ...retail.L5 },
+        { name: 'Level 4', ...retail.L4 },
+        { name: 'Level 3', ...retail.L3 }
+      ];
+
+      const topSales = floors.slice().sort((a,b) => (b.sales || 0) - (a.sales || 0))[0];
+      const topSPH = floors.slice().sort((a,b) => (b.sph || 0) - (a.sph || 0))[0];
+
+      text += `Commercial Takeaways\n`;
+      text += `--------------------\n`;
+      if ((retail.allSales || 0) > 0) {
+        text += `• Top sales floor: ${topSales?.name || '–'} (${currency(topSales?.sales)})\n`;
+        text += `• Best SPH floor: ${topSPH?.name || '–'} (${currency(topSPH?.sph)})\n`;
+      } else {
+        text += `• Retail sales data not available for this period.\n`;
+      }
+      if (specials.length) {
+        text += `• Lunch specials ran ${specials.length} time(s) – consider aligning specials with the strongest-performing floor/day patterns.\n`;
+      }
+      if ((hosp.day || 0) + (hosp.night || 0) > 0) {
+        text += `• Hospitality activity logged: ${(hosp.day||0) + (hosp.night||0)} events (Day ${hosp.day||0} / Night ${hosp.night||0}).\n`;
+      }
+      if ((maint.length + hs.length) > 0) {
+        text += `• Incidents logged: ${maint.length + hs.length} (Maintenance ${maint.length} / H&S ${hs.length}) – ensure outstanding items are closed out.\n`;
+      }
+      text += `\n`;
+
+      return text;
+    }
+
+    generateMonthlySummaryBtn.addEventListener('click', () => {
+      const text = buildMonthlySummaryText();
+      summaryOutput.value = text;
+      summaryModal.style.display = 'block';
+    });
+
+    closeSummaryBtn.addEventListener('click', () => {
+      summaryModal.style.display = 'none';
+    });
+
+    copySummaryBtn.addEventListener('click', () => {
+      navigator.clipboard.writeText(summaryOutput.value || '');
+      copySummaryBtn.textContent = 'Copied!';
+      setTimeout(() => copySummaryBtn.textContent = 'Copy', 1000);
+    });
+
+    // -----------------------------
+    // Buttons & initial load
+    // -----------------------------
     latestMonthBtn.addEventListener('click', () => {
       currentMonthOffset = 0;
       latestMonthAnchor = null;
