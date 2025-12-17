@@ -16,12 +16,7 @@
       min-height: 100vh;
     }
 
-    .page {
-      max-width: 1400px;
-      width: 100%;
-      padding: 24px;
-      box-sizing: border-box;
-    }
+    .page { max-width: 1400px; width: 100%; padding: 24px; box-sizing: border-box; }
 
     .header {
       display: flex;
@@ -44,12 +39,7 @@
 
     .subtitle { font-size: 13px; color: #9ca3af; }
 
-    .controls {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
+    .controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 
     .pill {
       border-radius: 999px;
@@ -106,28 +96,16 @@
     }
 
     .btn:disabled { opacity: 0.4; cursor: default; }
+
     .btn-secondary {
       border-color: rgba(148, 163, 184, 0.6);
       background: radial-gradient(circle at top left, rgba(30, 64, 175, 0.4), rgba(15, 23, 42, 1));
     }
 
-    .grid {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr);
-      gap: 14px;
-    }
+    .grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; }
 
-    .row-2 {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-      gap: 14px;
-    }
-
-    .row-3 {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
-      gap: 14px;
-    }
+    .row-2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; }
+    .row-3 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr); gap: 14px; }
 
     @media (max-width: 1100px) {
       .row-2, .row-3 { grid-template-columns: minmax(0, 1fr); }
@@ -160,11 +138,7 @@
 
     .card-subtitle { font-size: 11px; color: #9ca3af; }
 
-    .metric-row {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 10px;
-    }
+    .metric-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
 
     @media (max-width: 1100px) {
       .metric-row { grid-template-columns: minmax(0, 1fr); }
@@ -255,18 +229,10 @@
       margin-bottom: 6px;
     }
 
-    .photo-card-caption {
-      font-size: 10px;
-      color: #9ca3af;
-      line-height: 1.3;
-    }
-
+    .photo-card-caption { font-size: 10px; color: #9ca3af; line-height: 1.3; }
     .photo-card a { text-decoration: none; }
     .photo-card a:focus img,
-    .photo-card a:hover img {
-      outline: 1px solid rgba(96, 165, 250, 0.8);
-      outline-offset: 2px;
-    }
+    .photo-card a:hover img { outline: 1px solid rgba(96, 165, 250, 0.8); outline-offset: 2px; }
   </style>
 </head>
 
@@ -276,7 +242,7 @@
       <div class="title-wrap">
         <h1>Monthly Ops Dashboard</h1>
         <div class="subtitle">
-          Month view (Mon–Sun range). Drill down by site/area, with staffing, incidents, hospitality, retail activity, Newcastle metrics, retail sales/SPH, and photo gallery.
+          Month view. Drill down by site/area, with staffing, incidents, hospitality, retail activity, Newcastle metrics, retail sales/SPH, and photo gallery.
         </div>
       </div>
 
@@ -307,7 +273,6 @@
     <div id="errorMessage" class="error-banner"></div>
 
     <div class="grid">
-      <!-- TOP SUMMARY -->
       <div class="card">
         <div class="card-header">
           <div>
@@ -359,7 +324,6 @@
         </div>
       </div>
 
-      <!-- INCIDENTS + OPERATIONS -->
       <div class="row-2">
         <div class="card">
           <div class="card-header">
@@ -384,7 +348,6 @@
         </div>
       </div>
 
-      <!-- HOSPITALITY / RETAIL SPECIALS / NEWCASTLE METRICS -->
       <div class="row-3">
         <div class="card">
           <div class="card-header">
@@ -398,12 +361,12 @@
             <div class="metric">
               <div class="metric-label">Day Events</div>
               <div class="metric-value" id="hospDayTotal">0</div>
-              <div class="metric-sub" id="hospDaySub">Total day events</div>
+              <div class="metric-sub">Total day events</div>
             </div>
             <div class="metric">
               <div class="metric-label">Night Events</div>
               <div class="metric-value" id="hospNightTotal">0</div>
-              <div class="metric-sub" id="hospNightSub">Total night events</div>
+              <div class="metric-sub">Total night events</div>
             </div>
           </div>
 
@@ -466,7 +429,6 @@
         </div>
       </div>
 
-      <!-- RETAIL SALES PER FLOOR -->
       <div class="card">
         <div class="card-header">
           <div>
@@ -499,7 +461,6 @@
         </div>
       </div>
 
-      <!-- PHOTO GALLERY -->
       <div class="card">
         <div class="card-header">
           <div>
@@ -516,7 +477,6 @@
   <script type="module">
     import { supabase } from './supabase-config.js';
 
-    // Controls
     const monthLabelEl = document.getElementById('monthLabel');
     const errorMessageEl = document.getElementById('errorMessage');
     const siteFilterEl = document.getElementById('siteFilter');
@@ -524,7 +484,6 @@
     const nextMonthBtn = document.getElementById('nextMonthBtn');
     const latestMonthBtn = document.getElementById('latestMonthBtn');
 
-    // KPIs
     const kpiTotalLogsEl = document.getElementById('kpiTotalLogs');
     const kpiTotalLogsSubEl = document.getElementById('kpiTotalLogsSub');
     const kpiStaffingSumEl = document.getElementById('kpiStaffingSum');
@@ -541,7 +500,6 @@
     const kpiRetailSalesAllEl = document.getElementById('kpiRetailSalesAll');
     const kpiRetailSalesAllSubEl = document.getElementById('kpiRetailSalesAllSub');
 
-    // Lists
     const maintEmptyEl = document.getElementById('maintEmpty');
     const maintListEl = document.getElementById('maintList');
     const hsEmptyEl = document.getElementById('hsEmpty');
@@ -550,13 +508,11 @@
     const specialsEmptyEl = document.getElementById('specialsEmpty');
     const specialsListEl = document.getElementById('specialsList');
 
-    // Hospitality box
     const hospDayTotalEl = document.getElementById('hospDayTotal');
     const hospNightTotalEl = document.getElementById('hospNightTotal');
     const hospTotalEventsEl = document.getElementById('hospTotalEvents');
     const hospTotalEventsSubEl = document.getElementById('hospTotalEventsSub');
 
-    // Newcastle
     const ncFreeBreakfastTotalEl = document.getElementById('ncFreeBreakfastTotal');
     const ncFreeBreakfastDaysEl = document.getElementById('ncFreeBreakfastDays');
     const ncFreeBreakfastSubEl = document.getElementById('ncFreeBreakfastSub');
@@ -567,7 +523,6 @@
     const ncHotLunchBusiestSubEl = document.getElementById('ncHotLunchBusiestSub');
     const ncHotLunchSubEl = document.getElementById('ncHotLunchSub');
 
-    // Retail sales per floor
     const salesL7El = document.getElementById('salesL7');
     const salesL7SubEl = document.getElementById('salesL7Sub');
     const salesL5El = document.getElementById('salesL5');
@@ -577,13 +532,11 @@
     const salesL3El = document.getElementById('salesL3');
     const salesL3SubEl = document.getElementById('salesL3Sub');
 
-    // Photos
     const photosEmptyEl = document.getElementById('photosEmpty');
     const photosGridEl = document.getElementById('photosGrid');
 
-    // State
-    let currentMonthOffset = 0;   // 0 = latest month
-    let latestMonthAnchor = null; // Date object set to first day of latest month
+    let currentMonthOffset = 0;
+    let latestMonthAnchor = null;
     let currentSiteFilter = 'All';
 
     function toISODate(d) {
@@ -621,6 +574,37 @@
       );
     }
 
+    // ✅ FIX: Lunch special text resolver
+    function getRetailLunchSpecialText(row) {
+      const raw = (row.retail_lunch_special ?? '').toString().trim();
+      if (!raw) return null;
+
+      const norm = raw.toLowerCase();
+
+      // Treat these as "flag" values (not the special itself)
+      const isYesFlag = (norm === 'yes' || norm === 'y' || norm === 'true' || norm === '1');
+      const isNoFlag = (norm === 'no' || norm === 'n' || norm === 'false' || norm === '0' || norm === 'none');
+
+      if (isNoFlag) return null;
+
+      if (isYesFlag) {
+        const detail =
+          (row.retail_lunch_special_text ?? '') ||
+          (row.retail_lunch_special_details ?? '') ||
+          (row.retail_lunch_special_notes ?? '') ||
+          (row.retail_special_details ?? '') ||
+          (row.retail_special_notes ?? '') ||
+          (row.lunch_special_details ?? '') ||
+          (row.lunch_special_notes ?? '');
+
+        const cleaned = detail.toString().trim();
+        return cleaned ? cleaned : '(Special recorded – no details entered)';
+      }
+
+      // Otherwise assume retail_lunch_special already contains the description
+      return raw;
+    }
+
     function applySiteFilter(rows) {
       const filter = currentSiteFilter;
       if (filter === 'All') return rows;
@@ -639,7 +623,9 @@
     }
 
     function metricLine(title, meta, notes, reported) {
-      const safeNotes = (notes && String(notes).trim()) ? String(notes).trim() : '<span style="opacity:0.7;">No notes.</span>';
+      const safeNotes = (notes && String(notes).trim())
+        ? String(notes).trim()
+        : '<span style="opacity:0.7;">No notes.</span>';
       const safeMeta = meta ? meta : '';
       const safeReported = reported ? `Reported: <strong>${reported}</strong>` : '';
       return `
@@ -655,7 +641,6 @@
     async function ensureLatestMonthAnchor() {
       if (latestMonthAnchor) return;
 
-      // Anchor on latest ops log month (stable month navigation)
       const { data, error } = await supabase
         .from('ops_logs')
         .select('log_date')
@@ -672,9 +657,12 @@
     }
 
     function getMonthRange() {
-      // Month start/end based on anchor - offset
-      const monthStart = new Date(latestMonthAnchor.getFullYear(), latestMonthAnchor.getMonth() - currentMonthOffset, 1);
-      const monthEnd = new Date(monthStart.getFullYear(), monthStart.getMonth() + 1, 0); // last day
+      const monthStart = new Date(
+        latestMonthAnchor.getFullYear(),
+        latestMonthAnchor.getMonth() - currentMonthOffset,
+        1
+      );
+      const monthEnd = new Date(monthStart.getFullYear(), monthStart.getMonth() + 1, 0);
       return { monthStart, monthEnd };
     }
 
@@ -771,7 +759,6 @@
         return;
       }
 
-      // Disable next if you are at latest month
       nextMonthBtn.disabled = currentMonthOffset === 0;
 
       const { monthStart, monthEnd } = getMonthRange();
@@ -780,7 +767,6 @@
       const startStr = toISODate(monthStart);
       const endStr = toISODate(monthEnd);
 
-      // Load ops logs for month
       const { data: opsRowsRaw, error: opsErr } = await supabase
         .from('ops_logs')
         .select('*')
@@ -798,16 +784,14 @@
 
       const opsRows = applySiteFilter(opsRowsRaw || []);
 
-      // Retail sales (month) is independent of ops filter; keep it global month totals
-      // (if you want it to filter by site later, we can add a mapping rule)
       const retailTotals = await loadMonthlyRetailSales(startStr, endStr);
       renderRetailSales(retailTotals);
 
-      // Total logs KPI
       kpiTotalLogsEl.textContent = `${opsRows.length}`;
-      kpiTotalLogsSubEl.textContent = opsRows.length ? `Filtered: ${siteFilterEl.options[siteFilterEl.selectedIndex].text}` : 'No logs for this filter/month';
+      kpiTotalLogsSubEl.textContent = opsRows.length
+        ? `Filtered: ${siteFilterEl.options[siteFilterEl.selectedIndex].text}`
+        : 'No logs for this filter/month';
 
-      // Staffing
       let sick = 0, hol = 0, agency = 0;
       opsRows.forEach(r => {
         sick += parseCount(r.sickness_count);
@@ -817,11 +801,9 @@
       kpiStaffingSumEl.textContent = `${sick + hol + agency}`;
       kpiStaffingSubEl.textContent = `Sick: ${sick} • Holiday: ${hol} • Agency: ${agency}`;
 
-      // Incidents + lists
       setEmptyLists();
 
       let maintCount = 0, hsCount = 0;
-
       const maintItems = [];
       const hsItems = [];
 
@@ -861,7 +843,7 @@
             `Maintenance • ${i.site}${i.area ? ' • ' + i.area : ''}`,
             `<strong>${i.date}</strong> • ${i.issue}`,
             i.notes,
-            i.reported ? `Yes: ${i.reported}` : i.reported
+            i.reported
           )).join('');
       }
 
@@ -873,11 +855,10 @@
             `H&S • ${i.site}${i.area ? ' • ' + i.area : ''}`,
             `<strong>${i.date}</strong> • ${i.issue}`,
             i.notes,
-            i.reported ? `Yes: ${i.reported}` : i.reported
+            i.reported
           )).join('');
       }
 
-      // Hospitality day/night totals
       let hospDay = 0, hospNight = 0;
       opsRows.forEach(r => {
         hospDay += parseCount(r.hosp_day_events);
@@ -893,15 +874,15 @@
       kpiHospTotalEl.textContent = `${hospTotal}`;
       kpiHospSubEl.textContent = `Day: ${hospDay} • Night: ${hospNight}`;
 
-      // Retail lunch specials list
+      // ✅ FIXED SPECIALS: use resolved text, not the Yes flag
       const specials = opsRows
-        .filter(r => r.retail_lunch_special && r.retail_lunch_special !== 'No')
         .map(r => ({
           date: r.log_date || '',
           site: r.site || 'Unknown',
           area: r.area || '',
-          special: r.retail_lunch_special
-        }));
+          text: getRetailLunchSpecialText(r)
+        }))
+        .filter(x => x.text);
 
       kpiRetailSpecialsEl.textContent = `${specials.length}`;
       kpiRetailSpecialsSubEl.textContent = specials.length ? 'See full list below' : 'No specials recorded';
@@ -913,13 +894,11 @@
           .map(s => metricLine(
             `Special • ${s.site}${s.area ? ' • ' + s.area : ''}`,
             `<strong>${s.date}</strong>`,
-            s.special,
+            s.text,
             ''
           )).join('');
       }
 
-      // Newcastle: Free Breakfast + Hot Lunch (Newcastle only regardless of filter? we will respect filter by using opsRows)
-      // If you want “always Newcastle totals” even when filter is London, tell me and I’ll change it.
       let fbTotal = 0;
       const fbDays = new Set();
 
@@ -961,7 +940,6 @@
         ncHotLunchBusiestSubEl.textContent = '–';
       }
 
-      // Photo gallery
       const photos = opsRows
         .filter(r => r.photo_url)
         .map(r => ({
@@ -992,7 +970,6 @@
       }
     }
 
-    // Events
     latestMonthBtn.addEventListener('click', () => {
       currentMonthOffset = 0;
       latestMonthAnchor = null;
@@ -1014,7 +991,6 @@
       loadMonthlyData();
     });
 
-    // Init
     loadMonthlyData();
   </script>
 </body>
