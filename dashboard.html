@@ -971,8 +971,11 @@ function getFreeBreakfastValue(row) {
       const { data, error } = await supabase
         .from('ops_logs')
         .select('*')
-        .gte('log_date', startDateStr)
-        .lte('log_date', endDateStr)
+        .or(`
+  and(log_date.gte.${startDateStr},log_date.lte.${endDateStr}),
+  and(log_date.is.null,created_at.gte.${startDateStr},created_at.lte.${endDateStr})
+`)
+
         .order('log_date', { ascending: false })
         .order('created_at', { ascending: false });
 
