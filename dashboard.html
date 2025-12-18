@@ -17,7 +17,7 @@
     }
 
     .page {
-      max-width: 1200px;
+      max-width: 1400px;
       width: 100%;
       padding: 24px;
       box-sizing: border-box;
@@ -138,19 +138,15 @@
       background: radial-gradient(circle at top left, rgba(30, 64, 175, 0.4), rgba(15, 23, 42, 1));
     }
 
-    .grid {
-      display: grid;
-      grid-template-columns: minmax(0, 2fr) minmax(0, 1.4fr);
-      gap: 14px;
-    }
+    .grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; }
 
-    @media (max-width: 900px) {
-      .grid {
-        grid-template-columns: minmax(0, 1fr);
-      }
-      .page {
-        padding: 16px;
-      }
+    .row-2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; }
+    .row-3 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr); gap: 14px; }
+
+
+    @media (max-width: 1100px) {
+      .row-2, .row-3 { grid-template-columns: minmax(0, 1fr); }
+      .page { padding: 16px; }
     }
 
     .card {
@@ -334,6 +330,19 @@
       margin-top: 4px;
     }
 
+    .list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 280px;
+      overflow: auto;
+      padding-right: 6px;
+    }
+
+    .list::-webkit-scrollbar { width: 10px; }
+    .list::-webkit-scrollbar-thumb { background: rgba(148,163,184,0.25); border-radius: 999px; }
+    .list::-webkit-scrollbar-track { background: rgba(15,23,42,0.4); border-radius: 999px; }
+
     /* Thumbnail for photos */
     .note-photo-thumb {
       margin-top: 6px;
@@ -450,12 +459,12 @@
 
     <div id="errorMessage" class="error-banner"></div>
     <div class="grid">
-      <!-- LEFT: Main KPIs, Incidents, Photos, Notes -->
+      <!-- SUMMARY (matches Monthly layout structure) -->
       <div class="card">
         <div class="card-header">
           <div>
-            <div class="card-title">Overview</div>
-            <div class="card-subtitle">Logs, site mix, staffing, incidents, photos &amp; notes.</div>
+            <div class="card-title">Weekly Summary</div>
+            <div class="card-subtitle">High-level totals for the selected Mon–Fri week and filter.</div>
           </div>
           <div class="pill-pill">
             <span class="pill-dot"></span>
@@ -463,156 +472,226 @@
           </div>
         </div>
 
-        <!-- High level metrics -->
         <div class="metric-row">
           <div class="metric">
             <div class="metric-label">Total Logs</div>
             <div class="metric-value" id="kpiTotalLogs">0</div>
             <div class="metric-sub" id="kpiTotalLogsSub">No logs this week</div>
           </div>
+
           <div class="metric">
             <div class="metric-label">Logs by Site</div>
             <div class="metric-value" id="kpiLogsBySite">–</div>
             <div class="metric-sub" id="kpiLogsBySiteSub"></div>
           </div>
+
           <div class="metric">
-            <div class="metric-label">Staffing Summary</div>
+            <div class="metric-label">Staffing (S/H/A)</div>
             <div class="metric-value" id="kpiStaffingTotals">–</div>
-            <div class="metric-sub" id="kpiStaffingTotalsSub">Staffing impact</div>
+            <div class="metric-sub" id="kpiStaffingTotalsSub">Sick • Holiday • Agency</div>
           </div>
         </div>
 
         <div class="divider"></div>
 
-        <!-- Incidents & Hospitality/Retail -->
-        <div class="stacked-row">
-          <div>
-            <div class="card-title" style="font-size: 12px; margin-bottom: 4px;">Incidents &amp; H&amp;S</div>
-            <div class="metric-row" style="grid-template-columns: repeat(2, minmax(0, 1fr)); margin-bottom: 6px;">
-              <div class="metric">
-                <div class="metric-label">Maintenance / H&amp;S</div>
-                <div class="metric-value" id="kpiIncidentsTotals">–</div>
-                <div class="metric-sub" id="kpiIncidentsTotalsSub">No incidents recorded</div>
-              </div>
-              <div class="metric">
-                <div class="metric-label">Data Completeness</div>
-                <div class="metric-value" id="kpiDataHealth">–</div>
-                <div class="metric-sub" id="kpiDataHealthSub">No logs</div>
-              </div>
-            </div>
-
-            <div class="section-label">Incident log</div>
-            <div id="incidentsEmptyNote" class="empty-text">No incidents captured this week.</div>
-            <div id="incidentList"></div>
+        <div class="metric-row" style="grid-template-columns: repeat(3, minmax(0, 1fr));">
+          <div class="metric">
+            <div class="metric-label">Incidents</div>
+            <div class="metric-value" id="kpiIncidentsTotals">–</div>
+            <div class="metric-sub" id="kpiIncidentsTotalsSub">Maintenance • H&amp;S</div>
           </div>
 
-          <div>
-            <div class="card-title" style="font-size: 12px; margin-bottom: 4px;">Hospitality &amp; Retail</div>
-            <div class="metric-row" style="grid-template-columns: repeat(2, minmax(0, 1fr)); margin-bottom: 6px;">
-              <div class="metric">
-                <div class="metric-label">Hospitality Events</div>
-                <div class="metric-value" id="kpiHospEvents">–</div>
-                <div class="metric-sub" id="kpiHospEventsSub">No events recorded</div>
-              </div>
-              <div class="metric">
-                <div class="metric-label">Retail Activity</div>
-                <div class="metric-value" id="kpiRetailSpecials">–</div>
-                <div class="metric-sub" id="kpiRetailSpecialsSub">No specials</div>
-              </div>
+          <div class="metric">
+            <div class="metric-label">Data Completeness</div>
+            <div class="metric-value" id="kpiDataHealth">–</div>
+            <div class="metric-sub" id="kpiDataHealthSub">No logs</div>
+          </div>
+
+          <div class="metric">
+            <div class="metric-label">Hospitality Events</div>
+            <div class="metric-value" id="kpiHospEvents">–</div>
+            <div class="metric-sub" id="kpiHospEventsSub">Day • Night</div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="metric-row" style="grid-template-columns: repeat(3, minmax(0, 1fr));">
+          <div class="metric">
+            <div class="metric-label">Retail Lunch Specials</div>
+            <div class="metric-value" id="kpiRetailSpecials">–</div>
+            <div class="metric-sub" id="kpiRetailSpecialsSub">All specials listed below</div>
+          </div>
+
+          <div class="metric">
+            <div class="metric-label">Weekly Retail Sales</div>
+            <div class="metric-value" id="retailTotalSales">£0</div>
+            <div class="metric-sub" id="retailTotalTrans">0 transactions</div>
+          </div>
+
+          <div class="metric">
+            <div class="metric-label">Newcastle Hot Lunch</div>
+            <div class="metric-value" id="kpiNewcastleHot">–</div>
+            <div class="metric-sub" id="kpiNewcastleHotSub">No hot lunch data</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row-2">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Maintenance Incidents</div>
+              <div class="card-subtitle">All maintenance issues for the week.</div>
             </div>
+          </div>
+          <div id="maintEmpty" class="empty-text">No maintenance incidents.</div>
+          <div id="maintList" class="list"></div>
+        </div>
 
-            <!-- 🔥 WEEKLY RETAIL SALES SUMMARY — inserted after Hospitality & Retail -->
-            <div class="section-label">Weekly Retail Sales Summary</div>
-
-            <div class="metric-row" style="grid-template-columns: repeat(2, minmax(0, 1fr)); margin-bottom: 6px;">
-              <div class="metric">
-                <div class="metric-label">Total Sales</div>
-                <div class="metric-value" id="retailTotalSales">£0</div>
-                <div class="metric-sub" id="retailTotalTrans">0 transactions</div>
-              </div>
-              <div class="metric">
-                <div class="metric-label">Sales by Level</div>
-                <div class="metric-sub" id="retailL7">L7: £0 (0)</div>
-                <div class="metric-sub" id="retailL5">L5: £0 (0)</div>
-                <div class="metric-sub" id="retailL4">L4: £0 (0)</div>
-                <div class="metric-sub" id="retailL3">L3: £0 (0)</div>
-              </div>
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">H&amp;S Incidents</div>
+              <div class="card-subtitle">All H&amp;S issues for the week.</div>
             </div>
+          </div>
+          <div id="hsEmpty" class="empty-text">No H&amp;S incidents.</div>
+          <div id="hsList" class="list"></div>
+        </div>
+      </div>
 
-            <div class="divider"></div>
+      <div class="row-3">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Hospitality</div>
+              <div class="card-subtitle">Busiest day highlights for events and hot lunch.</div>
+            </div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Busiest Days</div>
+            <div class="metric-sub" id="newcastleBusiestLine">Busiest day: –</div>
+            <div class="metric-sub" id="hospBusiestLine">Busiest event day: –</div>
+          </div>
+        </div>
 
-            <div class="section-label">Newcastle Hot Lunch</div>
-            <div class="metric-row" style="grid-template-columns: minmax(0, 1.5fr) minmax(0, 1.5fr); gap: 8px;">
-              <div class="metric">
-                <div class="metric-label">Total Dishes</div>
-                <div class="metric-value" id="kpiNewcastleHot">–</div>
-                <div class="metric-sub" id="kpiNewcastleHotSub">No hot lunch data</div>
-              </div>
-              <div class="metric">
-                <div class="metric-label">Busiest Days</div>
-                <div class="metric-sub" id="newcastleBusiestLine">Busiest day: –</div>
-                <div class="metric-sub" id="hospBusiestLine">Busiest event day: –</div>
-              </div>
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Retail Lunch Specials</div>
+              <div class="card-subtitle">All specials recorded in ops logs.</div>
+            </div>
+          </div>
+          <div id="specialsEmpty" class="empty-text">No lunch specials recorded.</div>
+          <div id="specialsList" class="list"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Newcastle Metrics</div>
+              <div class="card-subtitle">Free Breakfast + Hot Lunch summary.</div>
+            </div>
+          </div>
+
+          <div class="section-label">Free Breakfast</div>
+          <div class="metric-row" style="grid-template-columns: repeat(2, minmax(0, 1fr));">
+            <div class="metric">
+              <div class="metric-label">Total</div>
+              <div class="metric-value" id="kpiFreeBreakfastTotal">0</div>
+              <div class="metric-sub" id="kpiFreeBreakfastSub">Newcastle only • Mon–Fri</div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">Days Issued</div>
+              <div class="metric-value" id="kpiFreeBreakfastDays">0</div>
+              <div class="metric-sub" id="kpiFreeBreakfastDaysSub">Days with a value &gt; 0</div>
             </div>
           </div>
         </div>
-        
-<div class="section-label">Newcastle Free Breakfast</div>
-<div class="metric-row" style="grid-template-columns: repeat(2, minmax(0, 1fr)); margin-bottom: 6px;">
-  <div class="metric">
-    <div class="metric-label">Total Free Breakfast</div>
-    <div class="metric-value" id="kpiFreeBreakfastTotal">0</div>
-    <div class="metric-sub" id="kpiFreeBreakfastSub">Newcastle only • Mon–Fri</div>
-  </div>
-  <div class="metric">
-    <div class="metric-label">Days Issued</div>
-    <div class="metric-value" id="kpiFreeBreakfastDays">0</div>
-    <div class="metric-sub" id="kpiFreeBreakfastDaysSub">Days with a value &gt; 0</div>
-  </div>
-</div>
-
-        <!-- Photo gallery -->
-        <div class="section-label">Photo gallery</div>
-        <div id="photosEmptyNote" class="empty-text">No photos uploaded this week.</div>
-        <div id="photosGrid" class="photos-grid"></div>
-
-        <!-- Notes -->
-        <div class="section-label">Daily notes</div>
-        <div id="notesEmptyNote" class="empty-text">No notes captured this week.</div>
-        <div id="notesList"></div>
       </div>
 
-      <!-- RIGHT PANEL: Staffing -->
       <div class="card">
         <div class="card-header">
           <div>
-            <div class="card-title">Staffing Detail</div>
-            <div class="card-subtitle">Daily breakdown by site of sickness, holiday &amp; agency use.</div>
+            <div class="card-title">Retail Sales Breakdown</div>
+            <div class="card-subtitle">Totals by level with transactions (Mon–Fri).</div>
           </div>
         </div>
 
-        <div class="table-wrapper">
-          <table>
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Site</th>
-                <th>Area</th>
-                <th>Sick</th>
-                <th>Holiday</th>
-                <th>Agency</th>
-              </tr>
-            </thead>
-            <tbody id="staffingTableBody"></tbody>
-          </table>
-          <div class="table-meta">
-            <span id="staffingHighlights">No logs this week.</span>
-            <span>Counts are from daily ops logs.</span>
+        <div class="metric-row" style="grid-template-columns: repeat(4, minmax(0, 1fr));">
+          <div class="metric">
+            <div class="metric-label">Level 7</div>
+            <div class="metric-sub" id="retailL7">L7: £0 (0)</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Level 5</div>
+            <div class="metric-sub" id="retailL5">L5: £0 (0)</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Level 4</div>
+            <div class="metric-sub" id="retailL4">L4: £0 (0)</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Level 3</div>
+            <div class="metric-sub" id="retailL3">L3: £0 (0)</div>
           </div>
         </div>
       </div>
+
+      <div class="row-2">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Daily Notes</div>
+              <div class="card-subtitle">Notes captured in ops logs for this week.</div>
+            </div>
+          </div>
+          <div id="notesEmptyNote" class="empty-text">No notes captured this week.</div>
+          <div id="notesList"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Staffing Detail</div>
+              <div class="card-subtitle">Daily breakdown by site of sickness, holiday &amp; agency use.</div>
+            </div>
+          </div>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Site</th>
+                  <th>Area</th>
+                  <th>Sick</th>
+                  <th>Holiday</th>
+                  <th>Agency</th>
+                </tr>
+              </thead>
+              <tbody id="staffingTableBody"></tbody>
+            </table>
+            <div class="table-meta">
+              <span id="staffingHighlights">No logs this week.</span>
+              <span>Counts are from daily ops logs.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Photo Gallery</div>
+            <div class="card-subtitle">All photos uploaded within the selected week.</div>
+          </div>
+        </div>
+        <div id="photosEmptyNote" class="empty-text">No photos uploaded this week.</div>
+        <div id="photosGrid" class="photos-grid"></div>
+      </div>
     </div>
-  </div>
+
 
   <!-- SUMMARY MODAL -->
   <div id="summaryModal" style="
@@ -683,8 +762,13 @@
     const staffingTableBody = document.getElementById('staffingTableBody');
     const staffingHighlightsEl = document.getElementById('staffingHighlights');
 
-    const incidentsEmptyNoteEl = document.getElementById('incidentsEmptyNote');
-    const incidentListEl = document.getElementById('incidentList');
+    const maintEmptyEl = document.getElementById('maintEmpty');
+    const maintListEl = document.getElementById('maintList');
+    const hsEmptyEl = document.getElementById('hsEmpty');
+    const hsListEl = document.getElementById('hsList');
+
+    const specialsEmptyEl = document.getElementById('specialsEmpty');
+    const specialsListEl = document.getElementById('specialsList');
 
     const newcastleBusiestLineEl = document.getElementById('newcastleBusiestLine');
     const hospBusiestLineEl = document.getElementById('hospBusiestLine');
@@ -939,8 +1023,13 @@ function getFreeBreakfastValue(row) {
       staffingTableBody.innerHTML = '';
       staffingHighlightsEl.textContent = 'No logs this week.';
 
-      incidentListEl.innerHTML = '';
-      incidentsEmptyNoteEl.style.display = 'block';
+      maintListEl.innerHTML = '';
+      hsListEl.innerHTML = '';
+      maintEmptyEl.style.display = 'block';
+      hsEmptyEl.style.display = 'block';
+
+      specialsListEl.innerHTML = '';
+      specialsEmptyEl.style.display = 'block';
 
       notesListEl.innerHTML = '';
       notesEmptyNoteEl.style.display = 'block';
@@ -1186,19 +1275,24 @@ document.getElementById('kpiFreeBreakfastDaysSub').textContent =
           `H&S: ${hsCount} (reported ${hsReported})`;
       }
 
-      if (incidents.length === 0) {
-        incidentsEmptyNoteEl.style.display = 'block';
-        incidentListEl.innerHTML = '';
+            // Render incidents into separate boxes (matches Monthly layout)
+      maintListEl.innerHTML = '';
+      hsListEl.innerHTML = '';
+
+      const maintItems = incidents.filter(i => i.type === 'Maintenance');
+      const hsItems = incidents.filter(i => i.type === 'H&S');
+
+      if (maintItems.length === 0) {
+        maintEmptyEl.style.display = 'block';
       } else {
-        incidentsEmptyNoteEl.style.display = 'none';
-        incidentListEl.innerHTML = '';
-        incidents.forEach(inc => {
+        maintEmptyEl.style.display = 'none';
+        maintItems.forEach(inc => {
           const div = document.createElement('div');
           div.className = 'metric';
           div.innerHTML = `
             <div class="metric-label">${inc.type} • ${inc.site}${inc.area ? ' • ' + inc.area : ''}</div>
             <div class="metric-sub">
-              <strong>${inc.dateStr}</strong>${inc.timeStr ? ' • ' + inc.timeStr : ''} – ${inc.area || ''}
+              <strong>${inc.dateStr}</strong>${inc.timeStr ? ' • ' + inc.timeStr : ''}${inc.area ? ' • ' + inc.area : ''}
             </div>
             <div class="metric-sub">
               ${inc.note ? inc.note : '<span style="opacity:0.7;">No additional notes.</span>'}
@@ -1207,11 +1301,34 @@ document.getElementById('kpiFreeBreakfastDaysSub').textContent =
               Reported: <strong>${inc.reported}</strong>
             </div>
           `;
-          incidentListEl.appendChild(div);
+          maintListEl.appendChild(div);
         });
       }
 
-            // HOSPITALITY & RETAIL KPIs
+      if (hsItems.length === 0) {
+        hsEmptyEl.style.display = 'block';
+      } else {
+        hsEmptyEl.style.display = 'none';
+        hsItems.forEach(inc => {
+          const div = document.createElement('div');
+          div.className = 'metric';
+          div.innerHTML = `
+            <div class="metric-label">${inc.type} • ${inc.site}${inc.area ? ' • ' + inc.area : ''}</div>
+            <div class="metric-sub">
+              <strong>${inc.dateStr}</strong>${inc.timeStr ? ' • ' + inc.timeStr : ''}${inc.area ? ' • ' + inc.area : ''}
+            </div>
+            <div class="metric-sub">
+              ${inc.note ? inc.note : '<span style="opacity:0.7;">No additional notes.</span>'}
+            </div>
+            <div class="metric-sub">
+              Reported: <strong>${inc.reported}</strong>
+            </div>
+          `;
+          hsListEl.appendChild(div);
+        });
+      }
+
+// HOSPITALITY & RETAIL KPIs
       let totalHospEvents = 0;
       let totalHospDay = 0;
       let totalHospNight = 0;
@@ -1258,6 +1375,42 @@ document.getElementById('kpiFreeBreakfastDaysSub').textContent =
         kpiRetailSpecialsEl.textContent = `${retailSpecialsCount}`;
         kpiRetailSpecialsSubEl.textContent = `${retailSpecialsCount} lunch specials`;
       }
+
+      // Retail lunch specials list (details)
+      const specials = [];
+      rows.forEach(row => {
+        if (row.retail_lunch_special && row.retail_lunch_special !== 'No') {
+          const d = row.log_date || (row.created_at ? row.created_at.substring(0, 10) : '');
+          const site = row.site || 'Unknown';
+          const area = row.area || '';
+          const desc = (row.retail_lunch_special_details || '').trim();
+          specials.push({
+            date: d,
+            title: `${site}${area ? ' • ' + area : ''}`,
+            desc: desc || '(Special recorded – no details entered)'
+          });
+        }
+      });
+
+      specialsListEl.innerHTML = '';
+      if (!specials.length) {
+        specialsEmptyEl.style.display = 'block';
+      } else {
+        specialsEmptyEl.style.display = 'none';
+        // newest first to match your usual weekly ordering
+        specials.sort((a,b)=> (a.date < b.date ? 1 : -1));
+        specials.forEach(s => {
+          const div = document.createElement('div');
+          div.className = 'metric';
+          div.innerHTML = `
+            <div class="metric-label">${s.title}</div>
+            <div class="metric-sub"><strong>${s.date}</strong></div>
+            <div class="metric-sub">${s.desc}</div>
+          `;
+          specialsListEl.appendChild(div);
+        });
+      }
+
 
       if (retailSpecialsCount === 0) {
         kpiRetailSpecialsEl.textContent = '0';
@@ -1435,130 +1588,3 @@ document.getElementById('kpiFreeBreakfastDaysSub').textContent =
 
     // -----------------------------------------------------
     // SUMMARY TEXT GENERATOR
-    // -----------------------------------------------------
-    function buildSummaryText() {
-      const rows = window._latestRowsForSummary || [];
-
-      if (!rows.length) {
-        return 'No data available for this week.';
-      }
-
-      let text = '';
-
-      text += `Weekly Ops Summary\n`;
-      text += `---------------------\n`;
-      text += `Week: ${rangeLabelEl.textContent}\n`;
-      text += `Filter: ${siteFilterEl.options[siteFilterEl.selectedIndex].text}\n\n`;
-
-      text += `Total Logs: ${rows.length}\n`;
-
-      const photoCount = rows.filter(r => r.photo_url).length;
-      text += `Logs with photos: ${photoCount}\n\n`;
-
-      let sick = 0, hol = 0, agency = 0;
-      rows.forEach(r => {
-        sick += parseCount(r.sickness_count);
-        hol += parseCount(r.holiday_count);
-        agency += parseCount(r.agency_count);
-      });
-
-      text += `Staffing Impact\n`;
-      text += `---------------------\n`;
-      text += `• Sick: ${sick}\n`;
-      text += `• Holiday: ${hol}\n`;
-      text += `• Agency: ${agency}\n\n`;
-
-      const incidents = rows.filter(r =>
-        (r.maintenance_issue && r.maintenance_issue !== 'None') ||
-        (r.hs_issue && r.hs_issue !== 'None')
-      );
-
-      text += `Incidents / H&S\n`;
-      text += `---------------------\n`;
-      if (!incidents.length) {
-        text += `No incidents reported.\n\n`;
-      } else {
-        incidents.forEach(i => {
-          const date = i.log_date || (i.created_at ? i.created_at.substring(0, 10) : '');
-          text += `• ${i.site || 'Unknown'} – ${i.area || ''} – ${date}\n`;
-          text += `  Maintenance: ${i.maintenance_issue || 'None'} | H&S: ${i.hs_issue || 'None'}\n`;
-          if (i.maintenance_notes) text += `  Maint notes: ${i.maintenance_notes}\n`;
-          if (i.hs_notes) text += `  H&S notes: ${i.hs_notes}\n`;
-          text += `\n`;
-        });
-      }
-
-      const notes = rows.filter(r => (r.notes && r.notes.trim() !== '') || r.photo_url);
-      text += `Daily Notes & Photos\n`;
-      text += `---------------------\n`;
-      if (!notes.length) {
-        text += `No notes recorded.\n`;
-      } else {
-        notes.forEach(n => {
-          const date = n.log_date || (n.created_at ? n.created_at.substring(0, 10) : '');
-          text += `• ${n.site || 'Unknown'} – ${n.area || ''} – ${date}\n`;
-          if (n.notes && n.notes.trim() !== '') {
-            text += `  ${n.notes.trim()}\n`;
-          } else {
-            text += `  (No text notes – photo only)\n`;
-          }
-          if (n.photo_url) {
-            text += `  Photo URL: ${n.photo_url}\n`;
-          }
-          text += `\n`;
-        });
-      }
-
-      return text;
-    }
-
-    // -----------------------------------------------------
-    // SUMMARY MODAL HANDLERS
-    // -----------------------------------------------------
-    generateSummaryBtn.addEventListener('click', () => {
-      const text = buildSummaryText();
-      summaryOutput.value = text;
-      summaryModal.style.display = 'block';
-    });
-
-    closeSummaryBtn.addEventListener('click', () => {
-      summaryModal.style.display = 'none';
-    });
-
-    copySummaryBtn.addEventListener('click', () => {
-      navigator.clipboard.writeText(summaryOutput.value || '');
-      copySummaryBtn.textContent = 'Copied!';
-      setTimeout(() => {
-        copySummaryBtn.textContent = 'Copy';
-      }, 1000);
-    });
-
-    // -----------------------------------------------------
-    // BUTTONS & INITIAL LOAD
-    // -----------------------------------------------------
-    refreshBtn.addEventListener('click', () => {
-      currentWeekOffset = 0;
-      latestWeekMonday = null;
-      loadWeeklyData();
-    });
-
-    prevWeekBtn.addEventListener('click', () => {
-      currentWeekOffset += 1;
-      loadWeeklyData();
-    });
-
-    nextWeekBtn.addEventListener('click', () => {
-      if (currentWeekOffset > 0) {
-        currentWeekOffset -= 1;
-        loadWeeklyData();
-      }
-    });
-
-    siteFilterEl.addEventListener('change', (e) => {
-      currentSiteFilter = e.target.value;
-      loadWeeklyData();
-    });
-
-    // Initial load
-    loadWeeklyData();
-  </script>
