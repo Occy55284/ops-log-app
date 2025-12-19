@@ -607,6 +607,74 @@ td{
     const photosEmptyEl = document.getElementById('photosEmpty');
     const photosGridEl = document.getElementById('photosGrid');
 
+    const weeklySummaryBtn = document.getElementById('generateWeeklySummaryBtn');
+const weeklySummaryBox = document.getElementById('weeklySummaryBox');
+const weeklySummaryText = document.getElementById('weeklySummaryText');
+
+weeklySummaryBtn.addEventListener('click', () => {
+  weeklySummaryBtn.textContent = 'Generating…';
+  weeklySummaryBtn.disabled = true;
+
+  const summary = generateWeeklySummaryText();
+
+  weeklySummaryText.textContent = summary;
+  weeklySummaryBox.style.display = 'block';
+
+  weeklySummaryBtn.textContent = 'Generate Weekly Summary';
+  weeklySummaryBtn.disabled = false;
+});
+
+function generateWeeklySummaryText() {
+  const lines = [];
+
+  lines.push(`Weekly Operations Summary`);
+  lines.push(`—————————————`);
+  lines.push(`Week: ${weekLabelEl.textContent}`);
+  lines.push('');
+
+  // Staffing
+  lines.push(`Staffing Impact`);
+  lines.push(`• Sickness: ${staffSicknessEl.textContent}`);
+  lines.push(`• Holiday: ${staffHolidayEl.textContent}`);
+  lines.push(`• Agency: ${staffAgencyEl.textContent}`);
+  lines.push('');
+
+  // Hospitality
+  lines.push(`Hospitality`);
+  lines.push(`• Day events: ${hospDayEl.textContent}`);
+  lines.push(`• Night events: ${hospNightEl.textContent}`);
+  lines.push('');
+
+  // Incidents
+  lines.push(`Incidents`);
+  lines.push(`• Maintenance: ${maintListEl.children.length}`);
+  lines.push(`• H&S: ${hsListEl.children.length}`);
+  lines.push('');
+
+  // Retail
+  lines.push(`Retail`);
+  lines.push(`• Weekly sales: ${kpiRetailSalesEl.textContent}`);
+  lines.push(`• ${kpiRetailSalesSubEl.textContent}`);
+  lines.push('');
+
+  // Specials / Breakfast
+  lines.push(`Additional Activity`);
+  lines.push(`• Lunch specials ran on ${kpiRetailSpecialsEl.textContent} day(s)`);
+  lines.push(`• Newcastle free breakfasts: ${freeBreakfastTotalEl.textContent} over ${freeBreakfastDaysEl.textContent} day(s)`);
+  lines.push('');
+
+  // Notes
+  if (notesListEl.children.length > 0) {
+    lines.push(`Key Notes`);
+    Array.from(notesListEl.children).slice(0, 5).forEach(item => {
+      const txt = item.querySelector('.list-notes')?.textContent;
+      if (txt) lines.push(`• ${txt}`);
+    });
+  }
+
+  return lines.join('\n');
+}
+
     function pad(n) { return String(n).padStart(2, '0'); }
     function dateKey(d) { return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; }
 
