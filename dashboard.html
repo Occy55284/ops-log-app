@@ -505,6 +505,29 @@
       if (v === null || v === undefined) return '';
       return String(v).trim();
     }
+    
+function isIncidentFlagTrue(v) {
+  if (v === true) return true;
+  if (v === false || v === null || v === undefined) return false;
+
+  const s = String(v).trim().toLowerCase();
+  // treat common "no" values as false
+  if (!s) return false;
+  if (["no", "none", "n/a", "na", "false", "0"].includes(s)) return false;
+
+  // treat common "yes" values as true
+  if (["yes", "y", "true", "1"].includes(s)) return true;
+
+  // if it’s some other text, we only treat as true if it's not a "no" value
+  return true;
+}
+
+function hasMeaningfulText(v) {
+  const s = safeText(v).toLowerCase();
+  if (!s) return false;
+  if (["no", "none", "n/a", "na"].includes(s)) return false;
+  return true;
+}
 
     function startOfWeekMonday(anyDate) {
       const d = new Date(anyDate);
@@ -691,22 +714,27 @@
         hospNightEl.textContent = String(hospNight);
         hospTotalEl.textContent = String(hospDay + hospNight);
 
-        // Incidents split (maintenance_issue / hs_issue)
         const maintItems = opsRows
-          .filter(r => r.maintenance_issue || safeText(r.maintenance_notes))
-          .map(r => ({
-            title: `${r.site || 'Site'} • ${r.area || 'Area'} • ${r.log_date || (r.created_at ? String(r.created_at).slice(0,10) : '')}`,
-            sub: '',
-            notes: safeText(r.maintenance_notes) || 'Maintenance issue recorded (no details entered).'
-          }));
+  .filter(r =>
+    isIncidentFlagTrue(r.maintenance_issue) ||
+    hasMeaningfulText(r.maintenance_notes)
+  )
+  .map(r => ({
+    title: `${r.site || 'Site'} • ${r.area || 'Area'} • ${r.log_date || (r.created_at ? String(r.created_at).slice(0,10) : '')}`,
+    sub: '',
+    notes: safeText(r.maintenance_notes) || 'Maintenance incident recorded (no details entered).'
+  }));
 
-        const hsItems = opsRows
-          .filter(r => r.hs_issue || safeText(r.hs_notes))
-          .map(r => ({
-            title: `${r.site || 'Site'} • ${r.area || 'Area'} • ${r.log_date || (r.created_at ? String(r.created_at).slice(0,10) : '')}`,
-            sub: '',
-            notes: safeText(r.hs_notes) || 'H&S issue recorded (no details entered).'
-          }));
+const hsItems = opsRows
+  .filter(r =>
+    isIncidentFlagTrue(r.hs_issue) ||
+    hasMeaningfulText(r.hs_notes)
+  )
+  .map(r => ({
+    title: `${r.site || 'Site'} • ${r.area || 'Area'} • ${r.log_date || (r.created_at ? String(r.created_at).slice(0,10) : '')}`,
+    sub: '',
+    notes: safeText(r.hs_notes) || 'H&S incident recorded (no details entered).'
+  }));
 
         renderList(maintListEl, maintEmptyEl, maintItems);
         renderList(hsListEl, hsEmptyEl, hsItems);
@@ -743,36 +771,80 @@
           }));
         renderList(notesListEl, notesEmptyEl, notes);
 
-        // retail_sales table
-        const salesAll = await loadWeeklyRetailSales(startStr, endStr);
+// retail_sales table (weekly aggregation by level)
+const salesAll = await loadWeeklyRetailSales(startStr, endStr);
 
-        let salesRows = salesAll;
-        const site = siteFilterEl.value || 'All';
-        if (site !== 'All') {
-          salesRows = salesRows.filter(r => safeText(r.site).toLowerCase().includes(site.toLowerCase()));
-        }
+let salesRows = salesAll;
+const site = siteFilterEl.value || 'All';
+if (site !== 'All') {
+  salesRows = salesRows.filter(r => safeText(r.site).toLowerCase().includes(site.toLowerCase()));
+}
 
-        const salesTotal = salesRows.reduce((s,r) => s + safeNum(r.sales), 0);
-        const salesTrans = salesRows.reduce((s,r) => s + safeNum(r.transactions), 0);
-        const sph = salesTrans ? (salesTotal / salesTrans) : 0;
+// Aggregate by level for the whole week
+const byLevel = new Map(); // level -> { sales, tx }
+for (const r of salesRows) {
+  const level = safeText(r.level) || 'Unknown';
+  const sales = safeNum(r.sales);
+  const tx = safeNum(r.transactions);
 
-        salesTotalEl.textContent = `£${salesTotal.toFixed(2)}`;
-        salesTransEl.textContent = String(salesTrans);
-        salesSPHEl.textContent = `£${sph.toFixed(2)}`;
+  const cur = byLevel.get(level) || { sales: 0, tx: 0 };
+  cur.sales += sales;
+  cur.tx += tx;
+  byLevel.set(level, cur);
+}
 
-        kpiRetailSalesEl.textContent = `£${salesTotal.toFixed(2)}`;
-        kpiRetailSalesSubEl.textContent = `${salesTrans} tx • SPH £${sph.toFixed(2)}`;
+// Totals
+let grandSales = 0;
+let grandTx = 0;
+for (const v of byLevel.values()) {
+  grandSales += v.sales;
+  grandTx += v.tx;
+}
+const grandSPH = grandTx ? (grandSales / grandTx) : 0;
 
-        if (salesRows.length) {
-          salesEmptyEl.style.display = 'none';
-          salesListEl.innerHTML = salesRows.map(r => `
-            <div class="list-item">
-              <div class="list-title">${safeText(r.sales_date)} • ${safeText(r.level)}${r.site ? ' • ' + safeText(r.site) : ''}</div>
-              <div class="list-sub">Sales £${safeNum(r.sales).toFixed(2)} • Transactions ${safeNum(r.transactions)}</div>
-              <div class="list-notes"></div>
-            </div>
-          `).join('');
-        }
+// Update summary tiles
+salesTotalEl.textContent = `£${grandSales.toFixed(2)}`;
+salesTransEl.textContent = String(grandTx);
+salesSPHEl.textContent = `£${grandSPH.toFixed(2)}`;
+
+kpiRetailSalesEl.textContent = `£${grandSales.toFixed(2)}`;
+kpiRetailSalesSubEl.textContent = `${grandTx} tx • SPH £${grandSPH.toFixed(2)}`;
+
+// Render per-level weekly totals (sorted)
+salesListEl.innerHTML = '';
+if (!byLevel.size) {
+  salesEmptyEl.style.display = 'block';
+} else {
+  salesEmptyEl.style.display = 'none';
+
+  const levelsSorted = Array.from(byLevel.entries())
+    .sort((a, b) => {
+      // try numeric sort (Level 4/5/7), otherwise alpha
+      const an = parseFloat(String(a[0]).replace(/[^\d.]/g, ''));
+      const bn = parseFloat(String(b[0]).replace(/[^\d.]/g, ''));
+      if (Number.isFinite(an) && Number.isFinite(bn)) return an - bn;
+      return String(a[0]).localeCompare(String(b[0]));
+    });
+
+  const rowsHtml = levelsSorted.map(([level, v]) => {
+    const sph = v.tx ? (v.sales / v.tx) : 0;
+    return `
+      <div class="list-item">
+        <div class="list-title">${safeText(level)} • Weekly Total</div>
+        <div class="list-sub">Sales £${v.sales.toFixed(2)} • Transactions ${v.tx} • SPH £${sph.toFixed(2)}</div>
+      </div>
+    `;
+  }).join('');
+
+  const grandHtml = `
+    <div class="list-item">
+      <div class="list-title">Grand Total • Weekly</div>
+      <div class="list-sub">Sales £${grandSales.toFixed(2)} • Transactions ${grandTx} • SPH £${grandSPH.toFixed(2)}</div>
+    </div>
+  `;
+
+  salesListEl.innerHTML = rowsHtml + grandHtml;
+}
 
       } catch (err) {
         console.error(err);
