@@ -5,7 +5,6 @@
   <title>Ops Log • Weekly Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    /* MATCH MONTHLY DASHBOARD STYLES (copied + minimal weekly additions) */
     body {
       margin: 0;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -17,259 +16,186 @@
       min-height: 100vh;
     }
 
-    .page { max-width: 1400px; width: 100%; padding: 24px; box-sizing: border-box; }
+    .page { max-width: 1200px; width: 100%; padding: 30px 16px 60px; }
 
     .header {
       display: flex;
-      flex-wrap: wrap;
-      align-items: center;
+      gap: 16px;
       justify-content: space-between;
-      gap: 12px;
+      align-items: flex-start;
       margin-bottom: 18px;
+      flex-wrap: wrap;
     }
 
-    .title-wrap { display: flex; flex-direction: column; gap: 4px; }
+    .title-wrap h1 { margin: 0; font-size: 22px; letter-spacing: .2px; }
+    .subtitle { margin-top: 6px; color: rgba(255,255,255,0.7); font-size: 13px; max-width: 780px; line-height: 1.35; }
 
-    h1 {
-      margin: 0;
-      font-size: 24px;
-      letter-spacing: 0.03em;
-      text-transform: uppercase;
-      color: #e5e7eb;
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      justify-content: flex-end;
     }
-
-    .subtitle { font-size: 13px; color: #9ca3af; }
-
-    .controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 
     .pill {
-      border-radius: 999px;
-      background: rgba(15, 23, 42, 0.95);
-      border: 1px solid rgba(148, 163, 184, 0.4);
-      padding: 6px 12px;
-      font-size: 12px;
-      color: #e5e7eb;
-      display: inline-flex;
-      align-items: center;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.03);
+      border-radius: 14px;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
       gap: 6px;
+      min-width: 160px;
     }
-
     .pill-label {
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
       font-size: 11px;
-      color: #9ca3af;
+      text-transform: uppercase;
+      letter-spacing: .35px;
+      color: rgba(255,255,255,0.55);
+    }
+    .pill-value {
+      font-size: 13px;
+      font-weight: 700;
+      color: rgba(255,255,255,0.9);
     }
 
-    .pill-value { font-weight: 500; }
-
-    .pill-select {
-      border: none;
-      background: transparent;
-      color: #e5e7eb;
-      font-size: 12px;
-      padding: 2px 4px;
+    .select, .input {
+      width: 100%;
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(0,0,0,0.25);
+      color: #f9fafb;
       outline: none;
-      cursor: pointer;
-    }
-
-    .pill-select option { background: #020617; color: #e5e7eb; }
-
-    .pill-input {
-      border: none;
-      background: transparent;
-      color: #e5e7eb;
-      font-size: 12px;
-      padding: 2px 4px;
-      outline: none;
-      cursor: pointer;
-      font-family: inherit;
+      font-size: 13px;
     }
 
     .btn {
-      border-radius: 999px;
-      border: 1px solid rgba(94, 234, 212, 0.5);
-      background: radial-gradient(circle at top left, rgba(45, 212, 191, 0.35), rgba(15, 23, 42, 1));
-      color: #ecfeff;
-      padding: 8px 14px;
-      font-size: 12px;
-      font-weight: 500;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      box-shadow: 0 0 0 1px rgba(15, 23, 42, 1), 0 8px 18px rgba(45, 212, 191, 0.2);
-      transition: transform 0.1s ease, box-shadow 0.1s ease, opacity 0.1s ease;
-    }
-
-    .btn:hover:not(:disabled) {
-      transform: translateY(-1px);
-      box-shadow: 0 0 0 1px rgba(15, 23, 42, 1), 0 12px 26px rgba(45, 212, 191, 0.28);
-    }
-
-    .btn:disabled { opacity: 0.4; cursor: default; }
-
-    .btn-secondary {
-      border-color: rgba(148, 163, 184, 0.6);
-      background: radial-gradient(circle at top left, rgba(30, 64, 175, 0.4), rgba(15, 23, 42, 1));
-    }
-
-    .grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; }
-
-    .row-2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; }
-    .row-3 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr); gap: 14px; }
-
-    @media (max-width: 1100px) {
-      .row-2, .row-3 { grid-template-columns: minmax(0, 1fr); }
-      .page { padding: 16px; }
-    }
-
-    .card {
-      background: radial-gradient(circle at top left, rgba(30, 64, 175, 0.4), rgba(15, 23, 42, 0.98));
-      border-radius: 18px;
-      border: 1px solid rgba(148, 163, 184, 0.35);
-      box-shadow: 0 0 0 1px rgba(15, 23, 42, 1), 0 18px 40px rgba(15, 23, 42, 0.9);
-      padding: 14px;
-      box-sizing: border-box;
-    }
-
-    .card-header {
-      display: flex;
-      align-items: baseline;
-      justify-content: space-between;
-      gap: 8px;
-      margin-bottom: 10px;
-    }
-
-    .card-title {
-      font-size: 14px;
-      letter-spacing: 0.11em;
-      text-transform: uppercase;
-      color: #e5e7eb;
-    }
-
-    .card-subtitle { font-size: 11px; color: #9ca3af; }
-
-    .metric-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
-
-    @media (max-width: 1100px) {
-      .metric-row { grid-template-columns: minmax(0, 1fr); }
-    }
-
-    .metric {
-      background: radial-gradient(circle at top left, rgba(15, 23, 42, 0.9), rgba(15, 23, 42, 1));
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(96,165,250,0.12);
+      color: #f9fafb;
+      padding: 11px 14px;
       border-radius: 14px;
-      padding: 10px;
-      border: 1px solid rgba(148, 163, 184, 0.5);
-      box-shadow: 0 0 0 1px rgba(15, 23, 42, 1), 0 8px 18px rgba(15, 23, 42, 0.9);
+      cursor: pointer;
+      font-weight: 700;
+      letter-spacing: .2px;
     }
-
-    .metric-label {
-      font-size: 11px;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: #9ca3af;
-      margin-bottom: 6px;
-    }
-
-    .metric-value { font-size: 20px; font-weight: 600; color: #e5e7eb; }
-    .metric-sub { font-size: 11px; color: #9ca3af; margin-top: 2px; }
-
-    .divider {
-      height: 1px;
-      background: linear-gradient(to right, transparent, rgba(148, 163, 184, 0.4), transparent);
-      margin: 12px 0;
-    }
+    .btn:hover { background: rgba(96,165,250,0.18); }
 
     .error-banner {
       display: none;
-      border-radius: 10px;
-      border: 1px solid rgba(248, 113, 113, 0.7);
-      background: rgba(127, 29, 29, 0.7);
-      color: #fee2e2;
-      padding: 8px 10px;
-      font-size: 12px;
-      margin-bottom: 12px;
+      margin: 12px 0 18px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(239,68,68,0.35);
+      background: rgba(239,68,68,0.10);
+      color: rgba(255,255,255,0.92);
+      white-space: pre-wrap;
+      font-size: 13px;
     }
 
-    .list {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      max-height: 280px;
-      overflow: auto;
-      padding-right: 6px;
-    }
+    .grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
 
-    .list::-webkit-scrollbar { width: 10px; }
-    .list::-webkit-scrollbar-thumb { background: rgba(148,163,184,0.25); border-radius: 999px; }
-    .list::-webkit-scrollbar-track { background: rgba(15,23,42,0.4); border-radius: 999px; }
+    .row-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .row-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
 
-    .list-item {
-      border-radius: 12px;
-      border: 1px solid rgba(148, 163, 184, 0.35);
-      background: rgba(15, 23, 42, 0.85);
-      padding: 10px;
-    }
-
-    .list-item-header {
-      display: flex;
-      align-items: baseline;
-      justify-content: space-between;
-      gap: 10px;
-      margin-bottom: 6px;
-    }
-
-    .list-item-title { font-size: 12px; font-weight: 600; color: #e5e7eb; }
-    .list-item-meta { font-size: 11px; color: #9ca3af; }
-
-    .list-item-body { font-size: 12px; color: #cbd5e1; white-space: pre-wrap; }
-
-    .empty-text { font-size: 11px; color: #9ca3af; margin-top: 4px; }
-
-    .photos-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-      gap: 10px;
-    }
-
-    .photo-card {
-      background: radial-gradient(circle at top left, rgba(15, 23, 42, 0.95), rgba(15, 23, 42, 1));
-      border-radius: 12px;
-      border: 1px solid rgba(148, 163, 184, 0.4);
-      padding: 6px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
+    .card {
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(17, 24, 39, 0.65);
+      border-radius: 18px;
       overflow: hidden;
     }
+    .card-header {
+      padding: 14px 14px 10px;
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      background: rgba(0,0,0,0.12);
+    }
+    .card-title { font-size: 13px; letter-spacing: .35px; text-transform: uppercase; font-weight: 800; color: rgba(255,255,255,0.9); }
+    .card-subtitle { margin-top: 6px; font-size: 12px; color: rgba(255,255,255,0.65); line-height: 1.35; }
 
-    .photo-card img {
-      width: 100%;
-      height: 100px;
-      object-fit: cover;
-      border-radius: 10px;
-      display: block;
+    .metric-row {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 10px;
+      padding: 14px;
+    }
+    .metric {
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(0,0,0,0.18);
+      border-radius: 16px;
+      padding: 12px 12px 10px;
+      min-height: 78px;
+    }
+    .metric-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .35px;
+      color: rgba(255,255,255,0.55);
+    }
+    .metric-value {
+      margin-top: 7px;
+      font-size: 20px;
+      font-weight: 900;
+      letter-spacing: .2px;
+    }
+    .metric-sub {
+      margin-top: 6px;
+      font-size: 12px;
+      color: rgba(255,255,255,0.7);
     }
 
-    .photo-card-caption { font-size: 10px; color: #9ca3af; line-height: 1.3; padding: 6px 2px 2px; }
+    .empty-text { padding: 14px; color: rgba(255,255,255,0.6); font-size: 13px; }
 
-    .photo-card a { text-decoration: none; width: 100%; }
-    .photo-card a:focus img,
-    .photo-card a:hover img { outline: 1px solid rgba(96, 165, 250, 0.8); outline-offset: 2px; }
+    .list { padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+    .list-item {
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(0,0,0,0.18);
+      border-radius: 16px;
+      padding: 12px 12px 10px;
+    }
+    .list-title { font-weight: 850; font-size: 13px; color: rgba(255,255,255,0.9); }
+    .list-sub { margin-top: 6px; font-size: 12px; color: rgba(255,255,255,0.65); }
+    .list-notes { margin-top: 8px; font-size: 13px; color: rgba(255,255,255,0.75); white-space: pre-wrap; line-height: 1.35; }
 
-    /* Tables (weekly-only sections, styled to match monthly) */
-    table { width: 100%; border-collapse: collapse; }
-    th, td { padding: 10px; border-bottom: 1px solid rgba(148,163,184,0.22); font-size: 12px; color: #e5e7eb; }
-    th { font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em; color: #9ca3af; }
-    tbody tr:hover td { background: rgba(30,64,175,0.12); }
+    .photos-grid {
+      padding: 14px;
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 10px;
+    }
+    .photo-card {
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(0,0,0,0.18);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+    .photo-card img {
+      width: 100%;
+      height: 140px;
+      object-fit: cover;
+      display: block;
+    }
+    .photo-card-caption {
+      padding: 10px 10px 9px;
+      font-size: 12px;
+      color: rgba(255,255,255,0.7);
+      line-height: 1.25;
+    }
 
-    .table-wrap {
-      border-radius: 14px;
-      border: 1px solid rgba(148, 163, 184, 0.35);
-      overflow: auto;
-      background: rgba(15, 23, 42, 0.85);
+    @media (max-width: 1040px) {
+      .metric-row { grid-template-columns: repeat(3, 1fr); }
+      .photos-grid { grid-template-columns: repeat(4, 1fr); }
+      .row-3 { grid-template-columns: 1fr; }
+      .row-2 { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 640px) {
+      .metric-row { grid-template-columns: repeat(2, 1fr); }
+      .photos-grid { grid-template-columns: repeat(2, 1fr); }
+      .pill { min-width: 140px; }
     }
   </style>
 </head>
@@ -280,7 +206,7 @@
       <div class="title-wrap">
         <h1>Weekly Ops Dashboard</h1>
         <div class="subtitle">
-          Week view (Mon–Fri). Same layout as Monthly, with staffing, incidents, hospitality, retail activity, Newcastle metrics, retail totals, and photo gallery.
+          Week view (Mon–Fri). Filter by site/area with staffing, incidents, hospitality, Newcastle metrics, retail specials, weekly retail sales, and photo gallery.
         </div>
       </div>
 
@@ -291,25 +217,31 @@
         </div>
 
         <div class="pill">
-          <div class="pill-label">Site / Area</div>
-          <select id="siteFilter" class="pill-select">
+          <div class="pill-label">Site</div>
+          <select id="siteFilter" class="select">
             <option value="All">All</option>
-            <option value="LondonAll">London – All</option>
-            <option value="LondonKitchen">London – Kitchen</option>
-            <option value="LondonHospitality">London – Hospitality</option>
-            <option value="LondonRetail">London – Retail</option>
+            <option value="London">London</option>
             <option value="Newcastle">Newcastle</option>
           </select>
         </div>
 
         <div class="pill">
-          <div class="pill-label">Pick date</div>
-          <input id="weekPicker" class="pill-input" type="date" />
+          <div class="pill-label">Area</div>
+          <select id="areaFilter" class="select">
+            <option value="All">All</option>
+            <option value="Retail">Retail</option>
+            <option value="Hospitality">Hospitality</option>
+            <option value="Kitchen">Kitchen</option>
+            <option value="All Areas">All Areas</option>
+          </select>
         </div>
 
-        <button class="btn btn-secondary" id="prevWeekBtn"><span class="btn-icon">◀</span> Previous</button>
-        <button class="btn btn-secondary" id="nextWeekBtn"><span class="btn-icon">▶</span> Next</button>
-        <button class="btn" id="thisWeekBtn"><span class="btn-icon">⟳</span> This week</button>
+        <div class="pill">
+          <div class="pill-label">Pick a day</div>
+          <input id="weekPicker" type="date" class="input" />
+        </div>
+
+        <button id="refreshBtn" class="btn">Refresh</button>
       </div>
     </div>
 
@@ -328,41 +260,101 @@
           <div class="metric">
             <div class="metric-label">Total Logs</div>
             <div class="metric-value" id="kpiTotalLogs">0</div>
-            <div class="metric-sub" id="kpiTotalLogsSub">No logs</div>
+            <div class="metric-sub">Logs captured Mon–Fri</div>
           </div>
 
           <div class="metric">
-            <div class="metric-label">Staffing (S/H/A)</div>
-            <div class="metric-value" id="kpiStaffingSum">–</div>
-            <div class="metric-sub" id="kpiStaffingSub">Sick • Holiday • Agency</div>
+            <div class="metric-label">Logs with Photos</div>
+            <div class="metric-value" id="kpiLogsWithPhotos">0</div>
+            <div class="metric-sub">Any photo attached</div>
           </div>
 
           <div class="metric">
             <div class="metric-label">Incidents</div>
-            <div class="metric-value" id="kpiIncidentsSum">–</div>
-            <div class="metric-sub" id="kpiIncidentsSub">Maintenance • H&amp;S</div>
+            <div class="metric-value" id="kpiIncidents">0</div>
+            <div class="metric-sub">Maintenance + H&amp;S</div>
           </div>
-        </div>
 
-        <div class="divider"></div>
-
-        <div class="metric-row" style="grid-template-columns: repeat(3, minmax(0, 1fr));">
           <div class="metric">
-            <div class="metric-label">Hospitality Events</div>
-            <div class="metric-value" id="kpiHospTotal">0</div>
-            <div class="metric-sub" id="kpiHospSub">Day • Night</div>
+            <div class="metric-label">Staffing Impacts</div>
+            <div class="metric-value" id="kpiStaffing">0</div>
+            <div class="metric-sub">Sickness + Holiday + Agency</div>
           </div>
 
           <div class="metric">
             <div class="metric-label">Retail Lunch Specials</div>
             <div class="metric-value" id="kpiRetailSpecials">0</div>
-            <div class="metric-sub" id="kpiRetailSpecialsSub">All specials listed below</div>
+            <div class="metric-sub" id="kpiRetailSpecialsSub">Days with specials</div>
           </div>
 
           <div class="metric">
-            <div class="metric-label">Retail Sales (All Floors)</div>
-            <div class="metric-value" id="kpiRetailSalesAll">£0.00</div>
-            <div class="metric-sub" id="kpiRetailSalesAllSub">Transactions • SPH</div>
+            <div class="metric-label">Retail Sales (Week)</div>
+            <div class="metric-value" id="kpiRetailSales">£0.00</div>
+            <div class="metric-sub" id="kpiRetailSalesSub">Transactions • SPH</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row-3">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Staffing Summary</div>
+              <div class="card-subtitle">Totals for the week.</div>
+            </div>
+          </div>
+          <div class="metric-row" style="grid-template-columns: repeat(3, 1fr);">
+            <div class="metric">
+              <div class="metric-label">Sickness</div>
+              <div class="metric-value" id="staffSickness">0</div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">Holiday</div>
+              <div class="metric-value" id="staffHoliday">0</div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">Agency</div>
+              <div class="metric-value" id="staffAgency">0</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Hospitality</div>
+              <div class="card-subtitle">Day &amp; night event totals.</div>
+            </div>
+          </div>
+          <div class="metric-row" style="grid-template-columns: repeat(3, 1fr);">
+            <div class="metric">
+              <div class="metric-label">Day Events</div>
+              <div class="metric-value" id="hospDay">0</div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">Night Events</div>
+              <div class="metric-value" id="hospNight">0</div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">Total</div>
+              <div class="metric-value" id="hospTotal">0</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Newcastle Free Breakfast</div>
+              <div class="card-subtitle">Total and number of days (for the selected filter).</div>
+            </div>
+          </div>
+          <div class="metric-row" style="grid-template-columns: 1fr;">
+            <div class="metric">
+              <div class="metric-label">Total Free Breakfast</div>
+              <div class="metric-value" id="freeBreakfastTotal">0</div>
+              <div class="metric-sub"><span id="freeBreakfastDays">0</span> day(s)</div>
+            </div>
           </div>
         </div>
       </div>
@@ -391,179 +383,109 @@
         </div>
       </div>
 
-      <div class="row-3">
-        <div class="card">
-          <div class="card-header">
-            <div>
-              <div class="card-title">Hospitality</div>
-              <div class="card-subtitle">Day and night events totals.</div>
-            </div>
-          </div>
-          <div class="metric-row" style="grid-template-columns: repeat(3, minmax(0, 1fr));">
-            <div class="metric">
-              <div class="metric-label">Day events</div>
-              <div class="metric-value" id="hospDay">0</div>
-            </div>
-            <div class="metric">
-              <div class="metric-label">Night events</div>
-              <div class="metric-value" id="hospNight">0</div>
-            </div>
-            <div class="metric">
-              <div class="metric-label">Total</div>
-              <div class="metric-value" id="hospTotal">0</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-header">
-            <div>
-              <div class="card-title">Retail Lunch Specials</div>
-              <div class="card-subtitle">All specials for the week.</div>
-            </div>
-          </div>
-          <div id="specialsEmpty" class="empty-text">No lunch specials.</div>
-          <div id="specialsList" class="list"></div>
-        </div>
-
-        <div class="card">
-          <div class="card-header">
-            <div>
-              <div class="card-title">Newcastle Free Breakfast</div>
-              <div class="card-subtitle">Total free breakfasts for the week.</div>
-            </div>
-          </div>
-          <div class="metric-row" style="grid-template-columns: minmax(0, 1fr);">
-            <div class="metric">
-              <div class="metric-label">Total</div>
-              <div class="metric-value" id="freeBreakfastTotal">0</div>
-              <div class="metric-sub" id="freeBreakfastSub">0 day(s)</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="row-2">
-        <div class="card">
-          <div class="card-header">
-            <div>
-              <div class="card-title">Daily Notes</div>
-              <div class="card-subtitle">All notes entered within the selected week.</div>
-            </div>
-          </div>
-          <div id="notesEmpty" class="empty-text">No notes recorded this week.</div>
-          <div id="notesList" class="list"></div>
-        </div>
-
-        <div class="card">
-          <div class="card-header">
-            <div>
-              <div class="card-title">Photo Gallery</div>
-              <div class="card-subtitle">All photos uploaded within the selected week.</div>
-            </div>
-          </div>
-          <div id="photosEmpty" class="empty-text">No photos uploaded this week.</div>
-          <div id="photosGrid" class="photos-grid"></div>
-        </div>
-      </div>
-
-      <!-- Weekly-only: Staffing detail -->
       <div class="card">
         <div class="card-header">
           <div>
-            <div class="card-title">Staffing Detail</div>
-            <div class="card-subtitle">Row-level staffing and notes for the week.</div>
+            <div class="card-title">Retail Lunch Specials</div>
+            <div class="card-subtitle">All specials recorded for the week.</div>
           </div>
         </div>
-        <div id="staffingDetailEmpty" class="empty-text">No staffing detail for this week.</div>
-        <div class="table-wrap" id="staffingTableWrap" style="display:none;">
-          <table>
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Site</th>
-                <th>Area</th>
-                <th>Sick</th>
-                <th>Holiday</th>
-                <th>Agency</th>
-                <th>Notes</th>
-              </tr>
-            </thead>
-            <tbody id="staffingTbody"></tbody>
-          </table>
-        </div>
+        <div id="specialsEmpty" class="empty-text">No lunch specials recorded.</div>
+        <div id="specialsList" class="list"></div>
       </div>
 
-      <!-- Weekly-only: Retail sales detail -->
       <div class="card">
         <div class="card-header">
           <div>
             <div class="card-title">Weekly Retail Sales</div>
-            <div class="card-subtitle">Retail sales/transactions captured in ops logs for the week.</div>
+            <div class="card-subtitle">Sales captured via the Sales page (table: retail_sales).</div>
           </div>
         </div>
-        <div id="retailTableEmpty" class="empty-text">No retail sales data for this week.</div>
-        <div class="table-wrap" id="retailTableWrap" style="display:none;">
-          <table>
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Site</th>
-                <th>Area</th>
-                <th>Sales</th>
-                <th>Transactions</th>
-              </tr>
-            </thead>
-            <tbody id="retailTbody"></tbody>
-          </table>
+        <div class="metric-row" style="grid-template-columns: repeat(3, 1fr);">
+          <div class="metric">
+            <div class="metric-label">Total Sales</div>
+            <div class="metric-value" id="salesTotal">£0.00</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Transactions</div>
+            <div class="metric-value" id="salesTrans">0</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">SPH</div>
+            <div class="metric-value" id="salesSPH">£0.00</div>
+          </div>
         </div>
+        <div id="salesEmpty" class="empty-text">No retail sales for this week.</div>
+        <div id="salesList" class="list"></div>
       </div>
 
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Daily Notes</div>
+            <div class="card-subtitle">Notes captured within the selected week.</div>
+          </div>
+        </div>
+        <div id="notesEmpty" class="empty-text">No notes recorded for this week.</div>
+        <div id="notesList" class="list"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Photo Gallery</div>
+            <div class="card-subtitle">All photos uploaded within the selected week.</div>
+          </div>
+        </div>
+        <div id="photosEmpty" class="empty-text">No photos uploaded this week.</div>
+        <div id="photosGrid" class="photos-grid"></div>
+      </div>
     </div>
   </div>
 
   <script type="module">
     import { supabase } from './supabase-config.js';
 
-    // -------------------------
-    // DOM
-    // -------------------------
     const weekLabelEl = document.getElementById('weekLabel');
     const siteFilterEl = document.getElementById('siteFilter');
+    const areaFilterEl = document.getElementById('areaFilter');
     const weekPickerEl = document.getElementById('weekPicker');
-    const prevWeekBtn = document.getElementById('prevWeekBtn');
-    const nextWeekBtn = document.getElementById('nextWeekBtn');
-    const thisWeekBtn = document.getElementById('thisWeekBtn');
-
+    const refreshBtn = document.getElementById('refreshBtn');
     const errorMessageEl = document.getElementById('errorMessage');
 
     const kpiTotalLogsEl = document.getElementById('kpiTotalLogs');
-    const kpiTotalLogsSubEl = document.getElementById('kpiTotalLogsSub');
-    const kpiStaffingSumEl = document.getElementById('kpiStaffingSum');
-    const kpiStaffingSubEl = document.getElementById('kpiStaffingSub');
-    const kpiIncidentsSumEl = document.getElementById('kpiIncidentsSum');
-    const kpiIncidentsSubEl = document.getElementById('kpiIncidentsSub');
-    const kpiHospTotalEl = document.getElementById('kpiHospTotal');
-    const kpiHospSubEl = document.getElementById('kpiHospSub');
+    const kpiLogsWithPhotosEl = document.getElementById('kpiLogsWithPhotos');
+    const kpiIncidentsEl = document.getElementById('kpiIncidents');
+    const kpiStaffingEl = document.getElementById('kpiStaffing');
     const kpiRetailSpecialsEl = document.getElementById('kpiRetailSpecials');
     const kpiRetailSpecialsSubEl = document.getElementById('kpiRetailSpecialsSub');
-    const kpiRetailSalesAllEl = document.getElementById('kpiRetailSalesAll');
-    const kpiRetailSalesAllSubEl = document.getElementById('kpiRetailSalesAllSub');
+    const kpiRetailSalesEl = document.getElementById('kpiRetailSales');
+    const kpiRetailSalesSubEl = document.getElementById('kpiRetailSalesSub');
+
+    const staffSicknessEl = document.getElementById('staffSickness');
+    const staffHolidayEl = document.getElementById('staffHoliday');
+    const staffAgencyEl = document.getElementById('staffAgency');
+
+    const hospDayEl = document.getElementById('hospDay');
+    const hospNightEl = document.getElementById('hospNight');
+    const hospTotalEl = document.getElementById('hospTotal');
+
+    const freeBreakfastTotalEl = document.getElementById('freeBreakfastTotal');
+    const freeBreakfastDaysEl = document.getElementById('freeBreakfastDays');
 
     const maintEmptyEl = document.getElementById('maintEmpty');
     const hsEmptyEl = document.getElementById('hsEmpty');
     const maintListEl = document.getElementById('maintList');
     const hsListEl = document.getElementById('hsList');
 
-    const hospDayEl = document.getElementById('hospDay');
-    const hospNightEl = document.getElementById('hospNight');
-    const hospTotalEl = document.getElementById('hospTotal');
-
     const specialsEmptyEl = document.getElementById('specialsEmpty');
     const specialsListEl = document.getElementById('specialsList');
 
-    const freeBreakfastTotalEl = document.getElementById('freeBreakfastTotal');
-    const freeBreakfastSubEl = document.getElementById('freeBreakfastSub');
+    const salesTotalEl = document.getElementById('salesTotal');
+    const salesTransEl = document.getElementById('salesTrans');
+    const salesSPHEl = document.getElementById('salesSPH');
+    const salesEmptyEl = document.getElementById('salesEmpty');
+    const salesListEl = document.getElementById('salesList');
 
     const notesEmptyEl = document.getElementById('notesEmpty');
     const notesListEl = document.getElementById('notesList');
@@ -571,413 +493,299 @@
     const photosEmptyEl = document.getElementById('photosEmpty');
     const photosGridEl = document.getElementById('photosGrid');
 
-    const staffingDetailEmptyEl = document.getElementById('staffingDetailEmpty');
-    const staffingTableWrapEl = document.getElementById('staffingTableWrap');
-    const staffingTbodyEl = document.getElementById('staffingTbody');
-
-    const retailTableEmptyEl = document.getElementById('retailTableEmpty');
-    const retailTableWrapEl = document.getElementById('retailTableWrap');
-    const retailTbodyEl = document.getElementById('retailTbody');
-
-    // -------------------------
-    // Date helpers
-    // -------------------------
     function pad(n) { return String(n).padStart(2, '0'); }
-    function toISODate(d) { return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; }
+    function dateKey(d) { return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; }
 
-    function startOfWeekMonday(anyDate){
+    function safeNum(v) {
+      const n = Number(v);
+      return Number.isFinite(n) ? n : 0;
+    }
+
+    function safeText(v) {
+      if (v === null || v === undefined) return '';
+      return String(v).trim();
+    }
+
+    function startOfWeekMonday(anyDate) {
       const d = new Date(anyDate);
-      const day = d.getDay(); // 0..6
+      const day = d.getDay(); // 0 Sun..6 Sat
       const diff = (day === 0 ? -6 : 1 - day);
       d.setDate(d.getDate() + diff);
       d.setHours(0,0,0,0);
       return d;
     }
 
-    function formatWeekLabel(monday){
-      const fri = new Date(monday);
-      fri.setDate(fri.getDate()+4);
-      const opts = { day:'numeric', month:'short', year:'numeric' };
-      return `${monday.toLocaleDateString('en-GB', opts)} – ${fri.toLocaleDateString('en-GB', opts)} (Mon–Fri)`;
+    function formatRange(start, end) {
+      const opts = { day:'2-digit', month:'short', year:'numeric' };
+      return `${start.toLocaleDateString('en-GB', opts)} – ${end.toLocaleDateString('en-GB', opts)}`;
     }
 
-    function shiftWeek(days){
-      const picked = weekPickerEl.value ? new Date(weekPickerEl.value + 'T00:00:00') : new Date();
-      const d = new Date(picked);
-      d.setDate(d.getDate() + days);
-      weekPickerEl.value = toISODate(d);
-      loadWeekly();
+    function applyFilters(rows) {
+      const site = siteFilterEl.value || 'All';
+      const area = areaFilterEl.value || 'All';
+
+      let out = rows || [];
+
+      if (site !== 'All') {
+        const siteLc = site.toLowerCase();
+        out = out.filter(r => safeText(r.site).toLowerCase().includes(siteLc));
+      }
+
+      if (area !== 'All') {
+        const want = area.toLowerCase();
+        out = out.filter(r => safeText(r.area).toLowerCase() === want);
+      }
+
+      return out;
     }
 
-    // -------------------------
-    // Shared parsing (from monthly)
-    // -------------------------
-    function parseCount(v) {
-      if (v === null || v === undefined) return 0;
-      if (typeof v === 'number' && Number.isFinite(v)) return v;
-      const s = String(v).trim();
-      if (!s) return 0;
-      const n = Number(s);
-      return Number.isFinite(n) ? n : 0;
+    function renderList(targetEl, emptyEl, items) {
+      targetEl.innerHTML = '';
+      if (!items || !items.length) {
+        emptyEl.style.display = 'block';
+        return;
+      }
+      emptyEl.style.display = 'none';
+
+      targetEl.innerHTML = items.map(i => `
+        <div class="list-item">
+          <div class="list-title">${i.title}</div>
+          ${i.sub ? `<div class="list-sub">${i.sub}</div>` : ``}
+          <div class="list-notes">${i.notes}</div>
+        </div>
+      `).join('');
     }
 
-    function money(n){
-      const x = Number(n);
-      const v = Number.isFinite(x) ? x : 0;
-      return `£${v.toFixed(2)}`;
-    }
+    function clearAll() {
+      errorMessageEl.style.display = 'none';
+      errorMessageEl.textContent = '';
 
-    function safeText(v){
-      if (v === null || v === undefined) return '';
-      return String(v).trim();
-    }
+      kpiTotalLogsEl.textContent = '0';
+      kpiLogsWithPhotosEl.textContent = '0';
+      kpiIncidentsEl.textContent = '0';
+      kpiStaffingEl.textContent = '0';
+      kpiRetailSpecialsEl.textContent = '0';
+      kpiRetailSpecialsSubEl.textContent = 'Days with specials';
+      kpiRetailSalesEl.textContent = '£0.00';
+      kpiRetailSalesSubEl.textContent = '0 tx • SPH £0.00';
 
-    // -------------------------
-    // Site/Area filter (copy from monthly pattern)
-    // -------------------------
-    function applySiteFilter(rows){
-      const filter = siteFilterEl.value || 'All';
-      if (filter === 'All') return rows;
+      staffSicknessEl.textContent = '0';
+      staffHolidayEl.textContent = '0';
+      staffAgencyEl.textContent = '0';
 
-      const isLondon = (r) => (r.site || '').toString().toLowerCase().includes('london');
-      const isNewcastle = (r) => (r.site || '').toString().toLowerCase().includes('newcastle');
-      const area = (r) => (r.area || '').toString().toLowerCase();
+      hospDayEl.textContent = '0';
+      hospNightEl.textContent = '0';
+      hospTotalEl.textContent = '0';
 
-      return (rows || []).filter(r => {
-        if (filter === 'Newcastle') return isNewcastle(r);
-        if (filter === 'LondonAll') return isLondon(r);
-        if (filter === 'LondonKitchen') return isLondon(r) && area(r).includes('kitchen');
-        if (filter === 'LondonHospitality') return isLondon(r) && area(r).includes('hospitality');
-        if (filter === 'LondonRetail') return isLondon(r) && area(r).includes('retail');
-        return true;
-      });
-    }
+      freeBreakfastTotalEl.textContent = '0';
+      freeBreakfastDaysEl.textContent = '0';
 
-    // -------------------------
-    // Render helpers
-    // -------------------------
-    function setEmptyLists(){
       maintListEl.innerHTML = '';
       hsListEl.innerHTML = '';
       specialsListEl.innerHTML = '';
+      salesListEl.innerHTML = '';
       notesListEl.innerHTML = '';
       photosGridEl.innerHTML = '';
 
       maintEmptyEl.style.display = 'block';
       hsEmptyEl.style.display = 'block';
       specialsEmptyEl.style.display = 'block';
+      salesEmptyEl.style.display = 'block';
       notesEmptyEl.style.display = 'block';
       photosEmptyEl.style.display = 'block';
 
-      staffingTbodyEl.innerHTML = '';
-      staffingDetailEmptyEl.style.display = 'block';
-      staffingTableWrapEl.style.display = 'none';
-
-      retailTbodyEl.innerHTML = '';
-      retailTableEmptyEl.style.display = 'block';
-      retailTableWrapEl.style.display = 'none';
+      salesTotalEl.textContent = '£0.00';
+      salesTransEl.textContent = '0';
+      salesSPHEl.textContent = '£0.00';
     }
 
-    function renderList(listEl, emptyEl, items){
-      listEl.innerHTML = '';
-      if (!items.length){
-        emptyEl.style.display = 'block';
-        return;
-      }
-      emptyEl.style.display = 'none';
-      listEl.innerHTML = items.map(it => `
-        <div class="list-item">
-          <div class="list-item-header">
-            <div class="list-item-title">${it.title}</div>
-            <div class="list-item-meta">${it.meta}</div>
-          </div>
-          <div class="list-item-body">${it.body}</div>
-        </div>
-      `).join('');
-    }
-
-    // -------------------------
-    // Lunch special parsing (mirrors monthly)
-    // -------------------------
-    function getLunchSpecialText(row){
-      const raw = (row.retail_lunch_special ?? '').toString().trim();
-      const ran = raw.toLowerCase() === 'yes' || raw.toLowerCase().includes('yes');
-      const details =
-        (row.retail_lunch_special_details ?? '') ||
-        (row.retail_lunch_desc ?? '') ||
-        (row.retail_lunch_special_text ?? '') ||
-        (row.retail_lunch_special_notes ?? '');
-      const txt = String(details ?? '').trim();
-      if (!ran && !txt) return null;
-      return txt || '(Special recorded – no details entered)';
-    }
-
-    // -------------------------
-    // Main load
-    // -------------------------
-    async function loadWeekly(){
-      errorMessageEl.style.display = 'none';
-      errorMessageEl.textContent = '';
-
-      const picked = weekPickerEl.value ? new Date(weekPickerEl.value + 'T00:00:00') : new Date();
-      const monday = startOfWeekMonday(picked);
-      const friday = new Date(monday);
-      friday.setDate(friday.getDate()+4);
-
-      const startStr = toISODate(monday);
-      const endStr = toISODate(friday);
-
-      weekLabelEl.textContent = formatWeekLabel(monday);
-
-      const filterLabel = siteFilterEl.options[siteFilterEl.selectedIndex].text;
-
-      setEmptyLists();
-
-      // Backwards compatible: if log_date is null, include created_at within the same Mon–Fri window.
-      const startTS = `${startStr}T00:00:00.000Z`;
-      const endTS = `${endStr}T23:59:59.999Z`;
-
-      const orClause = `and(log_date.gte.${startStr},log_date.lte.${endStr}),and(log_date.is.null,created_at.gte.${startTS},created_at.lte.${endTS})`;
-
-      const { data: opsRaw, error } = await supabase
+    async function loadWeeklyOpsLogs(startDateStr, endDateStr) {
+      const { data, error } = await supabase
         .from('ops_logs')
         .select('*')
-        .or(orClause)
+        .or(`and(log_date.gte.${startDateStr},log_date.lte.${endDateStr}),and(log_date.is.null,created_at.gte.${startDateStr}T00:00:00Z,created_at.lte.${endDateStr}T23:59:59Z)`)
         .order('log_date', { ascending: true })
         .order('created_at', { ascending: true });
 
-      if (error){
-        console.error('Weekly load error:', error);
-        errorMessageEl.textContent = 'There was an error loading the weekly dashboard.';
+      if (error) throw error;
+      return data || [];
+    }
+
+    async function loadWeeklyRetailSales(startDateStr, endDateStr) {
+      const { data, error } = await supabase
+        .from('retail_sales')
+        .select('sales_date, site, level, sales, transactions')
+        .gte('sales_date', startDateStr)
+        .lte('sales_date', endDateStr)
+        .order('sales_date', { ascending: true })
+        .order('level', { ascending: true });
+
+      if (error) throw error;
+      return data || [];
+    }
+
+    async function loadWeekly() {
+      clearAll();
+
+      const picked = weekPickerEl.value ? new Date(weekPickerEl.value + 'T00:00:00') : new Date();
+      const start = startOfWeekMonday(picked);
+      const end = new Date(start);
+      end.setDate(end.getDate() + 4);
+      end.setHours(23,59,59,999);
+
+      const startStr = dateKey(start);
+      const endStr = dateKey(end);
+
+      weekLabelEl.textContent = formatRange(start, end);
+
+      try {
+        // ops_logs
+        const opsAll = await loadWeeklyOpsLogs(startStr, endStr);
+        const opsRows = applyFilters(opsAll);
+
+        kpiTotalLogsEl.textContent = String(opsRows.length);
+
+        // Photos (photo_url)
+        const photos = opsRows
+          .filter(r => !!r.photo_url)
+          .map(r => ({
+            url: r.photo_url,
+            date: (r.log_date || (r.created_at ? String(r.created_at).slice(0,10) : '')),
+            site: r.site || '',
+            area: r.area || ''
+          }));
+        kpiLogsWithPhotosEl.textContent = String(photos.length);
+
+        if (photos.length) {
+          photosEmptyEl.style.display = 'none';
+          photosGridEl.innerHTML = photos
+            .sort((a,b) => (a.date < b.date ? -1 : 1))
+            .map(p => `
+              <div class="photo-card">
+                <a href="${p.url}" target="_blank" rel="noopener noreferrer">
+                  <img src="${p.url}" alt="Ops photo" />
+                </a>
+                <div class="photo-card-caption">
+                  ${p.date}<br/>
+                  ${p.site}${p.area ? ' • ' + p.area : ''}
+                </div>
+              </div>
+            `).join('');
+        }
+
+        // Staffing (sickness_count, holiday_count, agency_count)
+        const sickness = opsRows.reduce((s,r) => s + safeNum(r.sickness_count), 0);
+        const holiday = opsRows.reduce((s,r) => s + safeNum(r.holiday_count), 0);
+        const agency = opsRows.reduce((s,r) => s + safeNum(r.agency_count), 0);
+
+        staffSicknessEl.textContent = String(sickness);
+        staffHolidayEl.textContent = String(holiday);
+        staffAgencyEl.textContent = String(agency);
+        kpiStaffingEl.textContent = String(sickness + holiday + agency);
+
+        // Hospitality (hosp_day_events, hosp_night_events)
+        const hospDay = opsRows.reduce((s,r) => s + safeNum(r.hosp_day_events), 0);
+        const hospNight = opsRows.reduce((s,r) => s + safeNum(r.hosp_night_events), 0);
+
+        hospDayEl.textContent = String(hospDay);
+        hospNightEl.textContent = String(hospNight);
+        hospTotalEl.textContent = String(hospDay + hospNight);
+
+        // Incidents split (maintenance_issue / hs_issue)
+        const maintItems = opsRows
+          .filter(r => r.maintenance_issue || safeText(r.maintenance_notes))
+          .map(r => ({
+            title: `${r.site || 'Site'} • ${r.area || 'Area'} • ${r.log_date || (r.created_at ? String(r.created_at).slice(0,10) : '')}`,
+            sub: '',
+            notes: safeText(r.maintenance_notes) || 'Maintenance issue recorded (no details entered).'
+          }));
+
+        const hsItems = opsRows
+          .filter(r => r.hs_issue || safeText(r.hs_notes))
+          .map(r => ({
+            title: `${r.site || 'Site'} • ${r.area || 'Area'} • ${r.log_date || (r.created_at ? String(r.created_at).slice(0,10) : '')}`,
+            sub: '',
+            notes: safeText(r.hs_notes) || 'H&S issue recorded (no details entered).'
+          }));
+
+        renderList(maintListEl, maintEmptyEl, maintItems);
+        renderList(hsListEl, hsEmptyEl, hsItems);
+        kpiIncidentsEl.textContent = String(maintItems.length + hsItems.length);
+
+        // Specials (retail_lunch_special_details)
+        const specials = opsRows
+          .filter(r => safeText(r.retail_lunch_special_details))
+          .map(r => ({
+            title: `${r.site || 'Site'} • ${r.area || 'Area'} • ${r.log_date || (r.created_at ? String(r.created_at).slice(0,10) : '')}`,
+            sub: 'Lunch Special',
+            notes: safeText(r.retail_lunch_special_details)
+          }));
+        renderList(specialsListEl, specialsEmptyEl, specials);
+
+        const specialDays = new Set(specials.map(s => s.title.split(' • ').pop()));
+        kpiRetailSpecialsEl.textContent = String(specialDays.size);
+        kpiRetailSpecialsSubEl.textContent = `${specialDays.size} day(s) with specials`;
+
+        // Free breakfast (free_breakfast_count)
+        const fbRows = opsRows.filter(r => safeNum(r.free_breakfast_count) > 0);
+        const fbTotal = fbRows.reduce((s,r) => s + safeNum(r.free_breakfast_count), 0);
+        const fbDays = new Set(fbRows.map(r => r.log_date || (r.created_at ? String(r.created_at).slice(0,10) : '')));
+        freeBreakfastTotalEl.textContent = String(fbTotal);
+        freeBreakfastDaysEl.textContent = String(fbDays.size);
+
+        // Notes (notes)
+        const notes = opsRows
+          .filter(r => safeText(r.notes))
+          .map(r => ({
+            title: `${r.site || 'Site'} • ${r.area || 'Area'} • ${r.log_date || (r.created_at ? String(r.created_at).slice(0,10) : '')}`,
+            sub: '',
+            notes: safeText(r.notes)
+          }));
+        renderList(notesListEl, notesEmptyEl, notes);
+
+        // retail_sales table
+        const salesAll = await loadWeeklyRetailSales(startStr, endStr);
+
+        let salesRows = salesAll;
+        const site = siteFilterEl.value || 'All';
+        if (site !== 'All') {
+          salesRows = salesRows.filter(r => safeText(r.site).toLowerCase().includes(site.toLowerCase()));
+        }
+
+        const salesTotal = salesRows.reduce((s,r) => s + safeNum(r.sales), 0);
+        const salesTrans = salesRows.reduce((s,r) => s + safeNum(r.transactions), 0);
+        const sph = salesTrans ? (salesTotal / salesTrans) : 0;
+
+        salesTotalEl.textContent = `£${salesTotal.toFixed(2)}`;
+        salesTransEl.textContent = String(salesTrans);
+        salesSPHEl.textContent = `£${sph.toFixed(2)}`;
+
+        kpiRetailSalesEl.textContent = `£${salesTotal.toFixed(2)}`;
+        kpiRetailSalesSubEl.textContent = `${salesTrans} tx • SPH £${sph.toFixed(2)}`;
+
+        if (salesRows.length) {
+          salesEmptyEl.style.display = 'none';
+          salesListEl.innerHTML = salesRows.map(r => `
+            <div class="list-item">
+              <div class="list-title">${safeText(r.sales_date)} • ${safeText(r.level)}${r.site ? ' • ' + safeText(r.site) : ''}</div>
+              <div class="list-sub">Sales £${safeNum(r.sales).toFixed(2)} • Transactions ${safeNum(r.transactions)}</div>
+              <div class="list-notes"></div>
+            </div>
+          `).join('');
+        }
+
+      } catch (err) {
+        console.error(err);
+        errorMessageEl.textContent = `Error loading weekly data: ${err.message || err}`;
         errorMessageEl.style.display = 'block';
-        // Keep KPIs reset:
-        kpiTotalLogsEl.textContent = '0';
-        kpiTotalLogsSubEl.textContent = 'No logs';
-        kpiStaffingSumEl.textContent = '–';
-        kpiStaffingSubEl.textContent = 'Sick • Holiday • Agency';
-        kpiIncidentsSumEl.textContent = '–';
-        kpiIncidentsSubEl.textContent = 'Maintenance • H&S';
-        kpiHospTotalEl.textContent = '0';
-        kpiHospSubEl.textContent = 'Day • Night';
-        kpiRetailSpecialsEl.textContent = '0';
-        kpiRetailSpecialsSubEl.textContent = 'All specials listed below';
-        kpiRetailSalesAllEl.textContent = '£0.00';
-        kpiRetailSalesAllSubEl.textContent = 'Transactions • SPH';
-        hospDayEl.textContent = '0';
-        hospNightEl.textContent = '0';
-        hospTotalEl.textContent = '0';
-        freeBreakfastTotalEl.textContent = '0';
-        freeBreakfastSubEl.textContent = '0 day(s)';
-        return;
-      }
-
-      const opsRows = applySiteFilter(opsRaw || []);
-
-      kpiTotalLogsEl.textContent = `${opsRows.length}`;
-      kpiTotalLogsSubEl.textContent = opsRows.length ? `Filtered: ${filterLabel}` : 'No logs for this filter/week';
-
-      // Staffing totals (FIXED: uses sickness_count, not sick_count)
-      let sick = 0, hol = 0, agency = 0;
-      opsRows.forEach(r => {
-        sick += parseCount(r.sickness_count);
-        hol += parseCount(r.holiday_count);
-        agency += parseCount(r.agency_count);
-      });
-      kpiStaffingSumEl.textContent = `${sick + hol + agency}`;
-      kpiStaffingSubEl.textContent = `Sick: ${sick} • Holiday: ${hol} • Agency: ${agency}`;
-
-      // Incidents + lists (FIXED: uses maintenance_issue/hs_issue like monthly)
-      let maintCount = 0, hsCount = 0;
-      const maintItems = [];
-      const hsItems = [];
-
-      opsRows.forEach(r => {
-        const date = r.log_date || (r.created_at ? String(r.created_at).slice(0,10) : '');
-        const site = r.site || 'Unknown';
-        const area = r.area || '';
-
-        if (r.maintenance_issue && r.maintenance_issue !== 'None') {
-          maintCount++;
-          maintItems.push({
-            title: `${site}${area ? ' – ' + area : ''}`,
-            meta: date,
-            body: `${r.maintenance_issue}${r.maintenance_notes ? '\n' + r.maintenance_notes : ''}`
-          });
-        }
-        if (r.hs_issue && r.hs_issue !== 'None') {
-          hsCount++;
-          hsItems.push({
-            title: `${site}${area ? ' – ' + area : ''}`,
-            meta: date,
-            body: `${r.hs_issue}${r.hs_notes ? '\n' + r.hs_notes : ''}`
-          });
-        }
-      });
-
-      kpiIncidentsSumEl.textContent = `${maintCount + hsCount}`;
-      kpiIncidentsSubEl.textContent = `Maintenance: ${maintCount} • H&S: ${hsCount}`;
-
-      renderList(maintListEl, maintEmptyEl, maintItems);
-      renderList(hsListEl, hsEmptyEl, hsItems);
-
-      // Hospitality totals
-      let day = 0, night = 0;
-      opsRows.forEach(r => {
-        day += parseCount(r.hospitality_day_events);
-        night += parseCount(r.hospitality_night_events);
-      });
-      const hospTotal = day + night;
-      kpiHospTotalEl.textContent = `${hospTotal}`;
-      kpiHospSubEl.textContent = `Day: ${day} • Night: ${night}`;
-
-      hospDayEl.textContent = `${day}`;
-      hospNightEl.textContent = `${night}`;
-      hospTotalEl.textContent = `${hospTotal}`;
-
-      // Lunch specials (FIXED: uses monthly-style parsing)
-      const specials = [];
-      opsRows.forEach(r => {
-        const date = r.log_date || (r.created_at ? String(r.created_at).slice(0,10) : '');
-        const site = r.site || 'Unknown';
-        const area = r.area || '';
-        const txt = getLunchSpecialText(r);
-        if (txt){
-          specials.push({
-            title: `${site}${area ? ' – ' + area : ''}`,
-            meta: date,
-            body: txt
-          });
-        }
-      });
-
-      kpiRetailSpecialsEl.textContent = `${specials.length}`;
-      kpiRetailSpecialsSubEl.textContent = specials.length ? 'See list below' : 'No specials this week';
-      renderList(specialsListEl, specialsEmptyEl, specials);
-
-      // Newcastle free breakfast
-      let fbTotal = 0;
-      const fbDays = new Set();
-      opsRows.forEach(r => {
-        const site = (r.site || '').toString().toLowerCase();
-        const fb = parseCount(r.free_breakfast_count);
-        if (fb > 0 && site.includes('newcastle')){
-          fbTotal += fb;
-          const d = r.log_date || (r.created_at ? String(r.created_at).slice(0,10) : '');
-          if (d) fbDays.add(d);
-        }
-      });
-      freeBreakfastTotalEl.textContent = `${fbTotal}`;
-      freeBreakfastSubEl.textContent = `${fbDays.size} day(s)`;
-
-      // Notes list
-      const notes = opsRows
-        .filter(r => (r.notes || '').toString().trim())
-        .map(r => ({
-          title: `${r.site || 'Unknown'}${r.area ? ' – ' + r.area : ''}`,
-          meta: r.log_date || (r.created_at ? String(r.created_at).slice(0,10) : ''),
-          body: (r.notes || '').toString().trim()
-        }));
-      renderList(notesListEl, notesEmptyEl, notes);
-
-      // Photos (FIXED: uses photo_url like monthly; weekly uses same card rendering)
-      const photos = opsRows
-        .filter(r => r.photo_url)
-        .map(r => ({
-          url: r.photo_url,
-          caption: `${r.site || 'Unknown'}${r.area ? ' – ' + r.area : ''} • ${(r.log_date || (r.created_at ? String(r.created_at).slice(0,10) : ''))}`
-        }));
-
-      if (photos.length){
-        photosEmptyEl.style.display = 'none';
-        photosGridEl.innerHTML = photos.map(p => `
-          <div class="photo-card">
-            <a href="${p.url}" target="_blank" rel="noopener">
-              <img src="${p.url}" alt="Ops photo" />
-            </a>
-            <div class="photo-card-caption">${p.caption}</div>
-          </div>
-        `).join('');
-      } else {
-        photosEmptyEl.style.display = 'block';
-        photosGridEl.innerHTML = '';
-      }
-
-      // Retail totals (simple sum from ops_logs)
-      let retailSales = 0, retailTx = 0;
-      opsRows.forEach(r => {
-        retailSales += Number(r.retail_sales || 0) || 0;
-        retailTx += Number(r.retail_transactions || 0) || 0;
-      });
-      const sph = retailTx ? (retailSales / retailTx) : 0;
-      kpiRetailSalesAllEl.textContent = money(retailSales);
-      kpiRetailSalesAllSubEl.textContent = `${retailTx} tx • SPH ${money(sph)}`;
-
-      // Staffing detail table
-      const staffRows = opsRows.filter(r => parseCount(r.sickness_count) || parseCount(r.holiday_count) || parseCount(r.agency_count) || ((r.sickness_notes||'').trim() || (r.holiday_notes||'').trim() || (r.agency_notes||'').trim()));
-      staffingTbodyEl.innerHTML = '';
-      if (staffRows.length){
-        staffingDetailEmptyEl.style.display = 'none';
-        staffingTableWrapEl.style.display = 'block';
-        staffingTbodyEl.innerHTML = staffRows.map(r => {
-          const d = r.log_date || (r.created_at ? String(r.created_at).slice(0,10) : '');
-          const notes = [
-            (r.sickness_notes || '').toString().trim(),
-            (r.holiday_notes || '').toString().trim(),
-            (r.agency_notes || '').toString().trim(),
-          ].filter(Boolean).join('\n');
-          return `
-            <tr>
-              <td>${d}</td>
-              <td>${safeText(r.site)}</td>
-              <td>${safeText(r.area)}</td>
-              <td>${parseCount(r.sickness_count)}</td>
-              <td>${parseCount(r.holiday_count)}</td>
-              <td>${parseCount(r.agency_count)}</td>
-              <td>${notes || safeText(r.notes)}</td>
-            </tr>
-          `;
-        }).join('');
-      } else {
-        staffingDetailEmptyEl.style.display = 'block';
-        staffingTableWrapEl.style.display = 'none';
-      }
-
-      // Retail detail table (only rows with data)
-      const retailRows = opsRows.filter(r => (Number(r.retail_sales||0)||0) > 0 || (Number(r.retail_transactions||0)||0) > 0);
-      retailTbodyEl.innerHTML = '';
-      if (retailRows.length){
-        retailTableEmptyEl.style.display = 'none';
-        retailTableWrapEl.style.display = 'block';
-        retailTbodyEl.innerHTML = retailRows.map(r => {
-          const d = r.log_date || (r.created_at ? String(r.created_at).slice(0,10) : '');
-          return `
-            <tr>
-              <td>${d}</td>
-              <td>${safeText(r.site)}</td>
-              <td>${safeText(r.area)}</td>
-              <td>${money(r.retail_sales || 0)}</td>
-              <td>${parseCount(r.retail_transactions)}</td>
-            </tr>
-          `;
-        }).join('');
-      } else {
-        retailTableEmptyEl.style.display = 'block';
-        retailTableWrapEl.style.display = 'none';
       }
     }
 
-    // -------------------------
-    // Init
-    // -------------------------
-    const today = new Date();
-    weekPickerEl.value = toISODate(today);
-
+    weekPickerEl.value = dateKey(new Date());
+    refreshBtn.addEventListener('click', loadWeekly);
     siteFilterEl.addEventListener('change', loadWeekly);
+    areaFilterEl.addEventListener('change', loadWeekly);
     weekPickerEl.addEventListener('change', loadWeekly);
-
-    prevWeekBtn.addEventListener('click', () => shiftWeek(-7));
-    nextWeekBtn.addEventListener('click', () => shiftWeek(7));
-    thisWeekBtn.addEventListener('click', () => { weekPickerEl.value = toISODate(new Date()); loadWeekly(); });
 
     loadWeekly();
   </script>
