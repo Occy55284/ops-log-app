@@ -10,386 +10,493 @@
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       background: #0b1220;
       color: #f9fafb;
-      display: flex;
-      align-items: center;
-      justify-content: center;
       min-height: 100vh;
     }
 
-    .page { max-width: 1200px; width: 100%; padding: 30px 16px 60px; }
-
-    .header {
-      display: flex;
-      gap: 16px;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 18px;
-      flex-wrap: wrap;
+    .wrap {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 18px 14px 42px;
     }
 
-    .title-wrap h1 { margin: 0; font-size: 22px; letter-spacing: .2px; }
-    .subtitle { margin-top: 6px; color: rgba(255,255,255,0.7); font-size: 13px; max-width: 780px; line-height: 1.35; }
-
-    .controls {
+    .topbar {
       display: flex;
       flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .brand {
+      display: flex;
       gap: 10px;
+      align-items: center;
+    }
+
+    .logo {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #1f2a44, #0f172a);
+      box-shadow: 0 0 0 1px rgba(255,255,255,0.06) inset, 0 12px 24px rgba(0,0,0,0.25);
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      color: #93c5fd;
+    }
+
+    .titleblock .title {
+      font-size: 18px;
+      font-weight: 750;
+      line-height: 1.2;
+    }
+
+    .titleblock .subtitle {
+      font-size: 12px;
+      color: rgba(255,255,255,0.68);
+      margin-top: 2px;
+    }
+
+    .filters {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
       align-items: center;
       justify-content: flex-end;
     }
 
-    .pill {
+    .filter {
+      background: rgba(255,255,255,0.05);
       border: 1px solid rgba(255,255,255,0.08);
-      background: rgba(255,255,255,0.03);
-      border-radius: 14px;
       padding: 10px 12px;
+      border-radius: 14px;
       display: flex;
-      flex-direction: column;
-      gap: 6px;
-      min-width: 160px;
-    }
-    .pill-label {
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: .35px;
-      color: rgba(255,255,255,0.55);
-    }
-    .pill-value {
-      font-size: 13px;
-      font-weight: 700;
-      color: rgba(255,255,255,0.9);
+      align-items: center;
+      gap: 10px;
+      min-width: 220px;
+      box-shadow: 0 8px 18px rgba(0,0,0,0.20);
     }
 
-    .select, .input {
-      width: 100%;
+    .filter label {
+      font-size: 12px;
+      color: rgba(255,255,255,0.72);
+      white-space: nowrap;
+    }
+
+    select, input[type="date"] {
+      background: rgba(0,0,0,0.25);
+      border: 1px solid rgba(255,255,255,0.12);
+      color: #f9fafb;
       padding: 8px 10px;
       border-radius: 10px;
-      border: 1px solid rgba(255,255,255,0.08);
-      background: rgba(0,0,0,0.25);
-      color: #f9fafb;
       outline: none;
+      width: 100%;
       font-size: 13px;
     }
 
-    .btn {
-      border: 1px solid rgba(255,255,255,0.08);
-      background: rgba(96,165,250,0.12);
-      color: #f9fafb;
-      padding: 11px 14px;
-      border-radius: 14px;
-      cursor: pointer;
-      font-weight: 700;
-      letter-spacing: .2px;
-    }
-    .btn:hover { background: rgba(96,165,250,0.18); }
-
-    .error-banner {
-      display: none;
-      margin: 12px 0 18px;
-      padding: 10px 12px;
-      border-radius: 14px;
-      border: 1px solid rgba(239,68,68,0.35);
-      background: rgba(239,68,68,0.10);
-      color: rgba(255,255,255,0.92);
-      white-space: pre-wrap;
-      font-size: 13px;
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+      margin-top: 14px;
     }
 
-    .grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+    .row-1, .row-2, .row-3, .row-4 {
+      display: grid;
+      gap: 14px;
+    }
 
-    .row-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
-    .row-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .row-1 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .row-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .row-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .row-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+    @media (max-width: 1100px) {
+      .row-1 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .row-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .row-4 { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 640px) {
+      .row-1, .row-2, .row-3 { grid-template-columns: 1fr; }
+      .filter { min-width: 100%; }
+    }
 
     .card {
+      background: rgba(255,255,255,0.04);
       border: 1px solid rgba(255,255,255,0.08);
-      background: rgba(17, 24, 39, 0.65);
       border-radius: 18px;
+      padding: 14px;
+      box-shadow: 0 10px 24px rgba(0,0,0,0.24);
+      position: relative;
       overflow: hidden;
     }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: -1px;
+      background: radial-gradient(650px 140px at 15% 0%, rgba(59,130,246,0.18), transparent 65%),
+                  radial-gradient(550px 160px at 85% 0%, rgba(236,72,153,0.14), transparent 60%);
+      pointer-events: none;
+    }
+
+    .card > * { position: relative; }
+
     .card-header {
-      padding: 14px 14px 10px;
       display: flex;
       justify-content: space-between;
+      align-items: flex-start;
       gap: 10px;
-      border-bottom: 1px solid rgba(255,255,255,0.06);
-      background: rgba(0,0,0,0.12);
+      margin-bottom: 10px;
     }
-    .card-title { font-size: 13px; letter-spacing: .35px; text-transform: uppercase; font-weight: 800; color: rgba(255,255,255,0.9); }
-    .card-subtitle { margin-top: 6px; font-size: 12px; color: rgba(255,255,255,0.65); line-height: 1.35; }
 
-    .metric-row {
-      display: grid;
-      grid-template-columns: repeat(6, 1fr);
-      gap: 10px;
-      padding: 14px;
+    .card-title {
+      font-weight: 750;
+      font-size: 14px;
+      letter-spacing: 0.2px;
     }
-    .metric {
-      border: 1px solid rgba(255,255,255,0.08);
-      background: rgba(0,0,0,0.18);
-      border-radius: 16px;
-      padding: 12px 12px 10px;
-      min-height: 78px;
-    }
-    .metric-label {
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: .35px;
-      color: rgba(255,255,255,0.55);
-    }
-    .metric-value {
-      margin-top: 7px;
-      font-size: 20px;
-      font-weight: 900;
-      letter-spacing: .2px;
-    }
-    .metric-sub {
-      margin-top: 6px;
+
+    .card-subtitle {
       font-size: 12px;
-      color: rgba(255,255,255,0.7);
-    }
-
-    .empty-text { padding: 14px; color: rgba(255,255,255,0.6); font-size: 13px; }
-
-    .list { padding: 14px; display: flex; flex-direction: column; gap: 10px; }
-    .list-item {
-      border: 1px solid rgba(255,255,255,0.08);
-      background: rgba(0,0,0,0.18);
-      border-radius: 16px;
-      padding: 12px 12px 10px;
-    }
-    .list-title { font-weight: 850; font-size: 13px; color: rgba(255,255,255,0.9); }
-    .list-sub { margin-top: 6px; font-size: 12px; color: rgba(255,255,255,0.65); }
-    .list-notes { margin-top: 8px; font-size: 13px; color: rgba(255,255,255,0.75); white-space: pre-wrap; line-height: 1.35; }
-
-    .photos-grid {
-      padding: 14px;
-      display: grid;
-      grid-template-columns: repeat(6, 1fr);
-      gap: 10px;
-    }
-    .photo-card {
-      border: 1px solid rgba(255,255,255,0.08);
-      background: rgba(0,0,0,0.18);
-      border-radius: 16px;
-      overflow: hidden;
-    }
-    .photo-card img {
-      width: 100%;
-      height: 140px;
-      object-fit: cover;
-      display: block;
-    }
-    .photo-card-caption {
-      padding: 10px 10px 9px;
-      font-size: 12px;
-      color: rgba(255,255,255,0.7);
+      color: rgba(255,255,255,0.65);
+      margin-top: 3px;
       line-height: 1.25;
     }
 
-    @media (max-width: 1040px) {
-      .metric-row { grid-template-columns: repeat(3, 1fr); }
-      .photos-grid { grid-template-columns: repeat(4, 1fr); }
-      .row-3 { grid-template-columns: 1fr; }
-      .row-2 { grid-template-columns: 1fr; }
-    }
-    @media (max-width: 640px) {
-      .metric-row { grid-template-columns: repeat(2, 1fr); }
-      .photos-grid { grid-template-columns: repeat(2, 1fr); }
-      .pill { min-width: 140px; }
+    .kpis {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 6px;
     }
 
-    /* ============================
-       Monthly Theme Override
-       ============================ */
-    :root{
-      --bg: #0b1220;
-      --panel: rgba(15, 23, 42, 0.95);
-      --panel2: rgba(15, 23, 42, 0.75);
-      --border: rgba(148, 163, 184, 0.40);
-      --border2: rgba(148, 163, 184, 0.28);
-      --text: #e5e7eb;
-      --muted: #9ca3af;
-
-      --teal: #2dd4bf;
-      --tealSoft: rgba(45, 212, 191, 0.35);
-      --tealGlow: rgba(45, 212, 191, 0.28);
-
-      --blueSoft: rgba(30, 64, 175, 0.40);
+    .kpi {
+      background: rgba(0,0,0,0.22);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 14px;
+      padding: 10px 10px 9px;
     }
 
-    body{
-      background: var(--bg) !important;
-      color: var(--text) !important;
+    .kpi .label {
+      font-size: 11px;
+      color: rgba(255,255,255,0.65);
     }
 
-    .pill, .control{
-      background: var(--panel) !important;
-      border: 1px solid var(--border) !important;
-    }
-    .pill-label, .control label{
-      color: var(--muted) !important;
-    }
-    .select, .input, select, input[type="date"]{
-      background: transparent !important;
-      border: 1px solid var(--border2) !important;
-      color: var(--text) !important;
-    }
-    select option{
-      background: #020617 !important;
-      color: var(--text) !important;
+    .kpi .value {
+      font-size: 20px;
+      font-weight: 800;
+      margin-top: 2px;
+      letter-spacing: 0.2px;
     }
 
-    .btn, button{
-      border: 1px solid rgba(94, 234, 212, 0.50) !important;
-      background: radial-gradient(circle at top left, var(--tealSoft), rgba(15, 23, 42, 1)) !important;
-      color: #ecfeff !important;
-      box-shadow: 0 0 0 1px rgba(15, 23, 42, 1), 0 8px 18px rgba(45, 212, 191, 0.20) !important;
-    }
-    .btn:hover, button:hover{
-      box-shadow: 0 0 0 1px rgba(15, 23, 42, 1), 0 12px 26px rgba(45, 212, 191, 0.28) !important;
+    .kpi .sub {
+      font-size: 11px;
+      color: rgba(255,255,255,0.65);
+      margin-top: 2px;
     }
 
-    .card{
-      background: var(--panel2) !important;
-      border: 1px solid var(--border2) !important;
-    }
-    .card-header, .cardHeader{
-      background: radial-gradient(circle at top left, var(--blueSoft), rgba(15, 23, 42, 0.98)) !important;
-      border-bottom: 1px solid var(--border2) !important;
-    }
-    .card-title, .cardHeader h2{
-      color: var(--text) !important;
-    }
-    .card-subtitle, .subtitle, .meta{
-      color: var(--muted) !important;
+    .metric-row {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
     }
 
-    .metric, .kpi{
-      background: rgba(2, 6, 23, 0.45) !important;
-      border: 1px solid var(--border2) !important;
-    }
-    .metric-label, .kpi .label{
-      color: var(--muted) !important;
+    .metric {
+      background: rgba(0,0,0,0.22);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 14px;
+      padding: 10px;
     }
 
-    .list-item, .item{
-      background: rgba(2, 6, 23, 0.45) !important;
-      border: 1px solid var(--border2) !important;
+    .metric-label {
+      font-size: 11px;
+      color: rgba(255,255,255,0.65);
     }
-    table{
-      border: 1px solid var(--border2) !important;
-      background: rgba(2, 6, 23, 0.35) !important;
+
+    .metric-value {
+      font-size: 18px;
+      font-weight: 800;
+      margin-top: 2px;
     }
-    th{
-      background: rgba(2, 6, 23, 0.55) !important;
-      color: var(--muted) !important;
+
+    .metric-sub {
+      font-size: 11px;
+      color: rgba(255,255,255,0.62);
+      margin-top: 2px;
     }
-    td{
-      color: var(--text) !important;
+
+    .list {
+      display: grid;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .item {
+      background: rgba(0,0,0,0.22);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 14px;
+      padding: 10px;
+    }
+
+    .item-title {
+      font-weight: 700;
+      font-size: 12px;
+      color: rgba(255,255,255,0.92);
+    }
+
+    .item-notes {
+      font-size: 12px;
+      color: rgba(255,255,255,0.75);
+      margin-top: 4px;
+      white-space: pre-wrap;
+      line-height: 1.25;
+    }
+
+    .empty-text { padding: 8px 2px; font-size: 12px; color: rgba(255,255,255,0.65); }
+
+    .pill {
+      font-size: 11px;
+      background: rgba(59,130,246,0.18);
+      border: 1px solid rgba(59,130,246,0.35);
+      color: rgba(219,234,254,0.92);
+      padding: 6px 10px;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+
+    .error {
+      display: none;
+      margin-top: 10px;
+      background: rgba(239,68,68,0.15);
+      border: 1px solid rgba(239,68,68,0.35);
+      color: rgba(254,226,226,0.92);
+      padding: 10px 12px;
+      border-radius: 14px;
+      font-size: 12px;
+      white-space: pre-wrap;
+    }
+
+    .btn {
+      background: rgba(59,130,246,0.20);
+      border: 1px solid rgba(59,130,246,0.42);
+      color: rgba(219,234,254,0.95);
+      padding: 10px 12px;
+      border-radius: 14px;
+      font-weight: 750;
+      font-size: 13px;
+      cursor: pointer;
+      box-shadow: 0 10px 22px rgba(0,0,0,0.22);
+      transition: transform .08s ease, filter .08s ease;
+    }
+
+    .btn:hover { filter: brightness(1.08); }
+    .btn:active { transform: translateY(1px); }
+
+    .photo-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    @media (max-width: 1100px) { .photo-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+    @media (max-width: 640px)  { .photo-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+    .thumb {
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.10);
+      background: rgba(0,0,0,0.20);
+      box-shadow: 0 10px 18px rgba(0,0,0,0.20);
+    }
+
+    .thumb img {
+      width: 100%;
+      height: 150px;
+      object-fit: cover;
+      display: block;
+    }
+
+    .thumb .cap {
+      padding: 8px 10px 10px;
+      font-size: 11px;
+      color: rgba(255,255,255,0.70);
+      line-height: 1.25;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.65);
+      z-index: 50;
+      padding: 16px;
+    }
+
+    .modal.open { display: grid; place-items: center; }
+
+    .modal-card {
+      width: min(980px, 95vw);
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.45);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.10);
+      background: rgba(0,0,0,0.20);
+    }
+
+    .modal-header .mh-title {
+      font-weight: 800;
+      font-size: 13px;
+      color: rgba(255,255,255,0.92);
+    }
+
+    .close {
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(0,0,0,0.25);
+      color: rgba(255,255,255,0.85);
+      border-radius: 12px;
+      padding: 8px 10px;
+      cursor: pointer;
+      font-weight: 800;
+    }
+
+    .modal-body {
+      padding: 12px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .modal-body img {
+      width: 100%;
+      max-height: 70vh;
+      object-fit: contain;
+      background: rgba(0,0,0,0.20);
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.10);
+    }
+
+    .modal-notes {
+      font-size: 12px;
+      color: rgba(255,255,255,0.75);
+      white-space: pre-wrap;
+      line-height: 1.25;
     }
   </style>
 </head>
-
 <body>
-  <div class="page">
-    <div class="header">
-      <div class="title-wrap">
-        <h1>Weekly Ops Dashboard</h1>
-        <div class="subtitle">
-          Week view (Mon–Fri). Filter by site/area with staffing, incidents, hospitality, Newcastle metrics, retail specials, weekly retail sales, and photo gallery.
+  <div class="wrap">
+    <div class="topbar">
+      <div class="brand">
+        <div class="logo">OL</div>
+        <div class="titleblock">
+          <div class="title">Weekly Dashboard</div>
+          <div class="subtitle">
+            Week view (Mon–Fri). Filter by site/area with staffing, incidents, hospitality, Newcastle metrics, retail specials, weekly retail sales, and photo gallery.
+          </div>
         </div>
       </div>
 
-      <div class="controls">
-        <div class="pill">
-          <div class="pill-label">Week</div>
-          <div class="pill-value" id="weekLabel">–</div>
+      <div class="filters">
+        <div class="filter">
+          <label for="weekPicker">Week (pick any day)</label>
+          <input type="date" id="weekPicker" />
         </div>
 
-        <div class="pill">
-          <div class="pill-label">Site</div>
-          <select id="siteFilter" class="select">
-            <option value="All">All</option>
+        <div class="filter">
+          <label for="siteFilter">Site</label>
+          <select id="siteFilter">
+            <option value="All">All Sites</option>
             <option value="London">London</option>
             <option value="Newcastle">Newcastle</option>
           </select>
         </div>
 
-        <div class="pill">
-          <div class="pill-label">Area</div>
-          <select id="areaFilter" class="select">
-            <option value="All">All</option>
+        <div class="filter">
+          <label for="areaFilter">Area</label>
+          <select id="areaFilter">
+            <option value="All">All Areas</option>
             <option value="Retail">Retail</option>
-            <option value="Hospitality">Hospitality</option>
             <option value="Kitchen">Kitchen</option>
+            <option value="Hospitality">Hospitality</option>
             <option value="All Areas">All Areas</option>
           </select>
         </div>
 
-        <div class="pill">
-          <div class="pill-label">Pick a day</div>
-          <input id="weekPicker" type="date" class="input" />
-        </div>
-
-        <button id="refreshBtn" class="btn">Refresh</button>
+        <button class="btn" id="refreshBtn">Refresh</button>
       </div>
     </div>
 
-    <div id="errorMessage" class="error-banner"></div>
+    <div id="errorMessage" class="error"></div>
 
     <div class="grid">
-      <div class="card">
-        <div class="card-header">
-          <div>
-            <div class="card-title">Weekly Summary</div>
-            <div class="card-subtitle">High-level totals for the selected week and filter.</div>
+      <div class="row-1">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Overview</div>
+              <div class="card-subtitle">Totals for the selected week & filter.</div>
+            </div>
+            <div class="pill" id="weekRangePill">Week</div>
+          </div>
+
+          <div class="kpis">
+            <div class="kpi">
+              <div class="label">Total Logs</div>
+              <div class="value" id="kpiTotalLogs">0</div>
+              <div class="sub">All entries captured</div>
+            </div>
+            <div class="kpi">
+              <div class="label">Logs with Photos</div>
+              <div class="value" id="kpiLogsWithPhotos">0</div>
+              <div class="sub">Any photo attached</div>
+            </div>
+            <div class="kpi">
+              <div class="label">Incidents</div>
+              <div class="value" id="kpiIncidents">0</div>
+              <div class="sub">Maintenance + H&amp;S</div>
+            </div>
+
+            <div class="kpi">
+              <div class="label">Staffing Impact</div>
+              <div class="value" id="kpiStaffing">0</div>
+              <div class="sub">Sick + Holiday + Agency</div>
+            </div>
+            <div class="kpi">
+              <div class="label">Lunch Specials</div>
+              <div class="value" id="kpiRetailSpecials">0</div>
+              <div class="sub" id="kpiRetailSpecialsSub">Days with specials</div>
+            </div>
+            <div class="kpi">
+              <div class="label">Retail Sales</div>
+              <div class="value" id="kpiRetailSales">£0.00</div>
+              <div class="sub" id="kpiRetailSalesSub">0 tx • SPH £0.00</div>
+            </div>
           </div>
         </div>
 
-        <div class="metric-row">
-          <div class="metric">
-            <div class="metric-label">Total Logs</div>
-            <div class="metric-value" id="kpiTotalLogs">0</div>
-            <div class="metric-sub">Logs captured Mon–Fri</div>
+        <div class="card" id="weeklySummaryBox" style="display:none;">
+          <div class="card-header">
+            <div>
+              <div class="card-title">AI Weekly Summary</div>
+              <div class="card-subtitle">Generated from the current week and filter.</div>
+            </div>
+            <button class="btn" id="genSummaryBtn">Generate Summary Text</button>
           </div>
-
-          <div class="metric">
-            <div class="metric-label">Logs with Photos</div>
-            <div class="metric-value" id="kpiLogsWithPhotos">0</div>
-            <div class="metric-sub">Any photo attached</div>
-          </div>
-
-          <div class="metric">
-            <div class="metric-label">Incidents</div>
-            <div class="metric-value" id="kpiIncidents">0</div>
-            <div class="metric-sub">Maintenance + H&amp;S</div>
-          </div>
-
-          <div class="metric">
-            <div class="metric-label">Staffing Impacts</div>
-            <div class="metric-value" id="kpiStaffing">0</div>
-            <div class="metric-sub">Sickness + Holiday + Agency</div>
-          </div>
-
-          <div class="metric">
-            <div class="metric-label">Retail Lunch Specials</div>
-            <div class="metric-value" id="kpiRetailSpecials">0</div>
-            <div class="metric-sub" id="kpiRetailSpecialsSub">Days with specials</div>
-          </div>
-
-          <div class="metric">
-            <div class="metric-label">Retail Sales (Week)</div>
-            <div class="metric-value" id="kpiRetailSales">£0.00</div>
-            <div class="metric-sub" id="kpiRetailSalesSub">Transactions • SPH</div>
-          </div>
-        </div>
-
-        <div style="padding: 0 14px 14px;">
-          <button id="generateWeeklySummaryBtn" class="btn">Generate Weekly Summary</button>
-
-          <div id="weeklySummaryBox" style="display:none; margin-top:12px;" class="list-item">
-            <div class="list-title">AI Weekly Summary</div>
-            <div id="weeklySummaryText" class="list-notes" style="margin-top:8px;"></div>
+          <div class="item">
+            <div class="item-title">Weekly Ops Summary</div>
+            <div id="weeklySummaryText" class="item-notes" style="margin-top:8px;"></div>
           </div>
         </div>
       </div>
@@ -402,13 +509,13 @@
               <div class="card-subtitle">Totals for the week.</div>
             </div>
           </div>
-          <div class="metric-row" style="grid-template-columns: repeat(3, 1fr);">
+          <div class="metric-row">
             <div class="metric">
               <div class="metric-label">Sickness</div>
               <div class="metric-value" id="staffSickness">0</div>
             </div>
             <div class="metric">
-              <div class="metric-label">Holiday</div>
+              <div class="metric-label">Holidays</div>
               <div class="metric-value" id="staffHoliday">0</div>
             </div>
             <div class="metric">
@@ -422,10 +529,10 @@
           <div class="card-header">
             <div>
               <div class="card-title">Hospitality</div>
-              <div class="card-subtitle">Day &amp; night event totals.</div>
+              <div class="card-subtitle">Day vs night events for the week.</div>
             </div>
           </div>
-          <div class="metric-row" style="grid-template-columns: repeat(3, 1fr);">
+          <div class="metric-row">
             <div class="metric">
               <div class="metric-label">Day Events</div>
               <div class="metric-value" id="hospDay">0</div>
@@ -444,6 +551,35 @@
         <div class="card">
           <div class="card-header">
             <div>
+              <div class="card-title">Retail Sales (Weekly Totals)</div>
+              <div class="card-subtitle">Weekly totals by level plus SPH. Includes a grand total.</div>
+            </div>
+          </div>
+          <div class="metric-row" style="grid-template-columns: 1fr;">
+            <div class="metric">
+              <div class="metric-label">Grand Total (Week)</div>
+              <div class="metric-value" id="salesTotal">£0.00</div>
+              <div class="metric-sub"><span id="salesTrans">0</span> tx • SPH <span id="salesSPH">£0.00</span></div>
+            </div>
+          </div>
+          <div id="salesEmpty" class="empty-text">No retail sales for this week.</div>
+          <div id="salesList" class="list"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Lunch Specials</div>
+              <div class="card-subtitle">All specials recorded for the week.</div>
+            </div>
+          </div>
+          <div id="specialsEmpty" class="empty-text">No lunch specials recorded.</div>
+          <div id="specialsList" class="list"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div>
               <div class="card-title">Newcastle Free Breakfast</div>
               <div class="card-subtitle">Total and number of days (for the selected filter).</div>
             </div>
@@ -453,6 +589,26 @@
               <div class="metric-label">Total Free Breakfast</div>
               <div class="metric-value" id="freeBreakfastTotal">0</div>
               <div class="metric-sub"><span id="freeBreakfastDays">0</span> day(s)</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Newcastle Hot Lunches</div>
+              <div class="card-subtitle">Weekly total and daily average (for the selected filter).</div>
+            </div>
+          </div>
+          <div class="metric-row">
+            <div class="metric">
+              <div class="metric-label">Total Hot Lunch Dishes</div>
+              <div class="metric-value" id="hotLunchTotal">0</div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">Average per Day</div>
+              <div class="metric-value" id="hotLunchAvg">0</div>
+              <div class="metric-sub"><span id="hotLunchDays">0</span> day(s)</div>
             </div>
           </div>
         </div>
@@ -482,62 +638,41 @@
         </div>
       </div>
 
-      <div class="card">
-        <div class="card-header">
-          <div>
-            <div class="card-title">Retail Lunch Specials</div>
-            <div class="card-subtitle">All specials recorded for the week.</div>
+      <div class="row-4">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Daily Notes</div>
+              <div class="card-subtitle">All notes captured for the week.</div>
+            </div>
           </div>
+          <div id="notesEmpty" class="empty-text">No notes recorded.</div>
+          <div id="notesList" class="list"></div>
         </div>
-        <div id="specialsEmpty" class="empty-text">No lunch specials recorded.</div>
-        <div id="specialsList" class="list"></div>
-      </div>
 
-      <div class="card">
-        <div class="card-header">
-          <div>
-            <div class="card-title">Weekly Retail Sales</div>
-            <div class="card-subtitle">Sales captured via the Sales page (table: retail_sales).</div>
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Photo Gallery</div>
+              <div class="card-subtitle">Thumbnails for the week. Click to view.</div>
+            </div>
           </div>
+          <div id="photosEmpty" class="empty-text">No photos uploaded.</div>
+          <div id="photoGrid" class="photo-grid"></div>
         </div>
-        <div class="metric-row" style="grid-template-columns: repeat(3, 1fr);">
-          <div class="metric">
-            <div class="metric-label">Total Sales</div>
-            <div class="metric-value" id="salesTotal">£0.00</div>
-          </div>
-          <div class="metric">
-            <div class="metric-label">Transactions</div>
-            <div class="metric-value" id="salesTrans">0</div>
-          </div>
-          <div class="metric">
-            <div class="metric-label">SPH</div>
-            <div class="metric-value" id="salesSPH">£0.00</div>
-          </div>
-        </div>
-        <div id="salesEmpty" class="empty-text">No retail sales for this week.</div>
-        <div id="salesList" class="list"></div>
       </div>
+    </div>
+  </div>
 
-      <div class="card">
-        <div class="card-header">
-          <div>
-            <div class="card-title">Daily Notes</div>
-            <div class="card-subtitle">Notes captured within the selected week.</div>
-          </div>
-        </div>
-        <div id="notesEmpty" class="empty-text">No notes recorded for this week.</div>
-        <div id="notesList" class="list"></div>
+  <div class="modal" id="photoModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="mh-title" id="modalTitle">Photo</div>
+        <button class="close" id="closeModalBtn">Close</button>
       </div>
-
-      <div class="card">
-        <div class="card-header">
-          <div>
-            <div class="card-title">Photo Gallery</div>
-            <div class="card-subtitle">All photos uploaded within the selected week.</div>
-          </div>
-        </div>
-        <div id="photosEmpty" class="empty-text">No photos uploaded this week.</div>
-        <div id="photosGrid" class="photos-grid"></div>
+      <div class="modal-body">
+        <img id="modalImg" alt="Photo" />
+        <div id="modalNotes" class="modal-notes"></div>
       </div>
     </div>
   </div>
@@ -545,12 +680,12 @@
   <script type="module">
     import { supabase } from './supabase-config.js';
 
-    const weekLabelEl = document.getElementById('weekLabel');
+    const weekPickerEl = document.getElementById('weekPicker');
     const siteFilterEl = document.getElementById('siteFilter');
     const areaFilterEl = document.getElementById('areaFilter');
-    const weekPickerEl = document.getElementById('weekPicker');
     const refreshBtn = document.getElementById('refreshBtn');
     const errorMessageEl = document.getElementById('errorMessage');
+    const weekRangePillEl = document.getElementById('weekRangePill');
 
     const kpiTotalLogsEl = document.getElementById('kpiTotalLogs');
     const kpiLogsWithPhotosEl = document.getElementById('kpiLogsWithPhotos');
@@ -572,9 +707,13 @@
     const freeBreakfastTotalEl = document.getElementById('freeBreakfastTotal');
     const freeBreakfastDaysEl = document.getElementById('freeBreakfastDays');
 
+    const hotLunchTotalEl = document.getElementById('hotLunchTotal');
+    const hotLunchAvgEl = document.getElementById('hotLunchAvg');
+    const hotLunchDaysEl = document.getElementById('hotLunchDays');
+
     const maintEmptyEl = document.getElementById('maintEmpty');
-    const hsEmptyEl = document.getElementById('hsEmpty');
     const maintListEl = document.getElementById('maintList');
+    const hsEmptyEl = document.getElementById('hsEmpty');
     const hsListEl = document.getElementById('hsList');
 
     const specialsEmptyEl = document.getElementById('specialsEmpty');
@@ -590,81 +729,17 @@
     const notesListEl = document.getElementById('notesList');
 
     const photosEmptyEl = document.getElementById('photosEmpty');
-    const photosGridEl = document.getElementById('photosGrid');
+    const photoGridEl = document.getElementById('photoGrid');
 
-    const weeklySummaryBtn = document.getElementById('generateWeeklySummaryBtn');
+    const photoModalEl = document.getElementById('photoModal');
+    const modalTitleEl = document.getElementById('modalTitle');
+    const modalImgEl = document.getElementById('modalImg');
+    const modalNotesEl = document.getElementById('modalNotes');
+    const closeModalBtn = document.getElementById('closeModalBtn');
+
     const weeklySummaryBox = document.getElementById('weeklySummaryBox');
     const weeklySummaryText = document.getElementById('weeklySummaryText');
-
-    weeklySummaryBtn.addEventListener('click', () => {
-      weeklySummaryBtn.textContent = 'Generating…';
-      weeklySummaryBtn.disabled = true;
-
-      // Guard: if no logs loaded for the current week/filter, avoid generating an empty summary
-      if (Number(kpiTotalLogsEl.textContent || '0') === 0) {
-        weeklySummaryText.textContent = 'No logs found for the selected week and filters.';
-        weeklySummaryBox.style.display = 'block';
-        weeklySummaryBtn.textContent = 'Generate Weekly Summary';
-        weeklySummaryBtn.disabled = false;
-        return;
-      }
-
-      const summary = generateWeeklySummaryText();
-
-      weeklySummaryText.textContent = summary;
-      weeklySummaryBox.style.display = 'block';
-
-      weeklySummaryBtn.textContent = 'Generate Weekly Summary';
-      weeklySummaryBtn.disabled = false;
-    });
-
-    function generateWeeklySummaryText() {
-      const lines = [];
-
-      lines.push(`Weekly Operations Summary`);
-      lines.push(`—————————————`);
-      lines.push(`Week: ${weekLabelEl.textContent}`);
-      lines.push('');
-
-      lines.push(`Staffing Impact`);
-      lines.push(`• Sickness: ${staffSicknessEl.textContent}`);
-      lines.push(`• Holiday: ${staffHolidayEl.textContent}`);
-      lines.push(`• Agency: ${staffAgencyEl.textContent}`);
-      lines.push('');
-
-      lines.push(`Hospitality`);
-      lines.push(`• Day events: ${hospDayEl.textContent}`);
-      lines.push(`• Night events: ${hospNightEl.textContent}`);
-      lines.push('');
-
-      lines.push(`Incidents`);
-      lines.push(`• Maintenance: ${maintListEl.children.length}`);
-      lines.push(`• H&S: ${hsListEl.children.length}`);
-      lines.push('');
-
-      lines.push(`Retail`);
-      lines.push(`• Weekly sales: ${kpiRetailSalesEl.textContent}`);
-      lines.push(`• ${kpiRetailSalesSubEl.textContent}`);
-      lines.push('');
-
-      lines.push(`Additional Activity`);
-      lines.push(`• Lunch specials ran on ${kpiRetailSpecialsEl.textContent} day(s)`);
-      lines.push(`• Newcastle free breakfasts: ${freeBreakfastTotalEl.textContent} over ${freeBreakfastDaysEl.textContent} day(s)`);
-      lines.push('');
-
-      if (notesListEl.children.length > 0) {
-        lines.push(`Key Notes`);
-        Array.from(notesListEl.children).slice(0, 5).forEach(item => {
-          const txt = item.querySelector('.list-notes')?.textContent;
-          if (txt) lines.push(`• ${txt}`);
-        });
-      }
-
-      return lines.join('\n');
-    }
-
-    function pad(n) { return String(n).padStart(2, '0'); }
-    function dateKey(d) { return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; }
+    const genSummaryBtn = document.getElementById('genSummaryBtn');
 
     function safeNum(v) {
       const n = Number(v);
@@ -672,76 +747,39 @@
     }
 
     function safeText(v) {
-      if (v === null || v === undefined) return '';
-      return String(v).trim();
+      return (v ?? '').toString().trim();
     }
 
-    function isIncidentFlagTrue(v) {
-      if (v === true) return true;
-      if (v === false || v === null || v === undefined) return false;
-
-      const s = String(v).trim().toLowerCase();
-      if (!s) return false;
-      if (["no", "none", "n/a", "na", "false", "0"].includes(s)) return false;
-      if (["yes", "y", "true", "1"].includes(s)) return true;
-      return true;
+    function startOfWeekMonday(d) {
+      const date = new Date(d);
+      const day = date.getDay(); // 0 Sun - 6 Sat
+      const diff = (day === 0 ? -6 : 1) - day;
+      date.setDate(date.getDate() + diff);
+      date.setHours(0,0,0,0);
+      return date;
     }
 
-    function hasMeaningfulText(v) {
-      const s = safeText(v).toLowerCase();
-      if (!s) return false;
-      if (["no", "none", "n/a", "na"].includes(s)) return false;
-      return true;
+    function addDays(d, days) {
+      const date = new Date(d);
+      date.setDate(date.getDate() + days);
+      return date;
     }
 
-    function startOfWeekMonday(anyDate) {
-      const d = new Date(anyDate);
-      const day = d.getDay();
-      const diff = (day === 0 ? -6 : 1 - day);
-      d.setDate(d.getDate() + diff);
-      d.setHours(0,0,0,0);
-      return d;
+    function toISODate(d) {
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      return `${yyyy}-${mm}-${dd}`;
     }
 
-    function formatRange(start, end) {
-      const opts = { day:'2-digit', month:'short', year:'numeric' };
-      return `${start.toLocaleDateString('en-GB', opts)} – ${end.toLocaleDateString('en-GB', opts)}`;
+    function money(n) {
+      return `£${Number(n || 0).toFixed(2)}`;
     }
 
-    function applyFilters(rows) {
-      const site = siteFilterEl.value || 'All';
-      const area = areaFilterEl.value || 'All';
-
-      let out = rows || [];
-
-      if (site !== 'All') {
-        const siteLc = site.toLowerCase();
-        out = out.filter(r => safeText(r.site).toLowerCase().includes(siteLc));
-      }
-
-      if (area !== 'All') {
-        const want = area.toLowerCase();
-        out = out.filter(r => safeText(r.area).toLowerCase() === want);
-      }
-
-      return out;
-    }
-
-    function renderList(targetEl, emptyEl, items) {
-      targetEl.innerHTML = '';
-      if (!items || !items.length) {
-        emptyEl.style.display = 'block';
-        return;
-      }
-      emptyEl.style.display = 'none';
-
-      targetEl.innerHTML = items.map(i => `
-        <div class="list-item">
-          <div class="list-title">${i.title}</div>
-          ${i.sub ? `<div class="list-sub">${i.sub}</div>` : ``}
-          <div class="list-notes">${i.notes}</div>
-        </div>
-      `).join('');
+    function calcSPH(sales, tx) {
+      const s = safeNum(sales);
+      const t = safeNum(tx);
+      return t > 0 ? s / t : 0;
     }
 
     function clearAll() {
@@ -768,12 +806,16 @@
       freeBreakfastTotalEl.textContent = '0';
       freeBreakfastDaysEl.textContent = '0';
 
+      hotLunchTotalEl.textContent = '0';
+      hotLunchAvgEl.textContent = '0';
+      hotLunchDaysEl.textContent = '0';
+
       maintListEl.innerHTML = '';
       hsListEl.innerHTML = '';
       specialsListEl.innerHTML = '';
       salesListEl.innerHTML = '';
       notesListEl.innerHTML = '';
-      photosGridEl.innerHTML = '';
+      photoGridEl.innerHTML = '';
 
       maintEmptyEl.style.display = 'block';
       hsEmptyEl.style.display = 'block';
@@ -807,7 +849,7 @@
     async function loadWeeklyRetailSales(startDateStr, endDateStr) {
       const { data, error } = await supabase
         .from('retail_sales')
-        .select('sales_date, site, level, sales, transactions')
+        .select('*')
         .gte('sales_date', startDateStr)
         .lte('sales_date', endDateStr)
         .order('sales_date', { ascending: true })
@@ -817,199 +859,339 @@
       return data || [];
     }
 
+    function matchesFilter(row, site, area) {
+      const rowSite = (row.site || '').toString();
+      const rowArea = (row.area || '').toString();
+
+      const siteOk = site === 'All' ? true : rowSite === site;
+      const areaOk =
+        area === 'All' ? true :
+        area === 'All Areas' ? true :
+        rowArea === area;
+
+      return siteOk && areaOk;
+    }
+
+    function buildIncidentItems(rows, type) {
+      const items = [];
+      for (const r of rows) {
+        const when = r.log_date || (r.created_at ? String(r.created_at).slice(0,10) : '');
+        const title = `${r.site || 'Site'} – ${r.area || 'Area'} – ${when}`;
+        const notes = type === 'maint'
+          ? safeText(r.maintenance_notes)
+          : safeText(r.hs_notes);
+
+        const extra = type === 'maint'
+          ? safeText(r.maintenance_reported)
+          : safeText(r.hs_reported);
+
+        const combined = [
+          notes ? notes : null,
+          extra ? `Reported: ${extra}` : null
+        ].filter(Boolean).join('\n');
+
+        items.push({ title, notes: combined || '(No notes entered)' });
+      }
+      return items;
+    }
+
+    function renderList(containerEl, emptyEl, items) {
+      containerEl.innerHTML = '';
+      if (!items || items.length === 0) {
+        emptyEl.style.display = 'block';
+        return;
+      }
+      emptyEl.style.display = 'none';
+
+      for (const it of items) {
+        const div = document.createElement('div');
+        div.className = 'item';
+        div.innerHTML = `
+          <div class="item-title">${it.title}</div>
+          <div class="item-notes">${(it.notes || '').replace(/</g, '&lt;')}</div>
+        `;
+        containerEl.appendChild(div);
+      }
+    }
+
+    function renderSalesList(rows) {
+      salesListEl.innerHTML = '';
+
+      if (!rows || rows.length === 0) {
+        salesEmptyEl.style.display = 'block';
+        return;
+      }
+      salesEmptyEl.style.display = 'none';
+
+      // Aggregate weekly totals by level
+      const byLevel = new Map();
+      for (const r of rows) {
+        const lvl = (r.level || '').toString();
+        const prev = byLevel.get(lvl) || { sales: 0, tx: 0 };
+        prev.sales += safeNum(r.sales);
+        prev.tx += safeNum(r.transactions);
+        byLevel.set(lvl, prev);
+      }
+
+      const entries = Array.from(byLevel.entries()).sort((a,b) => a[0].localeCompare(b[0]));
+
+      let grandSales = 0;
+      let grandTx = 0;
+
+      for (const [lvl, agg] of entries) {
+        grandSales += agg.sales;
+        grandTx += agg.tx;
+
+        const sph = calcSPH(agg.sales, agg.tx);
+
+        const div = document.createElement('div');
+        div.className = 'item';
+        div.innerHTML = `
+          <div class="item-title">${lvl}</div>
+          <div class="item-notes">Weekly sales: ${money(agg.sales)} • Transactions: ${Math.round(agg.tx)} • SPH: ${money(sph)}</div>
+        `;
+        salesListEl.appendChild(div);
+      }
+
+      const grandSPH = calcSPH(grandSales, grandTx);
+      salesTotalEl.textContent = money(grandSales);
+      salesTransEl.textContent = String(Math.round(grandTx));
+      salesSPHEl.textContent = money(grandSPH);
+
+      kpiRetailSalesEl.textContent = money(grandSales);
+      kpiRetailSalesSubEl.textContent = `${Math.round(grandTx)} tx • SPH ${money(grandSPH)}`;
+    }
+
     async function loadWeekly() {
       clearAll();
 
       const picked = weekPickerEl.value ? new Date(weekPickerEl.value + 'T00:00:00') : new Date();
       const start = startOfWeekMonday(picked);
-      const end = new Date(start);
-      end.setDate(end.getDate() + 4);
-      end.setHours(23,59,59,999);
+      const end = addDays(start, 4); // Mon–Fri
 
-      const startStr = dateKey(start);
-      const endStr = dateKey(end);
+      const startStr = toISODate(start);
+      const endStr = toISODate(end);
 
-      weekLabelEl.textContent = formatRange(start, end);
+      weekRangePillEl.textContent = `${startStr} → ${endStr}`;
 
       try {
-        const opsAll = await loadWeeklyOpsLogs(startStr, endStr);
-        const opsRows = applyFilters(opsAll);
+        const [opsRowsRaw, salesRowsRaw] = await Promise.all([
+          loadWeeklyOpsLogs(startStr, endStr),
+          loadWeeklyRetailSales(startStr, endStr)
+        ]);
 
+        const site = siteFilterEl.value;
+        const area = areaFilterEl.value;
+
+        const opsRows = opsRowsRaw.filter(r => matchesFilter(r, site, area));
+
+        // KPIs
         kpiTotalLogsEl.textContent = String(opsRows.length);
 
-        const photos = opsRows
-          .filter(r => !!r.photo_url)
-          .map(r => ({
-            url: r.photo_url,
-            date: (r.log_date || (r.created_at ? String(r.created_at).slice(0,10) : '')),
-            site: r.site || '',
-            area: r.area || ''
-          }));
-        kpiLogsWithPhotosEl.textContent = String(photos.length);
+        const withPhotos = opsRows.filter(r => !!safeText(r.photo_url));
+        kpiLogsWithPhotosEl.textContent = String(withPhotos.length);
 
-        if (photos.length) {
-          photosEmptyEl.style.display = 'none';
-          photosGridEl.innerHTML = photos
-            .sort((a,b) => (a.date < b.date ? -1 : 1))
-            .map(p => `
-              <div class="photo-card">
-                <a href="${p.url}" target="_blank" rel="noopener noreferrer">
-                  <img src="${p.url}" alt="Ops photo" />
-                </a>
-                <div class="photo-card-caption">
-                  ${p.date}<br/>
-                  ${p.site}${p.area ? ' • ' + p.area : ''}
-                </div>
-              </div>
-            `).join('');
-        }
+        const incidents = opsRows.filter(r =>
+          (r.maintenance_issue === 'Yes') || (r.hs_issue === 'Yes')
+        );
+        kpiIncidentsEl.textContent = String(incidents.length);
 
-        const sickness = opsRows.reduce((s,r) => s + safeNum(r.sickness_count), 0);
-        const holiday = opsRows.reduce((s,r) => s + safeNum(r.holiday_count), 0);
-        const agency = opsRows.reduce((s,r) => s + safeNum(r.agency_count), 0);
+        const sick = opsRows.reduce((s,r) => s + safeNum(r.staff_sickness), 0);
+        const hol  = opsRows.reduce((s,r) => s + safeNum(r.staff_holiday), 0);
+        const agy  = opsRows.reduce((s,r) => s + safeNum(r.staff_agency), 0);
+        const staffTotal = sick + hol + agy;
 
-        staffSicknessEl.textContent = String(sickness);
-        staffHolidayEl.textContent = String(holiday);
-        staffAgencyEl.textContent = String(agency);
-        kpiStaffingEl.textContent = String(sickness + holiday + agency);
+        kpiStaffingEl.textContent = String(Math.round(staffTotal));
 
-        const hospDay = opsRows.reduce((s,r) => s + safeNum(r.hosp_day_events), 0);
-        const hospNight = opsRows.reduce((s,r) => s + safeNum(r.hosp_night_events), 0);
+        staffSicknessEl.textContent = String(Math.round(sick));
+        staffHolidayEl.textContent = String(Math.round(hol));
+        staffAgencyEl.textContent = String(Math.round(agy));
 
-        hospDayEl.textContent = String(hospDay);
-        hospNightEl.textContent = String(hospNight);
-        hospTotalEl.textContent = String(hospDay + hospNight);
+        const dayE = opsRows.reduce((s,r) => s + safeNum(r.hosp_day_events), 0);
+        const nightE = opsRows.reduce((s,r) => s + safeNum(r.hosp_night_events), 0);
+        hospDayEl.textContent = String(Math.round(dayE));
+        hospNightEl.textContent = String(Math.round(nightE));
+        hospTotalEl.textContent = String(Math.round(dayE + nightE));
 
-        const maintItems = opsRows
-          .filter(r => isIncidentFlagTrue(r.maintenance_issue) || hasMeaningfulText(r.maintenance_notes))
-          .map(r => ({
-            title: `${r.site || 'Site'} • ${r.area || 'Area'} • ${r.log_date || (r.created_at ? String(r.created_at).slice(0,10) : '')}`,
-            sub: '',
-            notes: safeText(r.maintenance_notes) || 'Maintenance incident recorded (no details entered).'
-          }));
+        // Incidents lists
+        const maintRows = opsRows.filter(r => r.maintenance_issue === 'Yes');
+        const hsRows = opsRows.filter(r => r.hs_issue === 'Yes');
 
-        const hsItems = opsRows
-          .filter(r => isIncidentFlagTrue(r.hs_issue) || hasMeaningfulText(r.hs_notes))
-          .map(r => ({
-            title: `${r.site || 'Site'} • ${r.area || 'Area'} • ${r.log_date || (r.created_at ? String(r.created_at).slice(0,10) : '')}`,
-            sub: '',
-            notes: safeText(r.hs_notes) || 'H&S incident recorded (no details entered).'
-          }));
+        renderList(maintListEl, maintEmptyEl, buildIncidentItems(maintRows, 'maint'));
+        renderList(hsListEl, hsEmptyEl, buildIncidentItems(hsRows, 'hs'));
 
-        renderList(maintListEl, maintEmptyEl, maintItems);
-        renderList(hsListEl, hsEmptyEl, hsItems);
-        kpiIncidentsEl.textContent = String(maintItems.length + hsItems.length);
-
+        // Lunch specials
         const specials = opsRows
-          .filter(r => safeText(r.retail_lunch_special_details))
-          .map(r => ({
-            title: `${r.site || 'Site'} • ${r.area || 'Area'} • ${r.log_date || (r.created_at ? String(r.created_at).slice(0,10) : '')}`,
-            sub: 'Lunch Special',
-            notes: safeText(r.retail_lunch_special_details)
-          }));
+          .filter(r => (r.retail_lunch_special === 'Yes'))
+          .map(r => {
+            const when = r.log_date || (r.created_at ? String(r.created_at).slice(0,10) : '');
+            const desc = safeText(r.retail_lunch_desc) || '(Special recorded – no details entered)';
+            const title = `${r.site || 'Site'} • ${r.area || 'Area'} • ${when}`;
+            return { title, notes: desc };
+          });
+
         renderList(specialsListEl, specialsEmptyEl, specials);
 
         const specialDays = new Set(specials.map(s => s.title.split(' • ').pop()));
         kpiRetailSpecialsEl.textContent = String(specialDays.size);
         kpiRetailSpecialsSubEl.textContent = `${specialDays.size} day(s) with specials`;
 
+        // Newcastle free breakfast
         const fbRows = opsRows.filter(r => safeNum(r.free_breakfast_count) > 0);
         const fbTotal = fbRows.reduce((s,r) => s + safeNum(r.free_breakfast_count), 0);
         const fbDays = new Set(fbRows.map(r => r.log_date || (r.created_at ? String(r.created_at).slice(0,10) : '')));
         freeBreakfastTotalEl.textContent = String(fbTotal);
         freeBreakfastDaysEl.textContent = String(fbDays.size);
 
+        // ✅ NEW: Newcastle hot lunches (total + average)
+        const hlRows = opsRows.filter(r => safeNum(r.hot_lunch_dishes) >= 0 && (r.site || '') === 'Newcastle');
+        const hlTotal = hlRows.reduce((s,r) => s + safeNum(r.hot_lunch_dishes), 0);
+        const hlDays = new Set(hlRows.map(r => r.log_date || (r.created_at ? String(r.created_at).slice(0,10) : '')));
+        const hlAvg = hlDays.size ? (hlTotal / hlDays.size) : 0;
+
+        hotLunchTotalEl.textContent = String(Math.round(hlTotal));
+        hotLunchAvgEl.textContent = String(hlDays.size ? Math.round(hlAvg) : 0);
+        hotLunchDaysEl.textContent = String(hlDays.size);
+
+        // Notes list
         const notes = opsRows
           .filter(r => safeText(r.notes))
           .map(r => ({
             title: `${r.site || 'Site'} • ${r.area || 'Area'} • ${r.log_date || (r.created_at ? String(r.created_at).slice(0,10) : '')}`,
-            sub: '',
             notes: safeText(r.notes)
           }));
+
         renderList(notesListEl, notesEmptyEl, notes);
 
-        // retail_sales table (weekly aggregation by level)
-        const salesAll = await loadWeeklyRetailSales(startStr, endStr);
+        // Sales list (not filtered by site/area because retail_sales doesn’t carry area)
+        // If site filter is Newcastle, keep only Newcastle levels if you have them; otherwise show all levels.
+        // Current table is by 'level', so we show all for the week as per your previous request.
+        renderSalesList(salesRowsRaw || []);
 
-        let salesRows = salesAll;
-        const site = siteFilterEl.value || 'All';
-        if (site !== 'All') {
-          salesRows = salesRows.filter(r => safeText(r.site).toLowerCase().includes(site.toLowerCase()));
-        }
-
-        const byLevel = new Map();
-        for (const r of salesRows) {
-          const level = safeText(r.level) || 'Unknown';
-          const sales = safeNum(r.sales);
-          const tx = safeNum(r.transactions);
-
-          const cur = byLevel.get(level) || { sales: 0, tx: 0 };
-          cur.sales += sales;
-          cur.tx += tx;
-          byLevel.set(level, cur);
-        }
-
-        let grandSales = 0;
-        let grandTx = 0;
-        for (const v of byLevel.values()) {
-          grandSales += v.sales;
-          grandTx += v.tx;
-        }
-        const grandSPH = grandTx ? (grandSales / grandTx) : 0;
-
-        salesTotalEl.textContent = `£${grandSales.toFixed(2)}`;
-        salesTransEl.textContent = String(grandTx);
-        salesSPHEl.textContent = `£${grandSPH.toFixed(2)}`;
-
-        kpiRetailSalesEl.textContent = `£${grandSales.toFixed(2)}`;
-        kpiRetailSalesSubEl.textContent = `${grandTx} tx • SPH £${grandSPH.toFixed(2)}`;
-
-        salesListEl.innerHTML = '';
-        if (!byLevel.size) {
-          salesEmptyEl.style.display = 'block';
+        // Photos
+        photoGridEl.innerHTML = '';
+        if (!withPhotos || withPhotos.length === 0) {
+          photosEmptyEl.style.display = 'block';
         } else {
-          salesEmptyEl.style.display = 'none';
+          photosEmptyEl.style.display = 'none';
+          for (const r of withPhotos) {
+            const when = r.log_date || (r.created_at ? String(r.created_at).slice(0,10) : '');
+            const cap = `${r.site || ''} • ${r.area || ''} • ${when}`;
+            const notes = safeText(r.notes);
 
-          const levelsSorted = Array.from(byLevel.entries())
-            .sort((a, b) => {
-              const an = parseFloat(String(a[0]).replace(/[^\d.]/g, ''));
-              const bn = parseFloat(String(b[0]).replace(/[^\d.]/g, ''));
-              if (Number.isFinite(an) && Number.isFinite(bn)) return an - bn;
-              return String(a[0]).localeCompare(String(b[0]));
-            });
-
-          const rowsHtml = levelsSorted.map(([level, v]) => {
-            const sph = v.tx ? (v.sales / v.tx) : 0;
-            return `
-              <div class="list-item">
-                <div class="list-title">${safeText(level)} • Weekly Total</div>
-                <div class="list-sub">Sales £${v.sales.toFixed(2)} • Transactions ${v.tx} • SPH £${sph.toFixed(2)}</div>
-              </div>
+            const div = document.createElement('div');
+            div.className = 'thumb';
+            div.innerHTML = `
+              <img src="${r.photo_url}" alt="Photo" />
+              <div class="cap">${cap}</div>
             `;
-          }).join('');
+            div.addEventListener('click', () => {
+              modalTitleEl.textContent = cap || 'Photo';
+              modalImgEl.src = r.photo_url;
+              modalNotesEl.textContent = notes || '';
+              photoModalEl.classList.add('open');
+            });
+            photoGridEl.appendChild(div);
+          }
+        }
 
-          const grandHtml = `
-            <div class="list-item">
-              <div class="list-title">Grand Total • Weekly</div>
-              <div class="list-sub">Sales £${grandSales.toFixed(2)} • Transactions ${grandTx} • SPH £${grandSPH.toFixed(2)}</div>
-            </div>
-          `;
-
-          salesListEl.innerHTML = rowsHtml + grandHtml;
+        // Enable summary box once data loaded
+        if (weeklySummaryBox && weeklySummaryText && genSummaryBtn) {
+          weeklySummaryBox.style.display = 'block';
         }
 
       } catch (err) {
-        console.error(err);
-        errorMessageEl.textContent = `Error loading weekly data: ${err.message || err}`;
         errorMessageEl.style.display = 'block';
+        errorMessageEl.textContent = `Error loading weekly dashboard:\n${err?.message || err}`;
       }
     }
 
-    weekPickerEl.value = dateKey(new Date());
+    function buildSummaryText() {
+      const lines = [];
+      lines.push(`Weekly Ops Summary`);
+      lines.push(`---------------------`);
+      lines.push(`Week: ${weekRangePillEl.textContent}`);
+      lines.push(`Filter: ${siteFilterEl.value}${areaFilterEl.value === 'All' || areaFilterEl.value === 'All Areas' ? '' : ' • ' + areaFilterEl.value}`);
+      lines.push('');
+      lines.push(`Total Logs: ${kpiTotalLogsEl.textContent}`);
+      lines.push(`Logs with photos: ${kpiLogsWithPhotosEl.textContent}`);
+      lines.push('');
+      lines.push(`Staffing Impact`);
+      lines.push(`---------------------`);
+      lines.push(`• Sick: ${staffSicknessEl.textContent}`);
+      lines.push(`• Holiday: ${staffHolidayEl.textContent}`);
+      lines.push(`• Agency: ${staffAgencyEl.textContent}`);
+      lines.push('');
+      lines.push(`Incidents / H&S`);
+      lines.push(`---------------------`);
+
+      if (maintListEl.children.length === 0 && hsListEl.children.length === 0) {
+        lines.push(`No incidents reported.`);
+      } else {
+        if (maintListEl.children.length > 0) {
+          lines.push(`Maintenance:`);
+          for (const el of maintListEl.children) {
+            const title = el.querySelector('.item-title')?.textContent || '';
+            const notes = el.querySelector('.item-notes')?.textContent || '';
+            lines.push(`• ${title}`);
+            if (notes) lines.push(`  ${notes.replace(/\n/g, '\n  ')}`);
+          }
+          lines.push('');
+        }
+        if (hsListEl.children.length > 0) {
+          lines.push(`H&S:`);
+          for (const el of hsListEl.children) {
+            const title = el.querySelector('.item-title')?.textContent || '';
+            const notes = el.querySelector('.item-notes')?.textContent || '';
+            lines.push(`• ${title}`);
+            if (notes) lines.push(`  ${notes.replace(/\n/g, '\n  ')}`);
+          }
+          lines.push('');
+        }
+      }
+
+      lines.push(`Additional Activity`);
+      lines.push(`• Lunch specials ran on ${kpiRetailSpecialsEl.textContent} day(s)`);
+      lines.push(`• Newcastle free breakfasts: ${freeBreakfastTotalEl.textContent} over ${freeBreakfastDaysEl.textContent} day(s)`);
+      lines.push(`• Newcastle hot lunches: ${hotLunchTotalEl.textContent} total (avg ${hotLunchAvgEl.textContent}/day over ${hotLunchDaysEl.textContent} day(s))`);
+      lines.push('');
+
+      if (notesListEl.children.length > 0) {
+        lines.push(`Daily Notes`);
+        lines.push(`---------------------`);
+        for (const el of notesListEl.children) {
+          const title = el.querySelector('.item-title')?.textContent || '';
+          const notes = el.querySelector('.item-notes')?.textContent || '';
+          lines.push(`• ${title}`);
+          if (notes) lines.push(`  ${notes.replace(/\n/g, '\n  ')}`);
+          lines.push('');
+        }
+      }
+
+      return lines.join('\n');
+    }
+
     refreshBtn.addEventListener('click', loadWeekly);
+    weekPickerEl.addEventListener('change', loadWeekly);
     siteFilterEl.addEventListener('change', loadWeekly);
     areaFilterEl.addEventListener('change', loadWeekly);
-    weekPickerEl.addEventListener('change', loadWeekly);
+
+    closeModalBtn.addEventListener('click', () => photoModalEl.classList.remove('open'));
+    photoModalEl.addEventListener('click', (e) => {
+      if (e.target === photoModalEl) photoModalEl.classList.remove('open');
+    });
+
+    if (genSummaryBtn) {
+      genSummaryBtn.addEventListener('click', () => {
+        if (!weeklySummaryText) return;
+        weeklySummaryText.textContent = buildSummaryText();
+      });
+    }
+
+    // Set default weekPicker to today if empty
+    if (!weekPickerEl.value) {
+      weekPickerEl.value = toISODate(new Date());
+    }
 
     loadWeekly();
   </script>
