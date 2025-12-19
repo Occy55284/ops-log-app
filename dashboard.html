@@ -197,6 +197,104 @@
       .photos-grid { grid-template-columns: repeat(2, 1fr); }
       .pill { min-width: 140px; }
     }
+    /* ============================
+   Monthly Theme Override
+   Paste at END of dashboard.html <style>
+   ============================ */
+
+:root{
+  --bg: #0b1220;
+  --panel: rgba(15, 23, 42, 0.95);
+  --panel2: rgba(15, 23, 42, 0.75);
+  --border: rgba(148, 163, 184, 0.40);
+  --border2: rgba(148, 163, 184, 0.28);
+  --text: #e5e7eb;
+  --muted: #9ca3af;
+
+  --teal: #2dd4bf;
+  --tealSoft: rgba(45, 212, 191, 0.35);
+  --tealGlow: rgba(45, 212, 191, 0.28);
+
+  --blueSoft: rgba(30, 64, 175, 0.40);
+}
+
+/* Base */
+body{
+  background: var(--bg) !important;
+  color: var(--text) !important;
+}
+
+/* Header pills / controls */
+.pill, .control{
+  background: var(--panel) !important;
+  border: 1px solid var(--border) !important;
+}
+.pill-label, .control label{
+  color: var(--muted) !important;
+}
+.select, .input, select, input[type="date"]{
+  background: transparent !important;
+  border: 1px solid var(--border2) !important;
+  color: var(--text) !important;
+}
+select option{
+  background: #020617 !important;
+  color: var(--text) !important;
+}
+
+/* Buttons (match Monthly glow) */
+.btn, button{
+  border: 1px solid rgba(94, 234, 212, 0.50) !important;
+  background: radial-gradient(circle at top left, var(--tealSoft), rgba(15, 23, 42, 1)) !important;
+  color: #ecfeff !important;
+  box-shadow: 0 0 0 1px rgba(15, 23, 42, 1), 0 8px 18px rgba(45, 212, 191, 0.20) !important;
+}
+.btn:hover, button:hover{
+  box-shadow: 0 0 0 1px rgba(15, 23, 42, 1), 0 12px 26px rgba(45, 212, 191, 0.28) !important;
+}
+
+/* Cards */
+.card{
+  background: var(--panel2) !important;
+  border: 1px solid var(--border2) !important;
+}
+.card-header, .cardHeader{
+  background: radial-gradient(circle at top left, var(--blueSoft), rgba(15, 23, 42, 0.98)) !important;
+  border-bottom: 1px solid var(--border2) !important;
+}
+.card-title, .cardHeader h2{
+  color: var(--text) !important;
+}
+.card-subtitle, .subtitle, .meta{
+  color: var(--muted) !important;
+}
+
+/* KPI / metric tiles */
+.metric, .kpi{
+  background: rgba(2, 6, 23, 0.45) !important;
+  border: 1px solid var(--border2) !important;
+}
+.metric-label, .kpi .label{
+  color: var(--muted) !important;
+}
+
+/* Lists / tables */
+.list-item, .item{
+  background: rgba(2, 6, 23, 0.45) !important;
+  border: 1px solid var(--border2) !important;
+}
+table{
+  border: 1px solid var(--border2) !important;
+  background: rgba(2, 6, 23, 0.35) !important;
+}
+th{
+  background: rgba(2, 6, 23, 0.55) !important;
+  color: var(--muted) !important;
+}
+td{
+  color: var(--text) !important;
+}
+
   </style>
 </head>
 
