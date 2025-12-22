@@ -13,470 +13,368 @@
       min-height: 100vh;
     }
 
-    .page { max-width: 1100px; width: 100%; margin: 0 auto; padding: 24px; box-sizing: border-box; }
-
-    .header {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: flex-end;
-      justify-content: space-between;
-      gap: 12px;
-      margin-bottom: 18px;
-    }
-
-    h1 {
-      margin: 0;
-      font-size: 22px;
-      letter-spacing: 0.03em;
-      text-transform: uppercase;
-      color: #e5e7eb;
-    }
-
-    .subtitle { font-size: 13px; color: #9ca3af; margin-top: 4px; max-width: 720px; }
-
-    .controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-
-    .pill {
-      border-radius: 999px;
-      background: rgba(15, 23, 42, 0.95);
-      border: 1px solid rgba(148, 163, 184, 0.4);
-      padding: 6px 12px;
-      font-size: 12px;
-      color: #e5e7eb;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .pill-label {
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-      font-size: 11px;
-      color: #9ca3af;
-      white-space: nowrap;
-    }
-
-    .pill input, .pill select {
-      border: none;
-      background: transparent;
-      color: #e5e7eb;
-      font-size: 12px;
-      padding: 2px 4px;
-      outline: none;
-      cursor: pointer;
-    }
-
-    .pill select option { background: #020617; color: #e5e7eb; }
-
-    .btn {
-      border-radius: 999px;
-      border: 1px solid rgba(94, 234, 212, 0.5);
-      background: radial-gradient(circle at top left, rgba(45, 212, 191, 0.35), rgba(15, 23, 42, 1));
-      color: #ecfeff;
-      padding: 8px 14px;
-      font-size: 12px;
-      font-weight: 500;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      box-shadow: 0 0 0 1px rgba(15, 23, 42, 1), 0 8px 18px rgba(45, 212, 191, 0.2);
-      transition: transform 0.1s ease, box-shadow 0.1s ease, opacity 0.1s ease;
-    }
-
-    .btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 0 0 1px rgba(15, 23, 42, 1), 0 12px 26px rgba(45, 212, 191, 0.28); }
-    .btn:disabled { opacity: 0.45; cursor: default; }
-
-    .btn-secondary {
-      border-color: rgba(148, 163, 184, 0.6);
-      background: radial-gradient(circle at top left, rgba(30, 64, 175, 0.4), rgba(15, 23, 42, 1));
+    .wrap {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 18px 14px 42px;
     }
 
     .card {
-      background: radial-gradient(circle at top left, rgba(30, 64, 175, 0.4), rgba(15, 23, 42, 0.98));
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
       border-radius: 18px;
-      border: 1px solid rgba(148, 163, 184, 0.35);
-      box-shadow: 0 0 0 1px rgba(15, 23, 42, 1), 0 18px 40px rgba(15, 23, 42, 0.9);
       padding: 14px;
-      box-sizing: border-box;
-      margin-top: 14px;
+      box-shadow: 0 10px 24px rgba(0,0,0,0.24);
+      position: relative;
+      overflow: hidden;
     }
 
-    .card-header {
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: -1px;
+      background: radial-gradient(650px 140px at 15% 0%, rgba(59,130,246,0.18), transparent 65%),
+                  radial-gradient(550px 160px at 85% 0%, rgba(236,72,153,0.14), transparent 60%);
+      pointer-events: none;
+    }
+    .card > * { position: relative; }
+
+    .topbar {
       display: flex;
-      align-items: baseline;
+      flex-wrap: wrap;
+      align-items: center;
       justify-content: space-between;
-      gap: 8px;
-      margin-bottom: 10px;
+      gap: 12px;
+      margin-bottom: 14px;
     }
 
-    .card-title {
-      font-size: 14px;
-      letter-spacing: 0.11em;
-      text-transform: uppercase;
-      color: #e5e7eb;
+    .title {
+      font-size: 18px;
+      font-weight: 800;
     }
 
-    .card-subtitle { font-size: 11px; color: #9ca3af; }
-
-    .grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
-    .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    @media (max-width: 900px) { .row-2 { grid-template-columns: 1fr; } }
-
-    .metric {
-      background: radial-gradient(circle at top left, rgba(15, 23, 42, 0.9), rgba(15, 23, 42, 1));
-      border-radius: 14px;
-      padding: 12px;
-      border: 1px solid rgba(148, 163, 184, 0.5);
-      box-shadow: 0 0 0 1px rgba(15, 23, 42, 1), 0 8px 18px rgba(15, 23, 42, 0.9);
-    }
-
-    .metric-label {
-      font-size: 11px;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: #9ca3af;
-      margin-bottom: 8px;
-    }
-
-    .field { display: grid; grid-template-columns: 1fr; gap: 6px; margin-bottom: 10px; }
-    .field label { font-size: 11px; color: #9ca3af; }
-    .field input, .field textarea {
-      background: rgba(2,6,23,0.55);
-      border: 1px solid rgba(148,163,184,0.35);
-      color: #e5e7eb;
-      border-radius: 12px;
-      padding: 10px 10px;
-      font-size: 13px;
-      outline: none;
-    }
-    .field textarea { min-height: 80px; resize: vertical; }
-
-    .help { font-size: 11px; color: #9ca3af; margin-top: 8px; line-height: 1.35; }
-    .banner {
-      display:none;
-      border-radius: 10px;
-      border: 1px solid rgba(248, 113, 113, 0.7);
-      background: rgba(127, 29, 29, 0.7);
-      color: #fee2e2;
-      padding: 8px 10px;
+    .subtitle {
       font-size: 12px;
+      color: rgba(255,255,255,0.68);
+      margin-top: 4px;
+      line-height: 1.25;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
       margin-top: 12px;
+    }
+
+    @media (max-width: 900px) {
+      .row { grid-template-columns: 1fr; }
+    }
+
+    label {
+      font-size: 12px;
+      color: rgba(255,255,255,0.72);
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    select, input, textarea {
+      width: 100%;
+      background: rgba(0,0,0,0.25);
+      border: 1px solid rgba(255,255,255,0.12);
+      color: #f9fafb;
+      padding: 10px 10px;
+      border-radius: 12px;
+      outline: none;
+      font-size: 13px;
+      box-sizing: border-box;
+    }
+
+    textarea { min-height: 90px; resize: vertical; }
+
+    .section-title {
+      margin-top: 14px;
+      font-weight: 800;
+      font-size: 13px;
+      color: rgba(255,255,255,0.90);
+    }
+
+    .grid2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    @media (max-width: 900px) {
+      .grid2 { grid-template-columns: 1fr; }
+    }
+
+    .btnrow { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+
+    .btn {
+      background: rgba(59,130,246,0.20);
+      border: 1px solid rgba(59,130,246,0.42);
+      color: rgba(219,234,254,0.95);
+      padding: 10px 12px;
+      border-radius: 14px;
+      font-weight: 800;
+      font-size: 13px;
+      cursor: pointer;
+      box-shadow: 0 10px 22px rgba(0,0,0,0.22);
+    }
+
+    .btn-secondary {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.10);
+      color: rgba(255,255,255,0.88);
+    }
+
+    .msg {
+      margin-top: 10px;
+      font-size: 12px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      display: none;
       white-space: pre-wrap;
     }
-    .banner.ok {
-      border: 1px solid rgba(52, 211, 153, 0.7);
-      background: rgba(6, 78, 59, 0.65);
-      color: #d1fae5;
+
+    .msg.ok {
+      display: block;
+      background: rgba(16,185,129,0.14);
+      border: 1px solid rgba(16,185,129,0.30);
+      color: rgba(209,250,229,0.95);
     }
 
-    .split-actions { display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end; margin-top: 10px; }
+    .msg.err {
+      display: block;
+      background: rgba(239,68,68,0.15);
+      border: 1px solid rgba(239,68,68,0.35);
+      color: rgba(254,226,226,0.92);
+    }
   </style>
 </head>
 
 <body>
-  <div class="page">
-    <div class="header">
+  <div class="wrap">
+    <div class="topbar">
       <div>
-        <h1>Monthly Finance Admin</h1>
+        <div class="title">Monthly Finance Admin</div>
         <div class="subtitle">
-          Pre-load monthly budgets and update actuals at month-end. GP is stored as a percentage (no calculations).
+          Create/update monthly_finance_summary rows (Budget + Actual). GP% is entered manually.
         </div>
       </div>
+      <div class="btnrow" style="margin-top:0;">
+        <a class="btn btn-secondary" href="./monthly-dashboard.html">Back to Monthly Dashboard</a>
+      </div>
+    </div>
 
-      <div class="controls">
-        <div class="pill">
-          <div class="pill-label">Month</div>
-          <input type="month" id="monthPicker" />
+    <div class="card">
+      <div class="row">
+        <div>
+          <label for="monthSelect">Month</label>
+          <input id="monthSelect" type="month" />
         </div>
-
-        <div class="pill">
-          <div class="pill-label">Site</div>
-          <select id="sitePicker">
+        <div>
+          <label for="siteSelect">Site</label>
+          <select id="siteSelect">
             <option value="London">London</option>
             <option value="Newcastle">Newcastle</option>
           </select>
         </div>
+        <div>
+          <label>&nbsp;</label>
+          <button class="btn" id="loadBtn">Load</button>
+        </div>
+      </div>
 
-        <button class="btn btn-secondary" id="loadBtn">Load</button>
+      <div class="section-title">Budgets (Monthly)</div>
+      <div class="grid2">
+        <div><label>Budget Retail Sales (£)</label><input id="bRetail" type="number" step="0.01" /></div>
+        <div><label>Budget Hospitality Sales (£)</label><input id="bHosp" type="number" step="0.01" /></div>
+        <div><label>Budget Free Issue (£)</label><input id="bFree" type="number" step="0.01" /></div>
+        <div><label>Budget Core Wages (£)</label><input id="bCore" type="number" step="0.01" /></div>
+        <div><label>Budget Agency Spend (£)</label><input id="bAgency" type="number" step="0.01" /></div>
+        <div><label>Budget GP (%)</label><input id="bGp" type="number" step="0.1" /></div>
+      </div>
+
+      <div class="section-title">Actuals (End of Month)</div>
+      <div class="grid2">
+        <div><label>Actual Retail Sales (£)</label><input id="aRetail" type="number" step="0.01" /></div>
+        <div><label>Actual Hospitality Sales (£)</label><input id="aHosp" type="number" step="0.01" /></div>
+        <div><label>Actual Free Issue (£)</label><input id="aFree" type="number" step="0.01" /></div>
+        <div><label>Actual Core Wages (£)</label><input id="aCore" type="number" step="0.01" /></div>
+        <div><label>Actual Agency Spend (£)</label><input id="aAgency" type="number" step="0.01" /></div>
+        <div><label>Actual GP (%)</label><input id="aGp" type="number" step="0.1" /></div>
+      </div>
+
+      <div style="margin-top:10px;">
+        <label>Notes (optional)</label>
+        <textarea id="notes"></textarea>
+      </div>
+
+      <div class="btnrow">
         <button class="btn" id="saveBtn">Save (Upsert)</button>
-        <a class="btn btn-secondary" href="./monthly-dashboard.html" style="text-decoration:none;">Back to Monthly Dashboard</a>
-      </div>
-    </div>
-
-    <div id="banner" class="banner"></div>
-
-    <div class="card">
-      <div class="card-header">
-        <div>
-          <div class="card-title">Budgets (Monthly)</div>
-          <div class="card-subtitle">Enter budget values for the selected month/site.</div>
-        </div>
+        <button class="btn btn-secondary" id="clearBtn">Clear</button>
       </div>
 
-      <div class="row-2">
-        <div class="metric">
-          <div class="metric-label">Sales</div>
-          <div class="field">
-            <label>Budget Retail Sales (£)</label>
-            <input id="b_retail_sales" type="number" step="0.01" />
-          </div>
-          <div class="field">
-            <label>Budget Hospitality Sales (£)</label>
-            <input id="b_hosp_sales" type="number" step="0.01" />
-          </div>
-          <div class="field">
-            <label>Budget Free Issue (£)</label>
-            <input id="b_free_issue" type="number" step="0.01" />
-          </div>
-        </div>
-
-        <div class="metric">
-          <div class="metric-label">Labour & GP</div>
-          <div class="field">
-            <label>Budget Core Wages (£)</label>
-            <input id="b_core_wages" type="number" step="0.01" />
-          </div>
-          <div class="field">
-            <label>Budget Agency Spend (£)</label>
-            <input id="b_agency" type="number" step="0.01" />
-          </div>
-          <div class="field">
-            <label>Budget GP (%)</label>
-            <input id="b_gp" type="number" step="0.01" />
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-header">
-        <div>
-          <div class="card-title">Actuals (Monthly)</div>
-          <div class="card-subtitle">Update these at month-end.</div>
-        </div>
-      </div>
-
-      <div class="row-2">
-        <div class="metric">
-          <div class="metric-label">Sales</div>
-          <div class="field">
-            <label>Actual Retail Sales (£)</label>
-            <input id="a_retail_sales" type="number" step="0.01" />
-          </div>
-          <div class="field">
-            <label>Actual Hospitality Sales (£)</label>
-            <input id="a_hosp_sales" type="number" step="0.01" />
-          </div>
-          <div class="field">
-            <label>Actual Free Issue (£)</label>
-            <input id="a_free_issue" type="number" step="0.01" />
-          </div>
-        </div>
-
-        <div class="metric">
-          <div class="metric-label">Labour & GP</div>
-          <div class="field">
-            <label>Actual Core Wages (£)</label>
-            <input id="a_core_wages" type="number" step="0.01" />
-          </div>
-          <div class="field">
-            <label>Actual Agency Spend (£)</label>
-            <input id="a_agency" type="number" step="0.01" />
-          </div>
-          <div class="field">
-            <label>Actual GP (%)</label>
-            <input id="a_gp" type="number" step="0.01" />
-          </div>
-        </div>
-      </div>
-
-      <div class="metric" style="margin-top:12px;">
-        <div class="metric-label">Notes</div>
-        <div class="field">
-          <textarea id="notes" placeholder="Optional notes for this month/site..."></textarea>
-        </div>
-      </div>
-
-      <div class="split-actions">
-        <button class="btn btn-secondary" id="clearBtn">Clear Form</button>
-      </div>
-
-      <div class="help">
-        Month key is saved as the 1st of the month (e.g. 2025-12-01). Use Save (Upsert) to create or overwrite the row.
-      </div>
+      <div id="msgOk" class="msg ok"></div>
+      <div id="msgErr" class="msg err"></div>
     </div>
   </div>
 
   <script type="module">
     import { supabase } from './supabase-config.js';
 
-    const monthPicker = document.getElementById('monthPicker');
-    const sitePicker = document.getElementById('sitePicker');
+    const monthSelect = document.getElementById('monthSelect');
+    const siteSelect = document.getElementById('siteSelect');
     const loadBtn = document.getElementById('loadBtn');
     const saveBtn = document.getElementById('saveBtn');
     const clearBtn = document.getElementById('clearBtn');
-    const banner = document.getElementById('banner');
+
+    const msgOk = document.getElementById('msgOk');
+    const msgErr = document.getElementById('msgErr');
 
     const fields = {
-      b_retail_sales: document.getElementById('b_retail_sales'),
-      b_hosp_sales: document.getElementById('b_hosp_sales'),
-      b_free_issue: document.getElementById('b_free_issue'),
-      b_core_wages: document.getElementById('b_core_wages'),
-      b_agency: document.getElementById('b_agency'),
-      b_gp: document.getElementById('b_gp'),
+      bRetail: document.getElementById('bRetail'),
+      bHosp: document.getElementById('bHosp'),
+      bFree: document.getElementById('bFree'),
+      bCore: document.getElementById('bCore'),
+      bAgency: document.getElementById('bAgency'),
+      bGp: document.getElementById('bGp'),
 
-      a_retail_sales: document.getElementById('a_retail_sales'),
-      a_hosp_sales: document.getElementById('a_hosp_sales'),
-      a_free_issue: document.getElementById('a_free_issue'),
-      a_core_wages: document.getElementById('a_core_wages'),
-      a_agency: document.getElementById('a_agency'),
-      a_gp: document.getElementById('a_gp'),
+      aRetail: document.getElementById('aRetail'),
+      aHosp: document.getElementById('aHosp'),
+      aFree: document.getElementById('aFree'),
+      aCore: document.getElementById('aCore'),
+      aAgency: document.getElementById('aAgency'),
+      aGp: document.getElementById('aGp'),
 
-      notes: document.getElementById('notes'),
+      notes: document.getElementById('notes')
     };
 
-    function showBanner(msg, ok=false) {
-      banner.classList.toggle('ok', ok);
-      banner.textContent = msg;
-      banner.style.display = 'block';
+    function showOk(t) { msgErr.style.display = 'none'; msgOk.textContent = t; msgOk.style.display = 'block'; }
+    function showErr(t) { msgOk.style.display = 'none'; msgErr.textContent = t; msgErr.style.display = 'block'; }
+
+    function n(v) {
+      const x = Number(v);
+      return Number.isFinite(x) ? x : 0;
     }
 
-    function hideBanner() {
-      banner.style.display = 'none';
-      banner.textContent = '';
-      banner.classList.remove('ok');
-    }
-
-    function safeNum(v) {
-      const n = Number(v);
-      return Number.isFinite(n) ? n : 0;
-    }
-
-    function monthStartFromPicker() {
-      const v = (monthPicker.value || '').trim(); // YYYY-MM
-      if (!v) return null;
-      return `${v}-01`;
+    function monthStartFromInput(monthYYYYMM) {
+      // input type=month returns YYYY-MM
+      if (!monthYYYYMM) return null;
+      return `${monthYYYYMM}-01`;
     }
 
     function clearForm() {
-      Object.values(fields).forEach(el => {
-        if (el.tagName === 'TEXTAREA') el.value = '';
-        else el.value = '';
-      });
+      Object.values(fields).forEach(el => el.value = '');
+      msgOk.style.display = 'none';
+      msgErr.style.display = 'none';
     }
 
     async function loadRow() {
-      hideBanner();
-      const month_start = monthStartFromPicker();
-      const site = sitePicker.value;
+      msgOk.style.display = 'none';
+      msgErr.style.display = 'none';
 
-      if (!month_start) {
-        showBanner('Please select a month first.');
-        return;
-      }
+      const monthStart = monthStartFromInput(monthSelect.value);
+      const site = siteSelect.value;
+
+      if (!monthStart) { showErr('Please select a month.'); return; }
 
       const { data, error } = await supabase
         .from('monthly_finance_summary')
         .select('*')
-        .eq('month_start', month_start)
+        .eq('month_start', monthStart)
         .eq('site', site)
+        .limit(1)
         .maybeSingle();
 
-      if (error) {
-        showBanner(`Load error:\n${error.message}`);
-        return;
-      }
+      if (error) { showErr(`Load error: ${error.message}`); return; }
 
       if (!data) {
         clearForm();
-        showBanner('No row found yet for this month/site. Enter values and click Save (Upsert).', true);
+        showOk(`No row found for ${site} • ${monthStart}. Enter budgets/actuals and Save to create it.`);
         return;
       }
 
-      fields.b_retail_sales.value = data.budget_retail_sales ?? 0;
-      fields.b_hosp_sales.value = data.budget_hospitality_sales ?? 0;
-      fields.b_free_issue.value = data.budget_free_issue ?? 0;
-      fields.b_core_wages.value = data.budget_core_wages ?? 0;
-      fields.b_agency.value = data.budget_agency_spend ?? 0;
-      fields.b_gp.value = data.budget_gp_pct ?? 0;
+      fields.bRetail.value = data.budget_retail_sales ?? 0;
+      fields.bHosp.value = data.budget_hospitality_sales ?? 0;
+      fields.bFree.value = data.budget_free_issue ?? 0;
+      fields.bCore.value = data.budget_core_wages ?? 0;
+      fields.bAgency.value = data.budget_agency_spend ?? 0;
+      fields.bGp.value = data.budget_gp_pct ?? 0;
 
-      fields.a_retail_sales.value = data.actual_retail_sales ?? 0;
-      fields.a_hosp_sales.value = data.actual_hospitality_sales ?? 0;
-      fields.a_free_issue.value = data.actual_free_issue ?? 0;
-      fields.a_core_wages.value = data.actual_core_wages ?? 0;
-      fields.a_agency.value = data.actual_agency_spend ?? 0;
-      fields.a_gp.value = data.actual_gp_pct ?? 0;
+      fields.aRetail.value = data.actual_retail_sales ?? 0;
+      fields.aHosp.value = data.actual_hospitality_sales ?? 0;
+      fields.aFree.value = data.actual_free_issue ?? 0;
+      fields.aCore.value = data.actual_core_wages ?? 0;
+      fields.aAgency.value = data.actual_agency_spend ?? 0;
+      fields.aGp.value = data.actual_gp_pct ?? 0;
 
       fields.notes.value = data.notes ?? '';
 
-      showBanner('Row loaded.', true);
+      showOk(`Loaded ${site} • ${monthStart}.`);
     }
 
     async function saveRow() {
-      hideBanner();
-      const month_start = monthStartFromPicker();
-      const site = sitePicker.value;
+      msgOk.style.display = 'none';
+      msgErr.style.display = 'none';
 
-      if (!month_start) {
-        showBanner('Please select a month first.');
-        return;
-      }
+      const monthStart = monthStartFromInput(monthSelect.value);
+      const site = siteSelect.value;
 
-      saveBtn.disabled = true;
-      saveBtn.textContent = 'Saving…';
+      if (!monthStart) { showErr('Please select a month.'); return; }
 
       const payload = {
-        month_start,
+        month_start: monthStart,
         site,
 
-        budget_retail_sales: safeNum(fields.b_retail_sales.value),
-        budget_hospitality_sales: safeNum(fields.b_hosp_sales.value),
-        budget_free_issue: safeNum(fields.b_free_issue.value),
-        budget_core_wages: safeNum(fields.b_core_wages.value),
-        budget_agency_spend: safeNum(fields.b_agency.value),
-        budget_gp_pct: safeNum(fields.b_gp.value),
+        budget_retail_sales: n(fields.bRetail.value),
+        budget_hospitality_sales: n(fields.bHosp.value),
+        budget_free_issue: n(fields.bFree.value),
+        budget_core_wages: n(fields.bCore.value),
+        budget_agency_spend: n(fields.bAgency.value),
+        budget_gp_pct: n(fields.bGp.value),
 
-        actual_retail_sales: safeNum(fields.a_retail_sales.value),
-        actual_hospitality_sales: safeNum(fields.a_hosp_sales.value),
-        actual_free_issue: safeNum(fields.a_free_issue.value),
-        actual_core_wages: safeNum(fields.a_core_wages.value),
-        actual_agency_spend: safeNum(fields.a_agency.value),
-        actual_gp_pct: safeNum(fields.a_gp.value),
+        actual_retail_sales: n(fields.aRetail.value),
+        actual_hospitality_sales: n(fields.aHosp.value),
+        actual_free_issue: n(fields.aFree.value),
+        actual_core_wages: n(fields.aCore.value),
+        actual_agency_spend: n(fields.aAgency.value),
+        actual_gp_pct: n(fields.aGp.value),
 
-        notes: (fields.notes.value || '').toString().trim()
+        notes: fields.notes.value || null
       };
 
-      const { error } = await supabase
+      // Upsert using month_start+site uniqueness (recommended).
+      // If you haven't added a unique constraint yet, you should:
+      // ALTER TABLE monthly_finance_summary ADD CONSTRAINT monthly_finance_summary_unique UNIQUE (month_start, site);
+      const { data, error } = await supabase
         .from('monthly_finance_summary')
-        .upsert(payload, { onConflict: 'month_start,site' });
-
-      saveBtn.disabled = false;
-      saveBtn.textContent = 'Save (Upsert)';
+        .upsert(payload, { onConflict: 'month_start,site' })
+        .select()
+        .maybeSingle();
 
       if (error) {
-        showBanner(`Save error:\n${error.message}`);
+        showErr(`Save error: ${error.message}\n\nIf you see an onConflict error, add a UNIQUE constraint on (month_start, site).`);
         return;
       }
 
-      showBanner('Saved successfully.', true);
+      showOk(`Saved ${site} • ${monthStart}.`);
     }
 
-    // Defaults: current month
-    const now = new Date();
-    const yyyy = now.getFullYear();
-    const mm = String(now.getMonth() + 1).padStart(2, '0');
-    monthPicker.value = `${yyyy}-${mm}`;
+    // default month = current month
+    (function init() {
+      const now = new Date();
+      const yyyy = now.getFullYear();
+      const mm = String(now.getMonth() + 1).padStart(2, '0');
+      monthSelect.value = `${yyyy}-${mm}`;
+    })();
 
     loadBtn.addEventListener('click', loadRow);
     saveBtn.addEventListener('click', saveRow);
-    clearBtn.addEventListener('click', () => { hideBanner(); clearForm(); });
-
-    // auto-load on change
-    monthPicker.addEventListener('change', loadRow);
-    sitePicker.addEventListener('change', loadRow);
-
-    loadRow();
+    clearBtn.addEventListener('click', clearForm);
   </script>
 </body>
 </html>
