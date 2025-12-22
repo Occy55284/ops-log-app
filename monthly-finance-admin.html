@@ -122,6 +122,10 @@
       font-size: 13px;
       cursor: pointer;
       box-shadow: 0 10px 22px rgba(0,0,0,0.22);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
     }
 
     .btn-secondary {
@@ -164,8 +168,10 @@
           Create/update monthly_finance_summary rows (Budget + Actual). GP% is entered manually.
         </div>
       </div>
+
       <div class="btnrow" style="margin-top:0;">
-        <a class="btn btn-secondary" href="./monthly-dashboard.html">Back to Monthly Dashboard</a>
+        <a class="btn btn-secondary" href="./monthly.html">Back to Monthly Dashboard</a>
+        <a class="btn btn-secondary" href="./index.html">Home</a>
       </div>
     </div>
 
@@ -184,7 +190,7 @@
         </div>
         <div>
           <label>&nbsp;</label>
-          <button class="btn" id="loadBtn">Load</button>
+          <button class="btn" id="loadBtn" type="button">Load</button>
         </div>
       </div>
 
@@ -214,8 +220,8 @@
       </div>
 
       <div class="btnrow">
-        <button class="btn" id="saveBtn">Save (Upsert)</button>
-        <button class="btn btn-secondary" id="clearBtn">Clear</button>
+        <button class="btn" id="saveBtn" type="button">Save (Upsert)</button>
+        <button class="btn btn-secondary" id="clearBtn" type="button">Clear</button>
       </div>
 
       <div id="msgOk" class="msg ok"></div>
@@ -262,7 +268,6 @@
     }
 
     function monthStartFromInput(monthYYYYMM) {
-      // input type=month returns YYYY-MM
       if (!monthYYYYMM) return null;
       return `${monthYYYYMM}-01`;
     }
@@ -347,24 +352,22 @@
         notes: fields.notes.value || null
       };
 
-      // Upsert using month_start+site uniqueness (recommended).
-      // If you haven't added a unique constraint yet, you should:
-      // ALTER TABLE monthly_finance_summary ADD CONSTRAINT monthly_finance_summary_unique UNIQUE (month_start, site);
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('monthly_finance_summary')
-        .upsert(payload, { onConflict: 'month_start,site' })
-        .select()
-        .maybeSingle();
+        .upsert(payload, { onConflict: 'month_start,site' });
 
       if (error) {
-        showErr(`Save error: ${error.message}\n\nIf you see an onConflict error, add a UNIQUE constraint on (month_start, site).`);
+        showErr(
+          `Save error: ${error.message}\n\n` +
+          `If you see an onConflict/duplicate issue, add a UNIQUE constraint on (month_start, site):\n` +
+          `alter table public.monthly_finance_summary add constraint monthly_finance_summary_unique unique (month_start, site);`
+        );
         return;
       }
 
       showOk(`Saved ${site} • ${monthStart}.`);
     }
 
-    // default month = current month
     (function init() {
       const now = new Date();
       const yyyy = now.getFullYear();
