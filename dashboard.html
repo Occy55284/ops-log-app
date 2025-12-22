@@ -151,6 +151,7 @@
       align-items: flex-start;
       gap: 10px;
       margin-bottom: 10px;
+      flex-wrap: wrap;
     }
 
     .card-title {
@@ -196,6 +197,7 @@
       font-size: 11px;
       color: rgba(255,255,255,0.65);
       margin-top: 2px;
+      line-height: 1.25;
     }
 
     .metric-row {
@@ -260,6 +262,29 @@
       padding: 4px 8px;
       border-radius: 999px;
       white-space: nowrap;
+    }
+
+    .badge-strong {
+      font-size: 11px;
+      font-weight: 800;
+      color: rgba(255,255,255,0.90);
+      background: rgba(59,130,246,0.16);
+      border: 1px solid rgba(59,130,246,0.35);
+      padding: 6px 10px;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+
+    .badge-good {
+      background: rgba(16,185,129,0.14);
+      border: 1px solid rgba(16,185,129,0.30);
+      color: rgba(209,250,229,0.95);
+    }
+
+    .badge-bad {
+      background: rgba(239,68,68,0.14);
+      border: 1px solid rgba(239,68,68,0.30);
+      color: rgba(254,226,226,0.95);
     }
 
     .list-notes {
@@ -461,11 +486,25 @@
     }
     canvas {
       width: 100%;
-      height: 160px;
+      height: 180px;
       display: block;
       border-radius: 12px;
       background: rgba(0,0,0,0.18);
       border: 1px solid rgba(255,255,255,0.06);
+    }
+
+    /* WoW colour cues */
+    .wow-pos { color: rgba(209,250,229,0.95); }
+    .wow-pos strong { color: rgba(16,185,129,0.95); }
+    .wow-neg { color: rgba(254,226,226,0.95); }
+    .wow-neg strong { color: rgba(239,68,68,0.95); }
+    .wow-neutral { color: rgba(255,255,255,0.70); }
+    .wow-neutral strong { color: rgba(255,255,255,0.85); }
+
+    /* Retail “importance” visual weight */
+    .retail-hero {
+      border: 1px solid rgba(59,130,246,0.20);
+      box-shadow: 0 14px 34px rgba(0,0,0,0.28);
     }
   </style>
 </head>
@@ -513,6 +552,7 @@
     <div id="errorMessage" class="error"></div>
 
     <div class="grid">
+      <!-- OVERVIEW -->
       <div class="row-1">
         <div class="card" style="grid-column: 1 / span 4; padding: 0;">
           <div style="padding: 14px 14px 0;">
@@ -554,6 +594,9 @@
                 <div class="label">Retail Sales</div>
                 <div class="value" id="kpiRetailSales">£0.00</div>
                 <div class="sub" id="kpiRetailSalesSub">Transactions • SPH</div>
+                <div class="sub" id="kpiRetailBreakdown" style="margin-top:6px; color: rgba(255,255,255,0.62);">
+                  L7 £0 • L5 £0 • L4 £0 • L3 £0
+                </div>
               </div>
             </div>
           </div>
@@ -569,6 +612,57 @@
         </div>
       </div>
 
+      <!-- RETAIL SALES HERO (FULL WIDTH / CENTREPIECE) -->
+      <div class="row-1">
+        <div class="card retail-hero" id="retailSalesCard" style="grid-column: 1 / span 4;">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Retail Sales (Weekly Totals)</div>
+              <div class="card-subtitle">Levels 7/5/4/3 with SPH + change vs previous week, plus a Mon–Fri chart.</div>
+            </div>
+
+            <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; justify-content:flex-end;">
+              <div class="pill" id="salesWoWLabel">WoW</div>
+              <div class="badge-strong badge-good" id="bestFloorBadge" style="display:none;"></div>
+              <div class="badge-strong badge-bad" id="worstFloorBadge" style="display:none;"></div>
+            </div>
+          </div>
+
+          <div class="metric-row" style="grid-template-columns: 1fr;">
+            <div class="metric">
+              <div class="metric-label">Grand Total</div>
+              <div class="metric-value" id="salesTotal">£0.00</div>
+
+              <div class="metric-sub" id="salesWoWLine">
+                <span id="salesTx">0</span> tx • SPH <span id="salesSPH">£0.00</span><br/>
+                vs last week:
+                <span id="salesWoWValue"><strong>£0.00</strong></span>
+                (<span id="salesWoWPct"><strong>0.0%</strong></span>)
+              </div>
+            </div>
+          </div>
+
+          <div class="chart-wrap">
+            <div class="chart-head">
+              <div class="left" id="retailChartLabel">Mon–Fri totals (stacked by level)</div>
+              <div class="right" id="retailChartAvgLabel">Avg/day: £0.00</div>
+            </div>
+            <canvas id="retailSalesChart" width="900" height="320"></canvas>
+            <div class="legend" id="retailChartLegend">
+              <span class="key"><span class="swatch" data-swatch="lvl7"></span>Level 7</span>
+              <span class="key"><span class="swatch" data-swatch="lvl5"></span>Level 5</span>
+              <span class="key"><span class="swatch" data-swatch="lvl4"></span>Level 4</span>
+              <span class="key"><span class="swatch" data-swatch="lvl3"></span>Level 3</span>
+              <span class="key"><span class="swatch" data-swatch="avg"></span>Avg line</span>
+            </div>
+          </div>
+
+          <div id="salesEmpty" class="empty-text">No retail sales for this week.</div>
+          <div id="salesList" class="list"></div>
+        </div>
+      </div>
+
+      <!-- CORE OPS ROW -->
       <div class="row-3">
         <div class="card">
           <div class="card-header">
@@ -631,8 +725,11 @@
             </div>
           </div>
         </div>
+      </div>
 
-        <div class="card" id="hotLunchCard">
+      <!-- NEWCASTLE HOT LUNCHES -->
+      <div class="row-3">
+        <div class="card" id="hotLunchCard" style="grid-column: 1 / span 3;">
           <div class="card-header">
             <div>
               <div class="card-title">Newcastle Hot Lunches</div>
@@ -662,12 +759,7 @@
         </div>
       </div>
 
-             <div class="row-1">
-  <div class="card" id="retailSalesCard" style="grid-column: 1 / span 4;">
-    <!-- RETAIL SALES CONTENT (unchanged) -->
-  </div>
-</div>
-      
+      <!-- INCIDENTS -->
       <div class="row-2">
         <div class="card">
           <div class="card-header">
@@ -692,6 +784,7 @@
         </div>
       </div>
 
+      <!-- NOTES + SPECIALS + HOSP NOTES -->
       <div class="row-3">
         <div class="card">
           <div class="card-header">
@@ -715,44 +808,6 @@
           <div id="specialsList" class="list"></div>
         </div>
 
-              <div class="card-title">Retail Sales (Weekly Totals)</div>
-              <div class="card-subtitle">Levels 7/5/4/3 with SPH + change vs previous week, plus a Mon–Fri chart.</div>
-            </div>
-            <div class="pill" id="salesWoWLabel">WoW</div>
-          </div>
-
-          <div class="metric-row" style="grid-template-columns: 1fr;">
-            <div class="metric">
-              <div class="metric-label">Grand Total</div>
-              <div class="metric-value" id="salesTotal">£0.00</div>
-              <div class="metric-sub">
-                <span id="salesTx">0</span> tx • SPH <span id="salesSPH">£0.00</span><br/>
-                vs last week: <span id="salesWoWValue">£0.00</span> (<span id="salesWoWPct">0.0%</span>)
-              </div>
-            </div>
-          </div>
-
-          <div class="chart-wrap">
-            <div class="chart-head">
-              <div class="left" id="retailChartLabel">Mon–Fri totals (stacked by level)</div>
-              <div class="right" id="retailChartAvgLabel">Avg/day: £0.00</div>
-            </div>
-            <canvas id="retailSalesChart" width="900" height="320"></canvas>
-            <div class="legend" id="retailChartLegend">
-              <span class="key"><span class="swatch" data-swatch="lvl7"></span>Level 7</span>
-              <span class="key"><span class="swatch" data-swatch="lvl5"></span>Level 5</span>
-              <span class="key"><span class="swatch" data-swatch="lvl4"></span>Level 4</span>
-              <span class="key"><span class="swatch" data-swatch="lvl3"></span>Level 3</span>
-              <span class="key"><span class="swatch" data-swatch="avg"></span>Avg line</span>
-            </div>
-          </div>
-
-          <div id="salesEmpty" class="empty-text">No retail sales for this week.</div>
-          <div id="salesList" class="list"></div>
-        </div>
-      </div>
-
-      <div class="row-4">
         <div class="card">
           <div class="card-header">
             <div>
@@ -763,8 +818,11 @@
           <div id="notesEmpty" class="empty-text">No notes recorded.</div>
           <div id="notesList" class="list"></div>
         </div>
+      </div>
 
-        <div class="card">
+      <!-- PHOTOS -->
+      <div class="row-4">
+        <div class="card" style="grid-column: 1 / span 2;">
           <div class="card-header">
             <div>
               <div class="card-title">Photo Gallery</div>
@@ -810,6 +868,7 @@
     const kpiRetailSpecialsSubEl = document.getElementById('kpiRetailSpecialsSub');
     const kpiRetailSalesEl = document.getElementById('kpiRetailSales');
     const kpiRetailSalesSubEl = document.getElementById('kpiRetailSalesSub');
+    const kpiRetailBreakdownEl = document.getElementById('kpiRetailBreakdown');
 
     const staffSicknessEl = document.getElementById('staffSickness');
     const staffHolidayEl = document.getElementById('staffHoliday');
@@ -841,20 +900,6 @@
     const specialsEmptyEl = document.getElementById('specialsEmpty');
     const specialsListEl = document.getElementById('specialsList');
 
-    const salesTotalEl = document.getElementById('salesTotal');
-    const salesTxEl = document.getElementById('salesTx');
-    const salesSPHEl = document.getElementById('salesSPH');
-    const salesWoWLabelEl = document.getElementById('salesWoWLabel');
-    const salesWoWValueEl = document.getElementById('salesWoWValue');
-    const salesWoWPctEl = document.getElementById('salesWoWPct');
-    const salesEmptyEl = document.getElementById('salesEmpty');
-    const salesListEl = document.getElementById('salesList');
-
-    const retailSalesChartEl = document.getElementById('retailSalesChart');
-    const retailChartAvgLabelEl = document.getElementById('retailChartAvgLabel');
-    const retailChartLabelEl = document.getElementById('retailChartLabel');
-    const retailChartLegendEl = document.getElementById('retailChartLegend');
-
     const notesEmptyEl = document.getElementById('notesEmpty');
     const notesListEl = document.getElementById('notesList');
 
@@ -871,11 +916,29 @@
     const modalNotesEl = document.getElementById('modalNotes');
     const closeModalBtn = document.getElementById('closeModalBtn');
 
-    let opsRowsCache = [];
-    let lastHotLunchChartPayload = null;   // { labels, values, avg, weekRangeText }
-    let lastRetailChartPayload = null;     // { labels, dayTotalsByLevel, dailyGrand, avgGrand, weekRangeText }
+    // Retail elements
+    const salesTotalEl = document.getElementById('salesTotal');
+    const salesTxEl = document.getElementById('salesTx');
+    const salesSPHEl = document.getElementById('salesSPH');
+    const salesWoWLabelEl = document.getElementById('salesWoWLabel');
+    const salesWoWValueEl = document.getElementById('salesWoWValue');
+    const salesWoWPctEl = document.getElementById('salesWoWPct');
+    const salesWoWLineEl = document.getElementById('salesWoWLine');
+    const salesEmptyEl = document.getElementById('salesEmpty');
+    const salesListEl = document.getElementById('salesList');
 
-    // Chart palette (kept consistent)
+    const retailSalesChartEl = document.getElementById('retailSalesChart');
+    const retailChartAvgLabelEl = document.getElementById('retailChartAvgLabel');
+    const retailChartLabelEl = document.getElementById('retailChartLabel');
+    const retailChartLegendEl = document.getElementById('retailChartLegend');
+
+    const bestFloorBadgeEl = document.getElementById('bestFloorBadge');
+    const worstFloorBadgeEl = document.getElementById('worstFloorBadge');
+
+    let opsRowsCache = [];
+    let lastHotLunchChartPayload = null;
+    let lastRetailChartPayload = null;
+
     const CHART_COLORS = {
       lvl7Fill: 'rgba(59,130,246,0.55)',
       lvl7Stroke: 'rgba(59,130,246,0.85)',
@@ -892,7 +955,6 @@
       labelSoft: 'rgba(255,255,255,0.45)'
     };
 
-    // Apply legend swatches
     (function initLegendSwatches(){
       if (!retailChartLegendEl) return;
       const swatches = retailChartLegendEl.querySelectorAll('.swatch');
@@ -926,7 +988,7 @@
 
     function startOfWeekMonday(d) {
       const date = new Date(d);
-      const day = date.getDay(); // 0 Sun - 6 Sat
+      const day = date.getDay();
       const diff = (day === 0 ? -6 : 1) - day;
       date.setDate(date.getDate() + diff);
       date.setHours(0,0,0,0);
@@ -969,6 +1031,13 @@
       const pct = ((c - p) / p) * 100;
       const sign = pct > 0 ? '+' : (pct < 0 ? '-' : '');
       return `${sign}${Math.abs(pct).toFixed(1)}%`;
+    }
+
+    function wowClassFromDelta(delta, pctText) {
+      if (pctText === '—') return 'wow-neutral';
+      if (delta > 0.00001) return 'wow-pos';
+      if (delta < -0.00001) return 'wow-neg';
+      return 'wow-neutral';
     }
 
     function matchesFilter(row, site, area) {
@@ -1042,7 +1111,6 @@
     }
 
     function computeRetailSalesDaily(rows, weekStartStr) {
-      // Build Mon–Fri day keys
       const start = new Date(weekStartStr + 'T00:00:00');
       const dayKeys = [];
       for (let i = 0; i < 5; i++) dayKeys.push(toISODate(addDays(start, i)));
@@ -1078,156 +1146,6 @@
       const avgGrand = dailyGrand.reduce((s, v) => s + v, 0) / 5;
 
       return { labels, dayKeys, dayTotalsByLevel, dailyGrand, avgGrand };
-    }
-
-    function renderSalesComparisonAndChart(currentRows, prevRows, prevStartStr, prevEndStr, weekStartStr, weekEndStr) {
-      salesListEl.innerHTML = '';
-
-      const currMap = aggregateSalesByLevel(currentRows);
-      const prevMap = aggregateSalesByLevel(prevRows);
-
-      const anyCurr = Array.from(currMap.values()).some(v => v.sales > 0 || v.tx > 0);
-      if (!anyCurr) {
-        salesEmptyEl.style.display = 'block';
-      } else {
-        salesEmptyEl.style.display = 'none';
-      }
-
-      salesWoWLabelEl.textContent = `${prevStartStr}→${prevEndStr}`;
-
-      let grandCurrSales = 0, grandCurrTx = 0;
-      let grandPrevSales = 0, grandPrevTx = 0;
-
-      for (const lvl of ['Level 7','Level 5','Level 4','Level 3']) {
-        const c = currMap.get(lvl) || { sales:0, tx:0 };
-        const p = prevMap.get(lvl) || { sales:0, tx:0 };
-        grandCurrSales += c.sales; grandCurrTx += c.tx;
-        grandPrevSales += p.sales; grandPrevTx += p.tx;
-      }
-
-      const grandSPH = calcSPH(grandCurrSales, grandCurrTx);
-      salesTotalEl.textContent = money(grandCurrSales);
-      salesTxEl.textContent = String(Math.round(grandCurrTx));
-      salesSPHEl.textContent = money(grandSPH);
-
-      const grandDelta = grandCurrSales - grandPrevSales;
-      salesWoWValueEl.textContent = fmtSignedMoney(grandDelta);
-      salesWoWPctEl.textContent = fmtSignedPctFrom(grandPrevSales, grandCurrSales);
-
-      kpiRetailSalesEl.textContent = money(grandCurrSales);
-      kpiRetailSalesSubEl.textContent = `${Math.round(grandCurrTx)} tx • SPH ${money(grandSPH)}`;
-
-      // Per level list
-      const items = [];
-      for (const lvl of ['Level 7','Level 5','Level 4','Level 3']) {
-        const c = currMap.get(lvl) || { sales:0, tx:0 };
-        const p = prevMap.get(lvl) || { sales:0, tx:0 };
-
-        const sph = calcSPH(c.sales, c.tx);
-        const delta = c.sales - p.sales;
-        const pct = fmtSignedPctFrom(p.sales, c.sales);
-
-        items.push({
-          title: lvl,
-          badge: `SPH ${money(sph)}`,
-          notes:
-            `This week: ${money(c.sales)} • ${Math.round(c.tx)} tx\n` +
-            `Vs last week: ${fmtSignedMoney(delta)} (${pct})`
-        });
-      }
-      renderList(salesListEl, salesEmptyEl, items);
-
-      // Chart data
-      const daily = computeRetailSalesDaily(currentRows, weekStartStr);
-      retailChartLabelEl.textContent = `${weekStartStr} → ${weekEndStr} (Mon–Fri)`;
-      retailChartAvgLabelEl.textContent = `Avg/day: ${money(daily.avgGrand)}`;
-
-      lastRetailChartPayload = {
-        labels: daily.labels,
-        dayTotalsByLevel: daily.dayTotalsByLevel,
-        dailyGrand: daily.dailyGrand,
-        avgGrand: daily.avgGrand,
-        weekRangeText: `${weekStartStr}→${weekEndStr}`
-      };
-
-      drawRetailSalesChart(
-        lastRetailChartPayload.labels,
-        lastRetailChartPayload.dayTotalsByLevel,
-        lastRetailChartPayload.dailyGrand,
-        lastRetailChartPayload.avgGrand,
-        lastRetailChartPayload.weekRangeText
-      );
-    }
-
-    function clearAll() {
-      errorMessageEl.style.display = 'none';
-      errorMessageEl.textContent = '';
-
-      kpiTotalLogsEl.textContent = '0';
-      kpiPhotosEl.textContent = '0';
-      kpiIncidentsEl.textContent = '0';
-      kpiStaffingEl.textContent = '0';
-      kpiRetailSpecialsEl.textContent = '0';
-      kpiRetailSpecialsSubEl.textContent = 'Days with specials';
-      kpiRetailSalesEl.textContent = '£0.00';
-      kpiRetailSalesSubEl.textContent = 'Transactions • SPH';
-
-      staffSicknessEl.textContent = '0';
-      staffHolidayEl.textContent = '0';
-      staffAgencyEl.textContent = '0';
-
-      hospDayEl.textContent = '0';
-      hospNightEl.textContent = '0';
-      hospTotalEl.textContent = '0';
-
-      freeBreakfastTotalEl.textContent = '0';
-      freeBreakfastDaysEl.textContent = '0';
-
-      hotLunchTotalEl.textContent = '0';
-      hotLunchAvgEl.textContent = '0';
-      hotLunchDaysEl.textContent = '0';
-      hotLunchChartAvgLabelEl.textContent = 'Avg: 0';
-      hotLunchChartLabelEl.textContent = 'Mon–Fri totals';
-      lastHotLunchChartPayload = null;
-
-      salesTotalEl.textContent = '£0.00';
-      salesTxEl.textContent = '0';
-      salesSPHEl.textContent = '£0.00';
-      salesWoWLabelEl.textContent = 'WoW';
-      salesWoWValueEl.textContent = '£0.00';
-      salesWoWPctEl.textContent = '0.0%';
-
-      retailChartAvgLabelEl.textContent = 'Avg/day: £0.00';
-      retailChartLabelEl.textContent = 'Mon–Fri totals (stacked by level)';
-      lastRetailChartPayload = null;
-
-      maintListEl.innerHTML = '';
-      hsListEl.innerHTML = '';
-      hospNotesListEl.innerHTML = '';
-      specialsListEl.innerHTML = '';
-      salesListEl.innerHTML = '';
-      notesListEl.innerHTML = '';
-      photosGridEl.innerHTML = '';
-
-      maintEmptyEl.style.display = 'block';
-      hsEmptyEl.style.display = 'block';
-      hospNotesEmptyEl.style.display = 'block';
-      specialsEmptyEl.style.display = 'block';
-      salesEmptyEl.style.display = 'block';
-      notesEmptyEl.style.display = 'block';
-      photosEmptyEl.style.display = 'block';
-
-      weeklySummaryBox.style.display = 'none';
-      weeklySummaryText.textContent = '';
-
-      // Clear charts
-      drawHotLunchChart(['Mon','Tue','Wed','Thu','Fri'], [0,0,0,0,0], 0, '');
-      drawRetailSalesChart(['Mon','Tue','Wed','Thu','Fri'], {
-        'Level 7':[0,0,0,0,0],
-        'Level 5':[0,0,0,0,0],
-        'Level 4':[0,0,0,0,0],
-        'Level 3':[0,0,0,0,0]
-      }, [0,0,0,0,0], 0, '');
     }
 
     function scaleCanvasToDisplaySize(canvas) {
@@ -1355,7 +1273,6 @@
         return padT + (plotH - (v / yMax) * plotH);
       }
 
-      // grid
       ctx.strokeStyle = CHART_COLORS.grid;
       ctx.lineWidth = 1;
       const gridCount = 4;
@@ -1385,7 +1302,6 @@
         const v3 = lvl3[i] || 0;
         const total = v7 + v5 + v4 + v3;
 
-        // stacked segments from bottom up
         let yBottom = padT + plotH;
 
         function drawSeg(val, fill, stroke) {
@@ -1407,7 +1323,6 @@
         drawSeg(v5, CHART_COLORS.lvl5Fill, CHART_COLORS.lvl5Stroke);
         drawSeg(v7, CHART_COLORS.lvl7Fill, CHART_COLORS.lvl7Stroke);
 
-        // total label at top
         const yTopOfBar = yFor(total);
         ctx.fillStyle = CHART_COLORS.textMain;
         ctx.font = `${Math.floor(h * 0.055)}px system-ui, -apple-system, Segoe UI, sans-serif`;
@@ -1415,14 +1330,12 @@
         ctx.textBaseline = 'bottom';
         ctx.fillText(`£${Math.round(total)}`, x + barW / 2, yTopOfBar - 6);
 
-        // x labels
         ctx.fillStyle = CHART_COLORS.textSub;
         ctx.font = `${Math.floor(h * 0.055)}px system-ui, -apple-system, Segoe UI, sans-serif`;
         ctx.textBaseline = 'top';
         ctx.fillText(labels[i] || '', x + barW / 2, padT + plotH + 10);
       }
 
-      // average line for daily grand total
       const yAvg = yFor(avgGrand || 0);
       ctx.strokeStyle = CHART_COLORS.avgLine;
       ctx.lineWidth = 2;
@@ -1464,7 +1377,6 @@
       const labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
       const values = days.map(d => totalsByDate.get(d) || 0);
 
-      // average based on days with entries (matches your KPI behaviour)
       const daysWithEntries = new Set(
         opsRows
           .filter(r => (r.site || '') === 'Newcastle')
@@ -1476,6 +1388,199 @@
       const avg = daysWithEntries.size ? (total / daysWithEntries.size) : 0;
 
       return { labels, values, total, avg, daysWithEntriesCount: daysWithEntries.size };
+    }
+
+    function clearRetailBadges() {
+      bestFloorBadgeEl.style.display = 'none';
+      worstFloorBadgeEl.style.display = 'none';
+      bestFloorBadgeEl.textContent = '';
+      worstFloorBadgeEl.textContent = '';
+    }
+
+    function applyRetailBadges(currMap) {
+      clearRetailBadges();
+
+      const floors = ['Level 7','Level 5','Level 4','Level 3'];
+      const entries = floors.map(f => ({ floor: f, sales: (currMap.get(f)?.sales || 0) }));
+
+      // if all zero, hide
+      const any = entries.some(e => e.sales > 0);
+      if (!any) return;
+
+      entries.sort((a,b) => b.sales - a.sales);
+      const best = entries[0];
+      const worst = entries[entries.length - 1];
+
+      bestFloorBadgeEl.textContent = `Best: ${best.floor} (${money(best.sales)})`;
+      worstFloorBadgeEl.textContent = `Lowest: ${worst.floor} (${money(worst.sales)})`;
+
+      bestFloorBadgeEl.style.display = 'inline-flex';
+      worstFloorBadgeEl.style.display = 'inline-flex';
+    }
+
+    function setWoWColour(delta, pctText) {
+      salesWoWLineEl.classList.remove('wow-pos','wow-neg','wow-neutral');
+      salesWoWLineEl.classList.add(wowClassFromDelta(delta, pctText));
+    }
+
+    function renderRetail(currentRows, prevRows, prevStartStr, prevEndStr, weekStartStr, weekEndStr) {
+      salesListEl.innerHTML = '';
+
+      const currMap = aggregateSalesByLevel(currentRows);
+      const prevMap = aggregateSalesByLevel(prevRows);
+
+      // Header WoW label
+      salesWoWLabelEl.textContent = `${prevStartStr}→${prevEndStr}`;
+
+      // Grand totals
+      let grandCurrSales = 0, grandCurrTx = 0;
+      let grandPrevSales = 0, grandPrevTx = 0;
+
+      for (const lvl of ['Level 7','Level 5','Level 4','Level 3']) {
+        const c = currMap.get(lvl) || { sales:0, tx:0 };
+        const p = prevMap.get(lvl) || { sales:0, tx:0 };
+        grandCurrSales += c.sales; grandCurrTx += c.tx;
+        grandPrevSales += p.sales; grandPrevTx += p.tx;
+      }
+
+      const anyCurr = grandCurrSales > 0 || grandCurrTx > 0;
+      salesEmptyEl.style.display = anyCurr ? 'none' : 'block';
+
+      const grandSPH = calcSPH(grandCurrSales, grandCurrTx);
+      salesTotalEl.textContent = money(grandCurrSales);
+      salesTxEl.textContent = String(Math.round(grandCurrTx));
+      salesSPHEl.textContent = money(grandSPH);
+
+      const grandDelta = grandCurrSales - grandPrevSales;
+      const grandPct = fmtSignedPctFrom(grandPrevSales, grandCurrSales);
+
+      salesWoWValueEl.innerHTML = `<strong>${fmtSignedMoney(grandDelta)}</strong>`;
+      salesWoWPctEl.innerHTML = `<strong>${grandPct}</strong>`;
+      setWoWColour(grandDelta, grandPct);
+
+      // Overview KPI retail
+      kpiRetailSalesEl.textContent = money(grandCurrSales);
+      kpiRetailSalesSubEl.textContent = `${Math.round(grandCurrTx)} tx • SPH ${money(grandSPH)}`;
+
+      const l7 = currMap.get('Level 7')?.sales || 0;
+      const l5 = currMap.get('Level 5')?.sales || 0;
+      const l4 = currMap.get('Level 4')?.sales || 0;
+      const l3 = currMap.get('Level 3')?.sales || 0;
+      kpiRetailBreakdownEl.textContent = `L7 ${money(l7)} • L5 ${money(l5)} • L4 ${money(l4)} • L3 ${money(l3)}`;
+
+      // Best/Worst badges
+      applyRetailBadges(currMap);
+
+      // Per floor list (with WoW)
+      const items = [];
+      for (const lvl of ['Level 7','Level 5','Level 4','Level 3']) {
+        const c = currMap.get(lvl) || { sales:0, tx:0 };
+        const p = prevMap.get(lvl) || { sales:0, tx:0 };
+
+        const sph = calcSPH(c.sales, c.tx);
+        const delta = c.sales - p.sales;
+        const pct = fmtSignedPctFrom(p.sales, c.sales);
+
+        items.push({
+          title: lvl,
+          badge: `SPH ${money(sph)}`,
+          notes:
+            `This week: ${money(c.sales)} • ${Math.round(c.tx)} tx\n` +
+            `Vs last week: ${fmtSignedMoney(delta)} (${pct})`
+        });
+      }
+      renderList(salesListEl, salesEmptyEl, items);
+
+      // Retail chart
+      const daily = computeRetailSalesDaily(currentRows, weekStartStr);
+      retailChartLabelEl.textContent = `${weekStartStr} → ${weekEndStr} (Mon–Fri)`;
+      retailChartAvgLabelEl.textContent = `Avg/day: ${money(daily.avgGrand)}`;
+
+      lastRetailChartPayload = {
+        labels: daily.labels,
+        dayTotalsByLevel: daily.dayTotalsByLevel,
+        dailyGrand: daily.dailyGrand,
+        avgGrand: daily.avgGrand,
+        weekRangeText: `${weekStartStr}→${weekEndStr}`
+      };
+
+      drawRetailSalesChart(
+        lastRetailChartPayload.labels,
+        lastRetailChartPayload.dayTotalsByLevel,
+        lastRetailChartPayload.dailyGrand,
+        lastRetailChartPayload.avgGrand,
+        lastRetailChartPayload.weekRangeText
+      );
+    }
+
+    function clearAll() {
+      errorMessageEl.style.display = 'none';
+      errorMessageEl.textContent = '';
+
+      kpiTotalLogsEl.textContent = '0';
+      kpiPhotosEl.textContent = '0';
+      kpiIncidentsEl.textContent = '0';
+      kpiStaffingEl.textContent = '0';
+      kpiRetailSpecialsEl.textContent = '0';
+      kpiRetailSpecialsSubEl.textContent = 'Days with specials';
+      kpiRetailSalesEl.textContent = '£0.00';
+      kpiRetailSalesSubEl.textContent = 'Transactions • SPH';
+      kpiRetailBreakdownEl.textContent = 'L7 £0 • L5 £0 • L4 £0 • L3 £0';
+
+      staffSicknessEl.textContent = '0';
+      staffHolidayEl.textContent = '0';
+      staffAgencyEl.textContent = '0';
+
+      hospDayEl.textContent = '0';
+      hospNightEl.textContent = '0';
+      hospTotalEl.textContent = '0';
+
+      freeBreakfastTotalEl.textContent = '0';
+      freeBreakfastDaysEl.textContent = '0';
+
+      hotLunchTotalEl.textContent = '0';
+      hotLunchAvgEl.textContent = '0';
+      hotLunchDaysEl.textContent = '0';
+      hotLunchChartAvgLabelEl.textContent = 'Avg: 0';
+      hotLunchChartLabelEl.textContent = 'Mon–Fri totals';
+
+      salesTotalEl.textContent = '£0.00';
+      salesTxEl.textContent = '0';
+      salesSPHEl.textContent = '£0.00';
+      salesWoWLabelEl.textContent = 'WoW';
+      salesWoWValueEl.innerHTML = '<strong>£0.00</strong>';
+      salesWoWPctEl.innerHTML = '<strong>0.0%</strong>';
+      salesWoWLineEl.classList.remove('wow-pos','wow-neg','wow-neutral');
+      salesWoWLineEl.classList.add('wow-neutral');
+      clearRetailBadges();
+
+      maintListEl.innerHTML = '';
+      hsListEl.innerHTML = '';
+      hospNotesListEl.innerHTML = '';
+      specialsListEl.innerHTML = '';
+      notesListEl.innerHTML = '';
+      salesListEl.innerHTML = '';
+      photosGridEl.innerHTML = '';
+
+      maintEmptyEl.style.display = 'block';
+      hsEmptyEl.style.display = 'block';
+      hospNotesEmptyEl.style.display = 'block';
+      specialsEmptyEl.style.display = 'block';
+      notesEmptyEl.style.display = 'block';
+      salesEmptyEl.style.display = 'block';
+      photosEmptyEl.style.display = 'block';
+
+      weeklySummaryBox.style.display = 'none';
+      weeklySummaryText.textContent = '';
+
+      // Clear charts
+      drawHotLunchChart(['Mon','Tue','Wed','Thu','Fri'], [0,0,0,0,0], 0, '');
+      drawRetailSalesChart(['Mon','Tue','Wed','Thu','Fri'], {
+        'Level 7':[0,0,0,0,0],
+        'Level 5':[0,0,0,0,0],
+        'Level 4':[0,0,0,0,0],
+        'Level 3':[0,0,0,0,0]
+      }, [0,0,0,0,0], 0, '');
     }
 
     async function loadWeekly() {
@@ -1508,11 +1613,13 @@
         const opsRows = (opsRowsRaw || []).filter(r => matchesFilter(r, site, area));
         opsRowsCache = opsRows;
 
+        // KPIs
         kpiTotalLogsEl.textContent = String(opsRows.length);
 
         const withPhotos = opsRows.filter(r => !!safeText(r.photo_url));
         kpiPhotosEl.textContent = String(withPhotos.length);
 
+        // Incidents
         const maintItems = opsRows
           .filter(r => isIncidentFlagTrue(r.maintenance_issue) || hasMeaningfulText(r.maintenance_notes))
           .map(r => ({
@@ -1533,6 +1640,7 @@
         renderList(hsListEl, hsEmptyEl, hsItems);
         kpiIncidentsEl.textContent = String(maintItems.length + hsItems.length);
 
+        // Hospitality notes
         const hospNotes = opsRows
           .filter(r => (r.area || '') === 'Hospitality' && hasMeaningfulText(r.notes))
           .map(r => ({
@@ -1542,6 +1650,7 @@
           }));
         renderList(hospNotesListEl, hospNotesEmptyEl, hospNotes);
 
+        // Specials
         const specials = opsRows
           .filter(r => safeText(r.retail_lunch_special).toLowerCase() === 'yes')
           .map(r => ({
@@ -1555,6 +1664,7 @@
         kpiRetailSpecialsEl.textContent = String(specialDays.size);
         kpiRetailSpecialsSubEl.textContent = `${specialDays.size} day(s) with specials`;
 
+        // Staffing
         const sickness = opsRows.reduce((s,r) => s + safeNum(r.sickness_count), 0);
         const holiday = opsRows.reduce((s,r) => s + safeNum(r.holiday_count), 0);
         const agency = opsRows.reduce((s,r) => s + safeNum(r.agency_count), 0);
@@ -1564,18 +1674,21 @@
         staffAgencyEl.textContent = String(agency);
         kpiStaffingEl.textContent = String(sickness + holiday + agency);
 
+        // Hospitality day/night
         const hospDay = opsRows.reduce((s,r) => s + safeNum(r.hosp_day_events), 0);
         const hospNight = opsRows.reduce((s,r) => s + safeNum(r.hosp_night_events), 0);
         hospDayEl.textContent = String(hospDay);
         hospNightEl.textContent = String(hospNight);
         hospTotalEl.textContent = String(hospDay + hospNight);
 
+        // Free breakfast
         const fbRows = opsRows.filter(r => safeNum(r.free_breakfast_count) > 0);
         const fbTotal = fbRows.reduce((s,r) => s + safeNum(r.free_breakfast_count), 0);
         const fbDays = new Set(fbRows.map(r => (r.log_date || (r.created_at ? String(r.created_at).slice(0,10) : '')).slice(0,10)));
         freeBreakfastTotalEl.textContent = String(fbTotal);
         freeBreakfastDaysEl.textContent = String(fbDays.size);
 
+        // Hot lunches + chart
         const hl = computeHotLunchDaily(opsRows, startStr);
         hotLunchTotalEl.textContent = String(Math.round(hl.total));
         hotLunchAvgEl.textContent = String(hl.daysWithEntriesCount ? Math.round(hl.avg) : 0);
@@ -1592,6 +1705,7 @@
         };
         drawHotLunchChart(lastHotLunchChartPayload.labels, lastHotLunchChartPayload.values, lastHotLunchChartPayload.avg, lastHotLunchChartPayload.weekRangeText);
 
+        // Notes
         const notes = opsRows
           .filter(r => hasMeaningfulText(r.notes))
           .map(r => ({
@@ -1601,15 +1715,8 @@
           }));
         renderList(notesListEl, notesEmptyEl, notes);
 
-        // Retail sales totals + WoW + chart (Mon–Fri)
-        renderSalesComparisonAndChart(
-          salesCurrRaw || [],
-          salesPrevRaw || [],
-          prevStartStr,
-          prevEndStr,
-          startStr,
-          endStr
-        );
+        // Retail (sales table + badges + chart + WoW colours + overview breakdown)
+        renderRetail(salesCurrRaw || [], salesPrevRaw || [], prevStartStr, prevEndStr, startStr, endStr);
 
         // Photos
         photosGridEl.innerHTML = '';
@@ -1650,27 +1757,32 @@
       lines.push(`—————————————`);
       lines.push(`Week: ${weekLabelEl.textContent}`);
       lines.push('');
+
       lines.push(`Staffing Impact`);
       lines.push(`• Sickness: ${staffSicknessEl.textContent}`);
       lines.push(`• Holiday: ${staffHolidayEl.textContent}`);
       lines.push(`• Agency: ${staffAgencyEl.textContent}`);
       lines.push('');
+
       lines.push(`Hospitality`);
       lines.push(`• Day events: ${hospDayEl.textContent}`);
       lines.push(`• Night events: ${hospNightEl.textContent}`);
       lines.push('');
+
       lines.push(`Incidents`);
       lines.push(`• Maintenance: ${maintListEl.children.length}`);
       lines.push(`• H&S: ${hsListEl.children.length}`);
       lines.push('');
+
       lines.push(`Retail (Weekly)`);
-      lines.push(`• Total sales: ${salesTotalEl.textContent} (vs last week ${salesWoWValueEl.textContent} / ${salesWoWPctEl.textContent})`);
-      lines.push(`• Lunch specials ran on ${kpiRetailSpecialsEl.textContent} day(s)`);
+      lines.push(`• Total sales: ${salesTotalEl.textContent} (vs last week ${salesWoWValueEl.textContent.replace(/<[^>]*>/g,'')} / ${salesWoWPctEl.textContent.replace(/<[^>]*>/g,'')})`);
       lines.push('');
+
       lines.push(`Newcastle`);
       lines.push(`• Free breakfasts: ${freeBreakfastTotalEl.textContent} over ${freeBreakfastDaysEl.textContent} day(s)`);
       lines.push(`• Hot lunches: ${hotLunchTotalEl.textContent} total (avg ${hotLunchAvgEl.textContent}/day over ${hotLunchDaysEl.textContent} day(s))`);
       lines.push('');
+
       if (notesListEl.children.length > 0) {
         lines.push(`Key Notes`);
         Array.from(notesListEl.children).slice(0, 5).forEach(item => {
@@ -1678,6 +1790,7 @@
           if (txt) lines.push(`• ${txt}`);
         });
       }
+
       return lines.join('\n');
     }
 
@@ -1705,7 +1818,6 @@
     siteFilterEl.addEventListener('change', loadWeekly);
     areaFilterEl.addEventListener('change', loadWeekly);
 
-    // Responsive redraw
     window.addEventListener('resize', () => {
       if (lastHotLunchChartPayload) {
         drawHotLunchChart(
