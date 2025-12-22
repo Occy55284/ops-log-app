@@ -84,6 +84,11 @@
       cursor: pointer;
       box-shadow: 0 10px 22px rgba(0,0,0,0.22);
       transition: transform .08s ease, filter .08s ease;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
     }
     .btn:hover { filter: brightness(1.08); }
     .btn:active { transform: translateY(1px); }
@@ -186,7 +191,6 @@
       gap: 10px;
       align-items: baseline;
     }
-
     .badge {
       font-size: 11px;
       color: rgba(255,255,255,0.70);
@@ -196,7 +200,6 @@
       border-radius: 999px;
       white-space: nowrap;
     }
-
     .list-notes { font-size: 12px; color: rgba(255,255,255,0.75); margin-top: 6px; white-space: pre-wrap; line-height: 1.25; }
     .empty-text { padding: 8px 2px; font-size: 12px; color: rgba(255,255,255,0.65); }
 
@@ -218,14 +221,12 @@
       box-shadow: 0 10px 18px rgba(0,0,0,0.20);
       cursor: pointer;
     }
-
     .photo-card img {
       width: 100%;
       height: 150px;
       object-fit: cover;
       display: block;
     }
-
     .photo-card-caption {
       padding: 8px 10px 10px;
       font-size: 11px;
@@ -243,7 +244,6 @@
       padding: 16px;
     }
     .modal.open { display: grid; place-items: center; }
-
     .modal-card {
       width: min(1100px, 96vw);
       background: rgba(255,255,255,0.05);
@@ -252,7 +252,6 @@
       overflow: hidden;
       box-shadow: 0 20px 60px rgba(0,0,0,0.45);
     }
-
     .modal-header {
       display: flex;
       justify-content: space-between;
@@ -262,7 +261,6 @@
       background: rgba(0,0,0,0.20);
       gap: 10px;
     }
-
     .modal-header .mh-title {
       font-weight: 800;
       font-size: 13px;
@@ -272,7 +270,6 @@
       gap: 10px;
       flex-wrap: wrap;
     }
-
     .close {
       border: 1px solid rgba(255,255,255,0.12);
       background: rgba(0,0,0,0.25);
@@ -282,7 +279,6 @@
       cursor: pointer;
       font-weight: 800;
     }
-
     .modal-body { padding: 12px; display: grid; gap: 12px; }
     .modal-body img { width: 100%; border-radius: 14px; border: 1px solid rgba(255,255,255,0.10); }
   </style>
@@ -300,10 +296,14 @@
       </div>
 
       <div class="filters">
+        <a class="btn btn-secondary" href="./index.html">Home</a>
+
         <button class="btn btn-secondary" id="prevMonthBtn">◀</button>
         <div class="pill" id="monthLabel">Month</div>
         <button class="btn btn-secondary" id="nextMonthBtn">▶</button>
         <button class="btn" id="latestMonthBtn">Latest</button>
+
+        <a class="btn" href="./monthly-finance-admin.html">Finance Admin</a>
 
         <div class="filter">
           <label for="siteFilter">Site</label>
@@ -354,19 +354,19 @@
         </div>
       </div>
 
-      <!-- Finance (Budget vs Actual, GP entered, no calculation) -->
+      <!-- Finance -->
       <div class="row-2">
         <div class="card" style="grid-column: 1 / span 2;">
           <div class="card-header">
             <div>
               <div class="card-title">Finance Snapshot (Budget vs Actual)</div>
-              <div class="card-subtitle">Uses monthly_finance_summary. GP% is displayed as entered.</div>
+              <div class="card-subtitle">Uses monthly_finance_summary. GP% displayed as entered.</div>
             </div>
             <div class="pill" id="financePill">Finance</div>
           </div>
 
           <div id="financeEmpty" class="empty-text">
-            No finance row found for this month/site yet. Use the Finance Admin page to create one.
+            No finance row found for this month/site yet. Click “Finance Admin” (top right) to create one.
           </div>
 
           <div id="financeGrid" class="metric-row" style="grid-template-columns: repeat(3, minmax(0, 1fr)); display:none;">
@@ -404,14 +404,14 @@
           </div>
 
           <div class="metric-sub" style="margin-top:10px;">
-            Tip: If Site = All, the dashboard shows ops metrics combined but finance is displayed per-site (London + Newcastle).
+            If Site = All, finance is displayed as a per-site list (London + Newcastle) rather than a combined total.
           </div>
 
           <div id="financeAllSitesList" class="list" style="display:none;"></div>
         </div>
       </div>
 
-      <!-- Ops + Incidents -->
+      <!-- Staffing + incidents -->
       <div class="row-3">
         <div class="card">
           <div class="card-header">
@@ -450,7 +450,7 @@
         </div>
       </div>
 
-      <!-- Retail sales (from retail_sales table) -->
+      <!-- Retail + Photos -->
       <div class="row-2">
         <div class="card">
           <div class="card-header">
@@ -472,7 +472,6 @@
           <div id="retailLevelsList" class="list"></div>
         </div>
 
-        <!-- Photos (restored) -->
         <div class="card">
           <div class="card-header">
             <div>
@@ -539,7 +538,6 @@
     const photosGridEl = document.getElementById('photosGrid');
 
     const photoModalEl = document.getElementById('photoModal');
-    const photoModalTitleEl = document.getElementById('photoModalTitle');
     const photoModalImgEl = document.getElementById('photoModalImg');
     const photoModalMetaEl = document.getElementById('photoModalMeta');
     const closePhotoModalBtn = document.getElementById('closePhotoModalBtn');
@@ -670,7 +668,6 @@
       photosGridEl.innerHTML = '';
       photosEmptyEl.style.display = 'block';
 
-      // Finance reset
       financePillEl.textContent = 'Finance';
       financeEmptyEl.style.display = 'block';
       financeGridEl.style.display = 'none';
@@ -679,7 +676,6 @@
     }
 
     async function loadMonthlyFinance(monthStartStr, site) {
-      // If site is All, load both and show as a list (do NOT try to sum GP%)
       if (site === 'All') {
         const { data, error } = await supabase
           .from('monthly_finance_summary')
@@ -715,7 +711,6 @@
             };
           });
 
-          // re-use list renderer with a dummy empty element
           const dummyEmpty = document.createElement('div');
           renderList(financeAllSitesListEl, dummyEmpty, items);
         }
@@ -780,12 +775,9 @@
         .gte('sales_date', startStr)
         .lte('sales_date', endStr);
 
-      // retail_sales has "site" default London in your schema.
-      // If Newcastle selected, this will correctly show 0 unless you start storing Newcastle retail rows.
       if (site !== 'All') q = q.eq('site', site);
 
       const { data, error } = await q.order('sales_date', { ascending: true });
-
       if (error) throw error;
 
       const totals = {
@@ -847,7 +839,6 @@
     }
 
     async function loadMonthlyOpsLogs(startStr, endStr, site) {
-      // FIX: include created_at fallback for legacy rows with log_date IS NULL
       let q = supabase
         .from('ops_logs')
         .select('*')
@@ -884,7 +875,6 @@
       }
 
       photosEmptyEl.style.display = 'none';
-
       photos.sort((a,b) => (a.date < b.date ? -1 : 1));
 
       photosGridEl.innerHTML = photos.map(p => `
@@ -894,12 +884,10 @@
         </div>
       `).join('');
 
-      // click => modal
       photosGridEl.querySelectorAll('.photo-card').forEach(el => {
         el.addEventListener('click', () => {
           const url = el.getAttribute('data-url');
           const meta = el.getAttribute('data-meta') || '';
-          photoModalTitleEl.textContent = 'Photo';
           photoModalImgEl.src = url;
           photoModalMetaEl.textContent = meta;
           photoModalEl.classList.add('open');
@@ -922,7 +910,7 @@
       const startStr = toISODate(monthStart);
       const endStr = toISODate(monthEnd);
 
-      const monthStartStr = toISODate(monthStart); // month_start key for finance table
+      const monthStartStr = toISODate(monthStart);
       const site = siteFilterEl.value;
 
       monthLabelEl.textContent = monthLabelFromDate(target);
@@ -934,7 +922,6 @@
           loadMonthlyRetailSales(startStr, endStr, site),
         ]);
 
-        // KPIs
         kpiTotalLogsEl.textContent = String(opsRows.length);
 
         const sick = opsRows.reduce((s,r) => s + safeNum(r.sickness_count), 0);
@@ -948,7 +935,6 @@
         kpiStaffingSumEl.textContent = String(sick + hol + ag);
         kpiStaffingSubEl.textContent = `Sick: ${sick} • Holiday: ${hol} • Agency: ${ag}`;
 
-        // Incidents
         const maintItems = [];
         const hsItems = [];
 
@@ -967,13 +953,9 @@
         renderList(maintListEl, maintEmptyEl, maintItems);
         renderList(hsListEl, hsEmptyEl, hsItems);
 
-        // Retail
         renderRetailSales(retailTotals);
-
-        // Photos
         renderPhotos(opsRows);
 
-        // Finance (separate query)
         await loadMonthlyFinance(monthStartStr, site);
 
       } catch (err) {
@@ -998,4 +980,3 @@
   </script>
 </body>
 </html>
-
