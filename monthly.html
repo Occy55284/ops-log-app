@@ -125,8 +125,9 @@
       display: flex;
       align-items: baseline;
       justify-content: space-between;
-      gap: 8px;
+      gap: 10px;
       margin-bottom: 10px;
+      flex-wrap: wrap;
     }
 
     .card-title {
@@ -161,7 +162,7 @@
     }
 
     .metric-value { font-size: 20px; font-weight: 600; color: #e5e7eb; }
-    .metric-sub { font-size: 11px; color: #9ca3af; margin-top: 2px; }
+    .metric-sub { font-size: 11px; color: #9ca3af; margin-top: 2px; line-height: 1.35; }
 
     .section-label {
       font-size: 11px;
@@ -186,6 +187,7 @@
       padding: 8px 10px;
       font-size: 12px;
       margin-bottom: 12px;
+      white-space: pre-wrap;
     }
 
     .list {
@@ -233,6 +235,11 @@
     .photo-card a { text-decoration: none; }
     .photo-card a:focus img,
     .photo-card a:hover img { outline: 1px solid rgba(96, 165, 250, 0.8); outline-offset: 2px; }
+
+    /* Commercial variance styling */
+    .var-pos { color: #a7f3d0; }
+    .var-neg { color: #fecaca; }
+    .var-neu { color: #cbd5e1; }
   </style>
 </head>
 
@@ -242,7 +249,7 @@
       <div class="title-wrap">
         <h1>Monthly Ops Dashboard</h1>
         <div class="subtitle">
-          Month view. Drill down by site/area, with staffing, incidents, hospitality, retail activity, Newcastle metrics, retail sales/SPH, and photo gallery.
+          Month view. Drill down by site/area, with staffing, incidents, hospitality, retail activity, Newcastle metrics, retail sales/SPH, photo gallery, and monthly finance budgets/actuals.
         </div>
       </div>
 
@@ -268,7 +275,6 @@
         <button class="btn btn-secondary" id="nextMonthBtn"><span class="btn-icon">▶</span> Next</button>
         <button class="btn" id="latestMonthBtn"><span class="btn-icon">⟳</span> Latest month</button>
 
-        <!-- ✅ NEW: Monthly summary -->
         <button class="btn" id="generateMonthlySummaryBtn">
           <span class="btn-icon">📝</span>
           Generate Summary Text
@@ -279,6 +285,83 @@
     <div id="errorMessage" class="error-banner"></div>
 
     <div class="grid">
+      <!-- ✅ NEW: Commercial / Finance Summary -->
+      <div class="card" id="financeCard">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Commercial Summary (Budget vs Actual)</div>
+            <div class="card-subtitle">
+              Budgets and actuals are maintained in Monthly Finance Admin. GP is displayed only (no calculations).
+            </div>
+          </div>
+          <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+            <a class="btn btn-secondary" href="./monthly-finance-admin.html" style="text-decoration:none;">Open Finance Admin</a>
+            <div class="pill">
+              <div class="pill-label">Finance Site</div>
+              <div class="pill-value" id="financeSiteLabel">–</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="metric-row" style="grid-template-columns: repeat(3, minmax(0, 1fr));">
+          <div class="metric">
+            <div class="metric-label">Retail Sales (£)</div>
+            <div class="metric-value" id="finRetailActual">£0.00</div>
+            <div class="metric-sub" id="finRetailSub">Budget £0.00 • Var £0.00</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Hospitality Sales (£)</div>
+            <div class="metric-value" id="finHospActual">£0.00</div>
+            <div class="metric-sub" id="finHospSub">Budget £0.00 • Var £0.00</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Free Issue (£)</div>
+            <div class="metric-value" id="finFreeActual">£0.00</div>
+            <div class="metric-sub" id="finFreeSub">Budget £0.00 • Var £0.00</div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="metric-row" style="grid-template-columns: repeat(3, minmax(0, 1fr));">
+          <div class="metric">
+            <div class="metric-label">Core Wages (£)</div>
+            <div class="metric-value" id="finCoreActual">£0.00</div>
+            <div class="metric-sub" id="finCoreSub">Budget £0.00 • Var £0.00</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Agency Spend (£)</div>
+            <div class="metric-value" id="finAgencyActual">£0.00</div>
+            <div class="metric-sub" id="finAgencySub">Budget £0.00 • Var £0.00</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Labour Total (£)</div>
+            <div class="metric-value" id="finLabourActual">£0.00</div>
+            <div class="metric-sub" id="finLabourSub">Budget £0.00 • Var £0.00</div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="metric-row" style="grid-template-columns: repeat(3, minmax(0, 1fr));">
+          <div class="metric">
+            <div class="metric-label">Total Sales (£)</div>
+            <div class="metric-value" id="finTotalSalesActual">£0.00</div>
+            <div class="metric-sub" id="finTotalSalesSub">Budget £0.00 • Var £0.00</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">GP (%)</div>
+            <div class="metric-value" id="finGpActual">0.0%</div>
+            <div class="metric-sub" id="finGpSub">Budget 0.0% • Var 0.0pp</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Status</div>
+            <div class="metric-value" id="finStatus">OK</div>
+            <div class="metric-sub" id="finStatusSub">Finance row loaded</div>
+          </div>
+        </div>
+      </div>
+
       <div class="card">
         <div class="card-header">
           <div>
@@ -480,7 +563,7 @@
     </div>
   </div>
 
-  <!-- ✅ NEW: SUMMARY MODAL -->
+  <!-- ✅ SUMMARY MODAL -->
   <div id="summaryModal" style="
     display:none;
     position:fixed;
@@ -534,6 +617,30 @@
     const nextMonthBtn = document.getElementById('nextMonthBtn');
     const latestMonthBtn = document.getElementById('latestMonthBtn');
 
+    // Finance IDs
+    const financeSiteLabelEl = document.getElementById('financeSiteLabel');
+    const finRetailActualEl = document.getElementById('finRetailActual');
+    const finRetailSubEl = document.getElementById('finRetailSub');
+    const finHospActualEl = document.getElementById('finHospActual');
+    const finHospSubEl = document.getElementById('finHospSub');
+    const finFreeActualEl = document.getElementById('finFreeActual');
+    const finFreeSubEl = document.getElementById('finFreeSub');
+
+    const finCoreActualEl = document.getElementById('finCoreActual');
+    const finCoreSubEl = document.getElementById('finCoreSub');
+    const finAgencyActualEl = document.getElementById('finAgencyActual');
+    const finAgencySubEl = document.getElementById('finAgencySub');
+    const finLabourActualEl = document.getElementById('finLabourActual');
+    const finLabourSubEl = document.getElementById('finLabourSub');
+
+    const finTotalSalesActualEl = document.getElementById('finTotalSalesActual');
+    const finTotalSalesSubEl = document.getElementById('finTotalSalesSub');
+    const finGpActualEl = document.getElementById('finGpActual');
+    const finGpSubEl = document.getElementById('finGpSub');
+
+    const finStatusEl = document.getElementById('finStatus');
+    const finStatusSubEl = document.getElementById('finStatusSub');
+
     const kpiTotalLogsEl = document.getElementById('kpiTotalLogs');
     const kpiTotalLogsSubEl = document.getElementById('kpiTotalLogsSub');
     const kpiStaffingSumEl = document.getElementById('kpiStaffingSum');
@@ -585,14 +692,13 @@
     const photosEmptyEl = document.getElementById('photosEmpty');
     const photosGridEl = document.getElementById('photosGrid');
 
-    // ✅ NEW: summary UI
+    // Summary modal
     const generateMonthlySummaryBtn = document.getElementById('generateMonthlySummaryBtn');
     const summaryModal = document.getElementById('summaryModal');
     const summaryOutput = document.getElementById('summaryOutput');
     const closeSummaryBtn = document.getElementById('closeSummaryBtn');
     const copySummaryBtn = document.getElementById('copySummaryBtn');
 
-    // Store latest computed data for summary (commercial-focused)
     window._monthlySummaryState = {
       monthLabel: '',
       filterLabel: '',
@@ -610,7 +716,8 @@
         L5: { sales: 0, trans: 0, sph: 0 },
         L4: { sales: 0, trans: 0, sph: 0 },
         L3: { sales: 0, trans: 0, sph: 0 }
-      }
+      },
+      finance: null
     };
 
     let currentMonthOffset = 0;
@@ -641,77 +748,33 @@
       return Number.isFinite(n) ? n : 0;
     }
 
-    function getFreeBreakfastValue(row) {
-      return parseNumber(
-        row.free_breakfast_count ??
-        row.free_breakfast ??
-        row.freeBreakfast ??
-        row.free_breakfast_total ??
-        row.free_breakfast_qty ??
-        0
-      );
+    function money(n) {
+      const v = Number(n) || 0;
+      return `£${v.toFixed(2)}`;
     }
 
-    function getRetailLunchSpecialText(row) {
-      const raw = (row.retail_lunch_special ?? '').toString().trim();
-      if (!raw) return null;
-
-      const norm = raw.toLowerCase();
-
-      const isYesFlag = (norm === 'yes' || norm === 'y' || norm === 'true' || norm === '1');
-      const isNoFlag = (norm === 'no' || norm === 'n' || norm === 'false' || norm === '0' || norm === 'none');
-
-      if (isNoFlag) return null;
-
-      if (isYesFlag) {
-        const detail =
-          (row.retail_lunch_special_details ?? '') ||
-          (row.retail_lunch_special_text ?? '') ||
-          (row.retail_lunch_special_notes ?? '') ||
-          (row.retail_lunch_special_details ?? '') ||
-          (row.retail_special_details ?? '') ||
-          (row.retail_special_notes ?? '') ||
-          (row.lunch_special_details ?? '') ||
-          (row.lunch_special_notes ?? '');
-
-        const cleaned = detail.toString().trim();
-        return cleaned ? cleaned : '(Special recorded – no details entered)';
-      }
-
-      return raw;
+    function pct(n) {
+      const v = Number(n) || 0;
+      return `${v.toFixed(1)}%`;
     }
 
-    function applySiteFilter(rows) {
-      const filter = currentSiteFilter;
-      if (filter === 'All') return rows;
-
-      const isLondon = site => site && site.toLowerCase().includes('london');
-      const isNewcastle = site => site && site.toLowerCase().includes('newcastle');
-      const area = r => (r.area || '').trim().toLowerCase();
-
-      if (filter === 'LondonAll') return rows.filter(r => isLondon(r.site));
-      if (filter === 'LondonKitchen') return rows.filter(r => isLondon(r.site) && area(r) === 'kitchen');
-      if (filter === 'LondonHospitality') return rows.filter(r => isLondon(r.site) && area(r) === 'hospitality');
-      if (filter === 'LondonRetail') return rows.filter(r => isLondon(r.site) && area(r) === 'retail');
-      if (filter === 'Newcastle') return rows.filter(r => isNewcastle(r.site));
-
-      return rows;
+    function varClass(delta) {
+      const d = Number(delta) || 0;
+      if (d > 0.00001) return 'var-pos';
+      if (d < -0.00001) return 'var-neg';
+      return 'var-neu';
     }
 
-    function metricLine(title, meta, notes, reported) {
-      const safeNotes = (notes && String(notes).trim())
-        ? String(notes).trim()
-        : '<span style="opacity:0.7;">No notes.</span>';
-      const safeMeta = meta ? meta : '';
-      const safeReported = reported ? `Reported: <strong>${reported}</strong>` : '';
-      return `
-        <div class="metric">
-          <div class="metric-label">${title}</div>
-          <div class="metric-sub">${safeMeta}</div>
-          <div class="metric-sub">${safeNotes}</div>
-          ${safeReported ? `<div class="metric-sub">${safeReported}</div>` : ''}
-        </div>
-      `;
+    function getMonthStartISO(monthStartDateObj) {
+      const ms = new Date(monthStartDateObj.getFullYear(), monthStartDateObj.getMonth(), 1);
+      return toISODate(ms);
+    }
+
+    function siteFromFilter(filterVal) {
+      if (filterVal === 'Newcastle') return 'Newcastle';
+      if (filterVal.startsWith('London')) return 'London';
+      if (filterVal === 'All') return 'All';
+      return 'All';
     }
 
     async function ensureLatestMonthAnchor() {
@@ -809,7 +872,6 @@
       floor(salesL4El, salesL4SubEl, totals.L4);
       floor(salesL3El, salesL3SubEl, totals.L3);
 
-      // Store in summary state
       const retailState = window._monthlySummaryState.retail;
       retailState.allSales = totals.allSales;
       retailState.allTrans = totals.allTrans;
@@ -819,6 +881,78 @@
       retailState.L5 = { sales: totals.L5.sales, trans: totals.L5.trans, sph: totals.L5.trans ? totals.L5.sales / totals.L5.trans : 0 };
       retailState.L4 = { sales: totals.L4.sales, trans: totals.L4.trans, sph: totals.L4.trans ? totals.L4.sales / totals.L4.trans : 0 };
       retailState.L3 = { sales: totals.L3.sales, trans: totals.L3.trans, sph: totals.L3.trans ? totals.L3.sales / totals.L3.trans : 0 };
+    }
+
+    function getFreeBreakfastValue(row) {
+      return parseNumber(
+        row.free_breakfast_count ??
+        row.free_breakfast ??
+        row.freeBreakfast ??
+        row.free_breakfast_total ??
+        row.free_breakfast_qty ??
+        0
+      );
+    }
+
+    function getRetailLunchSpecialText(row) {
+      const raw = (row.retail_lunch_special ?? '').toString().trim();
+      if (!raw) return null;
+
+      const norm = raw.toLowerCase();
+
+      const isYesFlag = (norm === 'yes' || norm === 'y' || norm === 'true' || norm === '1');
+      const isNoFlag = (norm === 'no' || norm === 'n' || norm === 'false' || norm === '0' || norm === 'none');
+
+      if (isNoFlag) return null;
+
+      if (isYesFlag) {
+        const detail =
+          (row.retail_lunch_special_details ?? '') ||
+          (row.retail_lunch_special_text ?? '') ||
+          (row.retail_lunch_special_notes ?? '') ||
+          (row.retail_special_details ?? '') ||
+          (row.retail_special_notes ?? '') ||
+          (row.lunch_special_details ?? '') ||
+          (row.lunch_special_notes ?? '');
+
+        const cleaned = detail.toString().trim();
+        return cleaned ? cleaned : '(Special recorded – no details entered)';
+      }
+
+      return raw;
+    }
+
+    function applySiteFilter(rows) {
+      const filter = currentSiteFilter;
+      if (filter === 'All') return rows;
+
+      const isLondon = site => site && site.toLowerCase().includes('london');
+      const isNewcastle = site => site && site.toLowerCase().includes('newcastle');
+      const area = r => (r.area || '').trim().toLowerCase();
+
+      if (filter === 'LondonAll') return rows.filter(r => isLondon(r.site));
+      if (filter === 'LondonKitchen') return rows.filter(r => isLondon(r.site) && area(r) === 'kitchen');
+      if (filter === 'LondonHospitality') return rows.filter(r => isLondon(r.site) && area(r) === 'hospitality');
+      if (filter === 'LondonRetail') return rows.filter(r => isLondon(r.site) && area(r) === 'retail');
+      if (filter === 'Newcastle') return rows.filter(r => isNewcastle(r.site));
+
+      return rows;
+    }
+
+    function metricLine(title, meta, notes, reported) {
+      const safeNotes = (notes && String(notes).trim())
+        ? String(notes).trim()
+        : '<span style="opacity:0.7;">No notes.</span>';
+      const safeMeta = meta ? meta : '';
+      const safeReported = reported ? `Reported: <strong>${reported}</strong>` : '';
+      return `
+        <div class="metric">
+          <div class="metric-label">${title}</div>
+          <div class="metric-sub">${safeMeta}</div>
+          <div class="metric-sub">${safeNotes}</div>
+          ${safeReported ? `<div class="metric-sub">${safeReported}</div>` : ''}
+        </div>
+      `;
     }
 
     function setEmptyLists() {
@@ -832,6 +966,256 @@
       specialsEmptyEl.style.display = 'block';
       photosEmptyEl.style.display = 'block';
     }
+
+    async function loadFinanceForMonth(monthStartStr, financeSite) {
+      // financeSite: 'London' | 'Newcastle' | 'All'
+      finStatusEl.textContent = 'OK';
+      finStatusSubEl.textContent = 'Finance row loaded';
+
+      const base = {
+        bRetail: 0, aRetail: 0,
+        bHosp: 0, aHosp: 0,
+        bFree: 0, aFree: 0,
+        bCore: 0, aCore: 0,
+        bAgency: 0, aAgency: 0,
+        bGp: 0, aGp: 0
+      };
+
+      if (!monthStartStr) return base;
+
+      const { data, error } = await supabase
+        .from('monthly_finance_summary')
+        .select('*')
+        .eq('month_start', monthStartStr)
+        .in('site', ['London', 'Newcastle']);
+
+      if (error) {
+        finStatusEl.textContent = 'ERROR';
+        finStatusSubEl.textContent = 'Finance query failed';
+        console.error('Finance load error:', error);
+        return base;
+      }
+
+      const rows = data || [];
+      const london = rows.find(r => r.site === 'London') || null;
+      const newcastle = rows.find(r => r.site === 'Newcastle') || null;
+
+      function addFromRow(acc, r) {
+        if (!r) return acc;
+        acc.bRetail += parseNumber(r.budget_retail_sales);
+        acc.aRetail += parseNumber(r.actual_retail_sales);
+
+        acc.bHosp += parseNumber(r.budget_hospitality_sales);
+        acc.aHosp += parseNumber(r.actual_hospitality_sales);
+
+        acc.bFree += parseNumber(r.budget_free_issue);
+        acc.aFree += parseNumber(r.actual_free_issue);
+
+        acc.bCore += parseNumber(r.budget_core_wages);
+        acc.aCore += parseNumber(r.actual_core_wages);
+
+        acc.bAgency += parseNumber(r.budget_agency_spend);
+        acc.aAgency += parseNumber(r.actual_agency_spend);
+
+        // For GP%:
+        // - For All: we will show an average weighted by total sales budget/actual where possible.
+        // - For single site: direct value.
+        // If no sales values exist, fall back to simple average.
+        acc._rows.push(r);
+        return acc;
+      }
+
+      const acc = { ...base, _rows: [] };
+
+      if (financeSite === 'London') addFromRow(acc, london);
+      else if (financeSite === 'Newcastle') addFromRow(acc, newcastle);
+      else {
+        addFromRow(acc, london);
+        addFromRow(acc, newcastle);
+      }
+
+      // GP% handling (no calculation of GP itself; just combining displayed numbers)
+      if (acc._rows.length === 1) {
+        acc.bGp = parseNumber(acc._rows[0].budget_gp_pct);
+        acc.aGp = parseNumber(acc._rows[0].actual_gp_pct);
+      } else if (acc._rows.length > 1) {
+        // Weighted average by sales if possible
+        const bSalesTotal = acc.bRetail + acc.bHosp;
+        const aSalesTotal = acc.aRetail + acc.aHosp;
+
+        if (bSalesTotal > 0) {
+          let weighted = 0;
+          acc._rows.forEach(r => {
+            const rSales = parseNumber(r.budget_retail_sales) + parseNumber(r.budget_hospitality_sales);
+            weighted += (rSales / bSalesTotal) * parseNumber(r.budget_gp_pct);
+          });
+          acc.bGp = weighted;
+        } else {
+          acc.bGp = acc._rows.reduce((s,r) => s + parseNumber(r.budget_gp_pct), 0) / acc._rows.length;
+        }
+
+        if (aSalesTotal > 0) {
+          let weighted = 0;
+          acc._rows.forEach(r => {
+            const rSales = parseNumber(r.actual_retail_sales) + parseNumber(r.actual_hospitality_sales);
+            weighted += (rSales / aSalesTotal) * parseNumber(r.actual_gp_pct);
+          });
+          acc.aGp = weighted;
+        } else {
+          acc.aGp = acc._rows.reduce((s,r) => s + parseNumber(r.actual_gp_pct), 0) / acc._rows.length;
+        }
+      } else {
+        finStatusEl.textContent = 'MISSING';
+        finStatusSubEl.textContent = 'No finance row found for this month. Use Finance Admin to create it.';
+      }
+
+      delete acc._rows;
+      return acc;
+    }
+
+    function renderFinance(financeSite, f) {
+      financeSiteLabelEl.textContent = financeSite;
+
+      const totalSalesB = (f.bRetail + f.bHosp);
+      const totalSalesA = (f.aRetail + f.aHosp);
+
+      const labourB = (f.bCore + f.bAgency);
+      const labourA = (f.aCore + f.aAgency);
+
+      function subLine(b, a) {
+        const d = a - b;
+        const cls = varClass(d);
+        return `Budget ${money(b)} • Var <span class="${cls}">${money(d)}</span>`;
+      }
+
+      finRetailActualEl.textContent = money(f.aRetail);
+      finRetailSubEl.innerHTML = subLine(f.bRetail, f.aRetail);
+
+      finHospActualEl.textContent = money(f.aHosp);
+      finHospSubEl.innerHTML = subLine(f.bHosp, f.aHosp);
+
+      finFreeActualEl.textContent = money(f.aFree);
+      finFreeSubEl.innerHTML = subLine(f.bFree, f.aFree);
+
+      finCoreActualEl.textContent = money(f.aCore);
+      finCoreSubEl.innerHTML = subLine(f.bCore, f.aCore);
+
+      finAgencyActualEl.textContent = money(f.aAgency);
+      finAgencySubEl.innerHTML = subLine(f.bAgency, f.aAgency);
+
+      finLabourActualEl.textContent = money(labourA);
+      finLabourSubEl.innerHTML = subLine(labourB, labourA);
+
+      finTotalSalesActualEl.textContent = money(totalSalesA);
+      finTotalSalesSubEl.innerHTML = subLine(totalSalesB, totalSalesA);
+
+      finGpActualEl.textContent = pct(f.aGp);
+      const gpDelta = (Number(f.aGp) || 0) - (Number(f.bGp) || 0);
+      const gpCls = gpDelta > 0.00001 ? 'var-pos' : (gpDelta < -0.00001 ? 'var-neg' : 'var-neu');
+      finGpSubEl.innerHTML = `Budget ${pct(f.bGp)} • Var <span class="${gpCls}">${gpDelta.toFixed(1)}pp</span>`;
+
+      window._monthlySummaryState.finance = { financeSite, ...f };
+    }
+
+    // -----------------------------
+    // SUMMARY TEXT (kept as you had it, no finance added here yet)
+    // -----------------------------
+    function currency(n) {
+      const num = Number(n) || 0;
+      return `£${num.toFixed(2)}`;
+    }
+
+    function buildMonthlySummaryText() {
+      const s = window._monthlySummaryState || {};
+      const opsRows = s.opsRows || [];
+      const maint = s.maintItems || [];
+      const hs = s.hsItems || [];
+      const specials = s.specials || [];
+      const photos = s.photos || [];
+      const staffing = s.staffing || { sick: 0, hol: 0, agency: 0 };
+      const hosp = s.hospitality || { day: 0, night: 0 };
+      const nc = s.newcastle || { freeBreakfastTotal: 0, freeBreakfastDays: [], hotTotal: 0, hotBusiestDay: null, hotBusiestVal: 0 };
+      const retail = s.retail || {};
+
+      let text = '';
+      text += `Monthly Ops Summary\n`;
+      text += `-------------------\n`;
+      text += `Month: ${s.monthLabel || monthLabelEl.textContent || '–'}\n`;
+      text += `Filter: ${s.filterLabel || siteFilterEl.options[siteFilterEl.selectedIndex].text}\n\n`;
+
+      text += `Activity Snapshot\n`;
+      text += `-----------------\n`;
+      text += `• Total Ops Logs: ${opsRows.length}\n`;
+      text += `• Photos uploaded: ${photos.length}\n\n`;
+
+      text += `Retail Performance\n`;
+      text += `------------------\n`;
+      text += `• Total Retail Sales (EPOS): ${currency(retail.allSales)}\n`;
+      text += `• Total Transactions: ${retail.allTrans || 0}\n`;
+      text += `• Overall SPH: ${currency(retail.allSPH)}\n\n`;
+
+      text += `Hospitality Events\n`;
+      text += `------------------\n`;
+      text += `• Day events: ${hosp.day || 0}\n`;
+      text += `• Night events: ${hosp.night || 0}\n`;
+      text += `• Total events: ${(hosp.day || 0) + (hosp.night || 0)}\n\n`;
+
+      text += `Staffing Impact\n`;
+      text += `---------------\n`;
+      text += `• Sick: ${staffing.sick || 0}\n`;
+      text += `• Holiday: ${staffing.hol || 0}\n`;
+      text += `• Agency: ${staffing.agency || 0}\n\n`;
+
+      text += `Incidents\n`;
+      text += `---------\n`;
+      if ((maint.length + hs.length) === 0) {
+        text += `No incidents reported.\n\n`;
+      } else {
+        text += `Maintenance incidents: ${maint.length}\n`;
+        text += `H&S incidents: ${hs.length}\n\n`;
+      }
+
+      text += `Retail Lunch Specials\n`;
+      text += `--------------------\n`;
+      if (!specials.length) text += `No lunch specials recorded.\n\n`;
+      else text += `Total specials: ${specials.length}\n\n`;
+
+      text += `Newcastle Summary\n`;
+      text += `-----------------\n`;
+      text += `• Free breakfasts: ${nc.freeBreakfastTotal || 0} (days: ${(nc.freeBreakfastDays || []).length})\n`;
+      text += `• Hot lunch dishes: ${nc.hotTotal || 0}\n`;
+      if (nc.hotBusiestDay) text += `  Busiest day: ${nc.hotBusiestDay} (${nc.hotBusiestVal} dishes)\n`;
+      text += `\n`;
+
+      // Optional: include finance snapshot if present
+      if (s.finance) {
+        const f = s.finance;
+        text += `Commercial Snapshot (Budget vs Actual)\n`;
+        text += `-------------------------------------\n`;
+        text += `Finance Site: ${f.financeSite}\n`;
+        text += `• Retail Sales: ${currency(f.aRetail)} (Budget ${currency(f.bRetail)})\n`;
+        text += `• Hospitality Sales: ${currency(f.aHosp)} (Budget ${currency(f.bHosp)})\n`;
+        text += `• Free Issue: ${currency(f.aFree)} (Budget ${currency(f.bFree)})\n`;
+        text += `• Core Wages: ${currency(f.aCore)} (Budget ${currency(f.bCore)})\n`;
+        text += `• Agency Spend: ${currency(f.aAgency)} (Budget ${currency(f.bAgency)})\n`;
+        text += `• GP%: ${(Number(f.aGp)||0).toFixed(1)}% (Budget ${(Number(f.bGp)||0).toFixed(1)}%)\n`;
+        text += `\n`;
+      }
+
+      return text;
+    }
+
+    generateMonthlySummaryBtn.addEventListener('click', () => {
+      summaryOutput.value = buildMonthlySummaryText();
+      summaryModal.style.display = 'block';
+    });
+
+    closeSummaryBtn.addEventListener('click', () => { summaryModal.style.display = 'none'; });
+    copySummaryBtn.addEventListener('click', () => {
+      navigator.clipboard.writeText(summaryOutput.value || '');
+      copySummaryBtn.textContent = 'Copied!';
+      setTimeout(() => copySummaryBtn.textContent = 'Copy', 1000);
+    });
 
     async function loadMonthlyData() {
       errorMessageEl.style.display = 'none';
@@ -855,420 +1239,4 @@
       const startStr = toISODate(monthStart);
       const endStr = toISODate(monthEnd);
 
-      const filterLabel = siteFilterEl.options[siteFilterEl.selectedIndex].text;
-
-      // Set up summary state basics
-      window._monthlySummaryState.monthLabel = monthLabel;
-      window._monthlySummaryState.filterLabel = filterLabel;
-
-      const { data: opsRowsRaw, error: opsErr } = await supabase
-        .from('ops_logs')
-        .select('*')
-        .gte('log_date', startStr)
-        .lte('log_date', endStr)
-        .order('log_date', { ascending: true })
-        .order('created_at', { ascending: true });
-
-      if (opsErr) {
-        console.error('Ops monthly error:', opsErr);
-        errorMessageEl.textContent = 'There was an error loading the monthly dashboard.';
-        errorMessageEl.style.display = 'block';
-        return;
-      }
-
-      const opsRows = applySiteFilter(opsRowsRaw || []);
-      window._monthlySummaryState.opsRows = opsRows.slice();
-
-      const retailTotals = await loadMonthlyRetailSales(startStr, endStr);
-      renderRetailSales(retailTotals);
-
-      kpiTotalLogsEl.textContent = `${opsRows.length}`;
-      kpiTotalLogsSubEl.textContent = opsRows.length
-        ? `Filtered: ${filterLabel}`
-        : 'No logs for this filter/month';
-
-      let sick = 0, hol = 0, agency = 0;
-      opsRows.forEach(r => {
-        sick += parseCount(r.sickness_count);
-        hol += parseCount(r.holiday_count);
-        agency += parseCount(r.agency_count);
-      });
-
-      window._monthlySummaryState.staffing = { sick, hol, agency };
-
-      kpiStaffingSumEl.textContent = `${sick + hol + agency}`;
-      kpiStaffingSubEl.textContent = `Sick: ${sick} • Holiday: ${hol} • Agency: ${agency}`;
-
-      setEmptyLists();
-
-      let maintCount = 0, hsCount = 0;
-      const maintItems = [];
-      const hsItems = [];
-
-      opsRows.forEach(r => {
-        const date = r.log_date || '';
-        const site = r.site || 'Unknown';
-        const area = r.area || '';
-
-        if (r.maintenance_issue && r.maintenance_issue !== 'None') {
-          maintCount++;
-          maintItems.push({
-            date, site, area,
-            issue: r.maintenance_issue,
-            notes: r.maintenance_notes,
-            reported: r.maintenance_reported
-          });
-        }
-        if (r.hs_issue && r.hs_issue !== 'None') {
-          hsCount++;
-          hsItems.push({
-            date, site, area,
-            issue: r.hs_issue,
-            notes: r.hs_notes,
-            reported: r.hs_reported
-          });
-        }
-      });
-
-      window._monthlySummaryState.maintItems = maintItems.slice();
-      window._monthlySummaryState.hsItems = hsItems.slice();
-
-      kpiIncidentsSumEl.textContent = `${maintCount + hsCount}`;
-      kpiIncidentsSubEl.textContent = `Maintenance: ${maintCount} • H&S: ${hsCount}`;
-
-      if (maintItems.length) {
-        maintEmptyEl.style.display = 'none';
-        maintListEl.innerHTML = maintItems
-          .sort((a,b) => (a.date < b.date ? -1 : 1))
-          .map(i => metricLine(
-            `Maintenance • ${i.site}${i.area ? ' • ' + i.area : ''}`,
-            `<strong>${i.date}</strong> • ${i.issue}`,
-            i.notes,
-            i.reported
-          )).join('');
-      }
-
-      if (hsItems.length) {
-        hsEmptyEl.style.display = 'none';
-        hsListEl.innerHTML = hsItems
-          .sort((a,b) => (a.date < b.date ? -1 : 1))
-          .map(i => metricLine(
-            `H&S • ${i.site}${i.area ? ' • ' + i.area : ''}`,
-            `<strong>${i.date}</strong> • ${i.issue}`,
-            i.notes,
-            i.reported
-          )).join('');
-      }
-
-      let hospDay = 0, hospNight = 0;
-      opsRows.forEach(r => {
-        hospDay += parseCount(r.hosp_day_events);
-        hospNight += parseCount(r.hosp_night_events);
-      });
-
-      window._monthlySummaryState.hospitality = { day: hospDay, night: hospNight };
-
-      const hospTotal = hospDay + hospNight;
-
-      hospDayTotalEl.textContent = `${hospDay}`;
-      hospNightTotalEl.textContent = `${hospNight}`;
-      hospTotalEventsEl.textContent = `${hospTotal}`;
-      hospTotalEventsSubEl.textContent = 'Day + Night totals';
-
-      kpiHospTotalEl.textContent = `${hospTotal}`;
-      kpiHospSubEl.textContent = `Day: ${hospDay} • Night: ${hospNight}`;
-
-      const specials = opsRows
-        .map(r => ({
-          date: r.log_date || '',
-          site: r.site || 'Unknown',
-          area: r.area || '',
-          text: getRetailLunchSpecialText(r)
-        }))
-        .filter(x => x.text);
-
-      window._monthlySummaryState.specials = specials.slice();
-
-      kpiRetailSpecialsEl.textContent = `${specials.length}`;
-      kpiRetailSpecialsSubEl.textContent = specials.length ? 'See full list below' : 'No specials recorded';
-
-      if (specials.length) {
-        specialsEmptyEl.style.display = 'none';
-        specialsListEl.innerHTML = specials
-          .sort((a,b) => (a.date < b.date ? -1 : 1))
-          .map(s => metricLine(
-            `Special • ${s.site}${s.area ? ' • ' + s.area : ''}`,
-            `<strong>${s.date}</strong>`,
-            s.text,
-            ''
-          )).join('');
-      }
-
-      let fbTotal = 0;
-      const fbDays = new Set();
-
-      let hotTotal = 0;
-      const hotByDay = {};
-
-      opsRows.forEach(r => {
-        const isNewcastle = (r.site || '').toLowerCase().includes('newcastle');
-        if (!isNewcastle) return;
-
-        const fb = getFreeBreakfastValue(r);
-        if (fb > 0) {
-          fbTotal += fb;
-          if (r.log_date) fbDays.add(r.log_date);
-        }
-
-        const dishes = parseCount(r.hot_lunch_dishes);
-        if (dishes > 0) {
-          hotTotal += dishes;
-          const dayKey = r.log_date || '';
-          if (dayKey) hotByDay[dayKey] = (hotByDay[dayKey] || 0) + dishes;
-        }
-      });
-
-      let busiestDay = null;
-      let busiestVal = 0;
-      if (Object.keys(hotByDay).length) {
-        const [bd, bv] = Object.entries(hotByDay).sort((a,b) => b[1]-a[1])[0];
-        busiestDay = bd;
-        busiestVal = bv;
-      }
-
-      window._monthlySummaryState.newcastle = {
-        freeBreakfastTotal: fbTotal,
-        freeBreakfastDays: [...fbDays].sort(),
-        hotTotal,
-        hotBusiestDay: busiestDay,
-        hotBusiestVal: busiestVal
-      };
-
-      ncFreeBreakfastTotalEl.textContent = `${fbTotal}`;
-      ncFreeBreakfastDaysEl.textContent = `${fbDays.size}`;
-      ncFreeBreakfastSubEl.textContent = fbTotal ? 'Newcastle only • monthly total' : 'No free breakfasts recorded';
-      ncFreeBreakfastDaysSubEl.textContent = fbDays.size ? `Days: ${[...fbDays].sort().join(', ')}` : 'No days logged';
-
-      ncHotLunchTotalEl.textContent = `${hotTotal}`;
-      ncHotLunchSubEl.textContent = hotTotal ? 'Newcastle only • monthly total' : 'No hot lunch dishes recorded';
-
-      if (busiestDay) {
-        ncHotLunchBusiestEl.textContent = busiestDay;
-        ncHotLunchBusiestSubEl.textContent = `${busiestVal} dishes`;
-      } else {
-        ncHotLunchBusiestEl.textContent = '–';
-        ncHotLunchBusiestSubEl.textContent = '–';
-      }
-
-      const photos = opsRows
-        .filter(r => r.photo_url)
-        .map(r => ({
-          url: r.photo_url,
-          date: r.log_date || '',
-          site: r.site || 'Unknown',
-          area: r.area || ''
-        }));
-
-      window._monthlySummaryState.photos = photos.slice();
-
-      if (photos.length) {
-        photosEmptyEl.style.display = 'none';
-        photosGridEl.innerHTML = photos
-          .sort((a,b) => (a.date < b.date ? -1 : 1))
-          .map(p => `
-            <div class="photo-card">
-              <a href="${p.url}" target="_blank" rel="noopener noreferrer">
-                <img src="${p.url}" alt="Ops photo" />
-              </a>
-              <div class="photo-card-caption">
-                ${p.date}<br/>
-                ${p.site}${p.area ? ' • ' + p.area : ''}
-              </div>
-            </div>
-          `).join('');
-      } else {
-        photosEmptyEl.style.display = 'block';
-        photosGridEl.innerHTML = '';
-      }
-    }
-
-    // -----------------------------
-    // ✅ MONTHLY SUMMARY GENERATION
-    // -----------------------------
-    function currency(n) {
-      const num = Number(n) || 0;
-      return `£${num.toFixed(2)}`;
-    }
-
-    function buildMonthlySummaryText() {
-      const s = window._monthlySummaryState || {};
-      const opsRows = s.opsRows || [];
-      const maint = s.maintItems || [];
-      const hs = s.hsItems || [];
-      const specials = s.specials || [];
-      const photos = s.photos || [];
-      const staffing = s.staffing || { sick: 0, hol: 0, agency: 0 };
-      const hosp = s.hospitality || { day: 0, night: 0 };
-      const nc = s.newcastle || { freeBreakfastTotal: 0, freeBreakfastDays: [], hotTotal: 0, hotBusiestDay: null, hotBusiestVal: 0 };
-      const retail = s.retail || {};
-
-      let text = '';
-      text += `Monthly Ops Summary (Commercial)\n`;
-      text += `-------------------------------\n`;
-      text += `Month: ${s.monthLabel || monthLabelEl.textContent || '–'}\n`;
-      text += `Filter: ${s.filterLabel || siteFilterEl.options[siteFilterEl.selectedIndex].text}\n\n`;
-
-      text += `Activity Snapshot\n`;
-      text += `-----------------\n`;
-      text += `• Total Ops Logs: ${opsRows.length}\n`;
-      text += `• Photos uploaded: ${photos.length}\n\n`;
-
-      text += `Retail Performance\n`;
-      text += `------------------\n`;
-      text += `• Total Retail Sales: ${currency(retail.allSales)}\n`;
-      text += `• Total Transactions: ${retail.allTrans || 0}\n`;
-      text += `• Overall SPH: ${currency(retail.allSPH)}\n\n`;
-
-      text += `Sales by Level (Sales • Tx • SPH)\n`;
-      text += `• Level 7: ${currency(retail.L7?.sales)} • ${retail.L7?.trans || 0} • ${currency(retail.L7?.sph)}\n`;
-      text += `• Level 5: ${currency(retail.L5?.sales)} • ${retail.L5?.trans || 0} • ${currency(retail.L5?.sph)}\n`;
-      text += `• Level 4: ${currency(retail.L4?.sales)} • ${retail.L4?.trans || 0} • ${currency(retail.L4?.sph)}\n`;
-      text += `• Level 3: ${currency(retail.L3?.sales)} • ${retail.L3?.trans || 0} • ${currency(retail.L3?.sph)}\n\n`;
-
-      text += `Hospitality Events\n`;
-      text += `------------------\n`;
-      text += `• Day events: ${hosp.day || 0}\n`;
-      text += `• Night events: ${hosp.night || 0}\n`;
-      text += `• Total events: ${(hosp.day || 0) + (hosp.night || 0)}\n\n`;
-
-      text += `Staffing Impact\n`;
-      text += `---------------\n`;
-      text += `• Sick: ${staffing.sick || 0}\n`;
-      text += `• Holiday: ${staffing.hol || 0}\n`;
-      text += `• Agency: ${staffing.agency || 0}\n\n`;
-
-      text += `Incidents\n`;
-      text += `---------\n`;
-      if ((maint.length + hs.length) === 0) {
-        text += `No incidents reported.\n\n`;
-      } else {
-        text += `Maintenance incidents: ${maint.length}\n`;
-        maint.forEach(i => {
-          text += `• ${i.site || 'Unknown'} – ${i.area || ''} – ${i.date}\n`;
-          text += `  Issue: ${i.issue || ''}\n`;
-          if (i.notes) text += `  Notes: ${String(i.notes).trim()}\n`;
-          if (i.reported) text += `  Reported: ${i.reported}\n`;
-          text += `\n`;
-        });
-
-        text += `H&S incidents: ${hs.length}\n`;
-        hs.forEach(i => {
-          text += `• ${i.site || 'Unknown'} – ${i.area || ''} – ${i.date}\n`;
-          text += `  Issue: ${i.issue || ''}\n`;
-          if (i.notes) text += `  Notes: ${String(i.notes).trim()}\n`;
-          if (i.reported) text += `  Reported: ${i.reported}\n`;
-          text += `\n`;
-        });
-      }
-
-      text += `Retail Lunch Specials\n`;
-      text += `--------------------\n`;
-      if (!specials.length) {
-        text += `No lunch specials recorded.\n\n`;
-      } else {
-        text += `Total specials: ${specials.length}\n`;
-        specials.forEach(spl => {
-          text += `• ${spl.date} – ${spl.site || 'Unknown'}${spl.area ? ' • ' + spl.area : ''}\n`;
-          text += `  ${String(spl.text || '').trim()}\n\n`;
-        });
-      }
-
-      text += `Newcastle Summary\n`;
-      text += `-----------------\n`;
-      text += `• Free breakfasts: ${nc.freeBreakfastTotal || 0} (days: ${(nc.freeBreakfastDays || []).length})\n`;
-      if ((nc.freeBreakfastDays || []).length) {
-        text += `  Days: ${(nc.freeBreakfastDays || []).join(', ')}\n`;
-      }
-      text += `• Hot lunch dishes: ${nc.hotTotal || 0}\n`;
-      if (nc.hotBusiestDay) {
-        text += `  Busiest day: ${nc.hotBusiestDay} (${nc.hotBusiestVal} dishes)\n`;
-      }
-      text += `\n`;
-
-      // Lightweight commercial takeaways (derived, not “AI guesswork”)
-      const floors = [
-        { name: 'Level 7', ...retail.L7 },
-        { name: 'Level 5', ...retail.L5 },
-        { name: 'Level 4', ...retail.L4 },
-        { name: 'Level 3', ...retail.L3 }
-      ];
-
-      const topSales = floors.slice().sort((a,b) => (b.sales || 0) - (a.sales || 0))[0];
-      const topSPH = floors.slice().sort((a,b) => (b.sph || 0) - (a.sph || 0))[0];
-
-      text += `Commercial Takeaways\n`;
-      text += `--------------------\n`;
-      if ((retail.allSales || 0) > 0) {
-        text += `• Top sales floor: ${topSales?.name || '–'} (${currency(topSales?.sales)})\n`;
-        text += `• Best SPH floor: ${topSPH?.name || '–'} (${currency(topSPH?.sph)})\n`;
-      } else {
-        text += `• Retail sales data not available for this period.\n`;
-      }
-      if (specials.length) {
-        text += `• Lunch specials ran ${specials.length} time(s) – consider aligning specials with the strongest-performing floor/day patterns.\n`;
-      }
-      if ((hosp.day || 0) + (hosp.night || 0) > 0) {
-        text += `• Hospitality activity logged: ${(hosp.day||0) + (hosp.night||0)} events (Day ${hosp.day||0} / Night ${hosp.night||0}).\n`;
-      }
-      if ((maint.length + hs.length) > 0) {
-        text += `• Incidents logged: ${maint.length + hs.length} (Maintenance ${maint.length} / H&S ${hs.length}) – ensure outstanding items are closed out.\n`;
-      }
-      text += `\n`;
-
-      return text;
-    }
-
-    generateMonthlySummaryBtn.addEventListener('click', () => {
-      const text = buildMonthlySummaryText();
-      summaryOutput.value = text;
-      summaryModal.style.display = 'block';
-    });
-
-    closeSummaryBtn.addEventListener('click', () => {
-      summaryModal.style.display = 'none';
-    });
-
-    copySummaryBtn.addEventListener('click', () => {
-      navigator.clipboard.writeText(summaryOutput.value || '');
-      copySummaryBtn.textContent = 'Copied!';
-      setTimeout(() => copySummaryBtn.textContent = 'Copy', 1000);
-    });
-
-    // -----------------------------
-    // Buttons & initial load
-    // -----------------------------
-    latestMonthBtn.addEventListener('click', () => {
-      currentMonthOffset = 0;
-      latestMonthAnchor = null;
-      loadMonthlyData();
-    });
-
-    prevMonthBtn.addEventListener('click', () => {
-      currentMonthOffset += 1;
-      loadMonthlyData();
-    });
-
-    nextMonthBtn.addEventListener('click', () => {
-      if (currentMonthOffset > 0) currentMonthOffset -= 1;
-      loadMonthlyData();
-    });
-
-    siteFilterEl.addEventListener('change', (e) => {
-      currentSiteFilter = e.target.value;
-      loadMonthlyData();
-    });
-
-    loadMonthlyData();
-  </script>
-</body>
-</html>
+      const filterLabel = siteFilterEl.options[siteFilterEl
