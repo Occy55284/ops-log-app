@@ -10,13 +10,14 @@
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       background: #0b1220;
       color: #f9fafb;
-      display: flex;
-      align-items: center;
-      justify-content: center;
       min-height: 100vh;
     }
 
-    .page { max-width: 1400px; width: 100%; padding: 18px 14px 42px; }
+    .wrap {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 18px 14px 42px;
+    }
 
     .topbar {
       display: flex;
@@ -34,7 +35,8 @@
       background: linear-gradient(135deg, #1f2a44, #0f172a);
       box-shadow: 0 0 0 1px rgba(255,255,255,0.06) inset, 0 12px 24px rgba(0,0,0,0.25);
       display: grid; place-items: center;
-      font-weight: 800; letter-spacing: 0.5px; color: #93c5fd;
+      font-weight: 800; letter-spacing: 0.5px;
+      color: #93c5fd;
     }
 
     .titleblock .title { font-size: 18px; font-weight: 750; line-height: 1.2; }
@@ -54,7 +56,11 @@
       box-shadow: 0 8px 18px rgba(0,0,0,0.20);
     }
 
-    .filter label { font-size: 12px; color: rgba(255,255,255,0.72); white-space: nowrap; }
+    .filter label {
+      font-size: 12px;
+      color: rgba(255,255,255,0.72);
+      white-space: nowrap;
+    }
 
     select {
       background: rgba(0,0,0,0.25);
@@ -111,7 +117,6 @@
     }
 
     .grid { display: grid; grid-template-columns: 1fr; gap: 14px; margin-top: 14px; }
-
     .row-1, .row-2, .row-3 { display: grid; gap: 14px; }
     .row-1 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     .row-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -146,7 +151,15 @@
     }
     .card > * { position: relative; }
 
-    .card-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+
     .card-title { font-weight: 750; font-size: 14px; letter-spacing: 0.2px; }
     .card-subtitle { font-size: 12px; color: rgba(255,255,255,0.65); margin-top: 3px; line-height: 1.25; }
 
@@ -164,7 +177,16 @@
 
     .list { display: grid; gap: 8px; margin-top: 10px; }
     .list-item { background: rgba(0,0,0,0.22); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 10px; }
-    .list-title { font-weight: 700; font-size: 12px; color: rgba(255,255,255,0.92); display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
+    .list-title {
+      font-weight: 700;
+      font-size: 12px;
+      color: rgba(255,255,255,0.92);
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: baseline;
+    }
+
     .badge {
       font-size: 11px;
       color: rgba(255,255,255,0.70);
@@ -174,15 +196,50 @@
       border-radius: 999px;
       white-space: nowrap;
     }
+
     .list-notes { font-size: 12px; color: rgba(255,255,255,0.75); margin-top: 6px; white-space: pre-wrap; line-height: 1.25; }
     .empty-text { padding: 8px 2px; font-size: 12px; color: rgba(255,255,255,0.65); }
 
+    /* Photos */
+    .photos-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 10px;
+    }
+    @media (max-width: 1100px) { .photos-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+    @media (max-width: 640px)  { .photos-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+    .photo-card {
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.10);
+      background: rgba(0,0,0,0.20);
+      box-shadow: 0 10px 18px rgba(0,0,0,0.20);
+      cursor: pointer;
+    }
+
+    .photo-card img {
+      width: 100%;
+      height: 150px;
+      object-fit: cover;
+      display: block;
+    }
+
+    .photo-card-caption {
+      padding: 8px 10px 10px;
+      font-size: 11px;
+      color: rgba(255,255,255,0.70);
+      line-height: 1.25;
+    }
+
+    /* Photo modal */
     .modal {
       display: none;
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,0.65);
-      z-index: 50;
+      background: rgba(0,0,0,0.70);
+      z-index: 60;
       padding: 16px;
     }
     .modal.open { display: grid; place-items: center; }
@@ -227,11 +284,12 @@
     }
 
     .modal-body { padding: 12px; display: grid; gap: 12px; }
+    .modal-body img { width: 100%; border-radius: 14px; border: 1px solid rgba(255,255,255,0.10); }
   </style>
 </head>
 
 <body>
-  <div class="page">
+  <div class="wrap">
     <div class="topbar">
       <div class="brand">
         <div class="logo">OL</div>
@@ -256,22 +314,23 @@
           </select>
         </div>
 
-        <button class="btn" id="generateMonthlySummaryBtn">Generate Summary</button>
+        <button class="btn" id="refreshBtn">Refresh</button>
       </div>
     </div>
 
     <div id="errorMessage" class="error"></div>
 
     <div class="grid">
+      <!-- Overview -->
       <div class="row-1">
         <div class="card" style="grid-column: 1 / span 3; padding: 0;">
-          <div style="padding: 14px 14px 0;">
+          <div style="padding: 14px 14px 14px;">
             <div class="card-header" style="margin-bottom: 8px;">
               <div>
                 <div class="card-title">Overview</div>
                 <div class="card-subtitle">Totals for the selected month & filter.</div>
               </div>
-              <div class="pill" id="monthPill">Month</div>
+              <div class="pill" id="monthRangePill">Month</div>
             </div>
 
             <div class="kpis">
@@ -292,16 +351,67 @@
               </div>
             </div>
           </div>
-
-          <div style="padding: 0 14px 14px;">
-            <div id="monthlySummaryBox" style="display:none; margin-top:12px;" class="list-item">
-              <div class="list-title">Monthly Summary</div>
-              <div id="monthlySummaryText" class="list-notes" style="margin-top:8px;"></div>
-            </div>
-          </div>
         </div>
       </div>
 
+      <!-- Finance (Budget vs Actual, GP entered, no calculation) -->
+      <div class="row-2">
+        <div class="card" style="grid-column: 1 / span 2;">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Finance Snapshot (Budget vs Actual)</div>
+              <div class="card-subtitle">Uses monthly_finance_summary. GP% is displayed as entered.</div>
+            </div>
+            <div class="pill" id="financePill">Finance</div>
+          </div>
+
+          <div id="financeEmpty" class="empty-text">
+            No finance row found for this month/site yet. Use the Finance Admin page to create one.
+          </div>
+
+          <div id="financeGrid" class="metric-row" style="grid-template-columns: repeat(3, minmax(0, 1fr)); display:none;">
+            <div class="metric">
+              <div class="metric-label">Total Sales (£)</div>
+              <div class="metric-value" id="finSalesActual">£0.00</div>
+              <div class="metric-sub">Budget: <span id="finSalesBudget">£0.00</span> • Var: <span id="finSalesVar">£0.00</span></div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">Labour (£) (Core + Agency)</div>
+              <div class="metric-value" id="finLabourActual">£0.00</div>
+              <div class="metric-sub">Budget: <span id="finLabourBudget">£0.00</span> • Var: <span id="finLabourVar">£0.00</span></div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">GP %</div>
+              <div class="metric-value" id="finGpActual">0%</div>
+              <div class="metric-sub">Budget: <span id="finGpBudget">0%</span></div>
+            </div>
+
+            <div class="metric">
+              <div class="metric-label">Retail Sales (£)</div>
+              <div class="metric-value" id="finRetailActual">£0.00</div>
+              <div class="metric-sub">Budget: <span id="finRetailBudget">£0.00</span></div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">Hospitality Sales (£)</div>
+              <div class="metric-value" id="finHospActual">£0.00</div>
+              <div class="metric-sub">Budget: <span id="finHospBudget">£0.00</span></div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">Free Issue (£)</div>
+              <div class="metric-value" id="finFreeActual">£0.00</div>
+              <div class="metric-sub">Budget: <span id="finFreeBudget">£0.00</span></div>
+            </div>
+          </div>
+
+          <div class="metric-sub" style="margin-top:10px;">
+            Tip: If Site = All, the dashboard shows ops metrics combined but finance is displayed per-site (London + Newcastle).
+          </div>
+
+          <div id="financeAllSitesList" class="list" style="display:none;"></div>
+        </div>
+      </div>
+
+      <!-- Ops + Incidents -->
       <div class="row-3">
         <div class="card">
           <div class="card-header">
@@ -340,14 +450,16 @@
         </div>
       </div>
 
+      <!-- Retail sales (from retail_sales table) -->
       <div class="row-2">
         <div class="card">
           <div class="card-header">
             <div>
               <div class="card-title">Retail Sales (Monthly)</div>
-              <div class="card-subtitle">Totals by level for the month.</div>
+              <div class="card-subtitle">Totals by level for the month (from retail_sales).</div>
             </div>
           </div>
+
           <div class="metric-row" style="grid-template-columns: 1fr;">
             <div class="metric">
               <div class="metric-label">Total</div>
@@ -356,35 +468,35 @@
               <div class="metric-sub" id="retailBreakdown" style="margin-top:6px;">L7 £0 • L5 £0 • L4 £0 • L3 £0</div>
             </div>
           </div>
+
           <div id="retailLevelsList" class="list"></div>
         </div>
 
+        <!-- Photos (restored) -->
         <div class="card">
           <div class="card-header">
             <div>
-              <div class="card-title">Notes</div>
-              <div class="card-subtitle">All notes recorded for the month.</div>
+              <div class="card-title">Photo Gallery</div>
+              <div class="card-subtitle">All photos uploaded within the selected month.</div>
             </div>
           </div>
-          <div id="notesEmpty" class="empty-text">No notes recorded.</div>
-          <div id="notesList" class="list"></div>
+          <div id="photosEmpty" class="empty-text">No photos uploaded this month.</div>
+          <div id="photosGrid" class="photos-grid"></div>
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- Summary modal (kept for compatibility) -->
-    <div class="modal" id="summaryModal">
-      <div class="modal-card">
-        <div class="modal-header">
-          <div class="mh-title">Monthly Summary</div>
-          <button id="closeSummaryBtn" class="btn btn-secondary" style="padding:6px 14px; font-size:12px;">Close</button>
-        </div>
-        <div class="modal-body">
-          <div class="list-item" style="margin:0;">
-            <div class="list-title">Summary</div>
-            <div id="summaryModalText" class="list-notes" style="margin-top:8px;"></div>
-          </div>
-        </div>
+  <!-- Photo modal -->
+  <div class="modal" id="photoModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="mh-title" id="photoModalTitle">Photo</div>
+        <button class="close" id="closePhotoModalBtn">Close</button>
+      </div>
+      <div class="modal-body">
+        <img id="photoModalImg" alt="Photo" />
+        <div class="metric-sub" id="photoModalMeta"></div>
       </div>
     </div>
   </div>
@@ -392,13 +504,16 @@
   <script type="module">
     import { supabase } from './supabase-config.js';
 
-    const monthLabelEl = document.getElementById('monthLabel');
-    const monthPillEl = document.getElementById('monthPill');
     const errorMessageEl = document.getElementById('errorMessage');
-    const siteFilterEl = document.getElementById('siteFilter');
+
     const prevMonthBtn = document.getElementById('prevMonthBtn');
     const nextMonthBtn = document.getElementById('nextMonthBtn');
     const latestMonthBtn = document.getElementById('latestMonthBtn');
+    const refreshBtn = document.getElementById('refreshBtn');
+
+    const monthLabelEl = document.getElementById('monthLabel');
+    const monthRangePillEl = document.getElementById('monthRangePill');
+    const siteFilterEl = document.getElementById('siteFilter');
 
     const kpiTotalLogsEl = document.getElementById('kpiTotalLogs');
     const kpiStaffingSumEl = document.getElementById('kpiStaffingSum');
@@ -420,28 +535,58 @@
     const retailBreakdownEl = document.getElementById('retailBreakdown');
     const retailLevelsListEl = document.getElementById('retailLevelsList');
 
-    const notesEmptyEl = document.getElementById('notesEmpty');
-    const notesListEl = document.getElementById('notesList');
+    const photosEmptyEl = document.getElementById('photosEmpty');
+    const photosGridEl = document.getElementById('photosGrid');
 
-    const generateMonthlySummaryBtn = document.getElementById('generateMonthlySummaryBtn');
-    const monthlySummaryBox = document.getElementById('monthlySummaryBox');
-    const monthlySummaryText = document.getElementById('monthlySummaryText');
+    const photoModalEl = document.getElementById('photoModal');
+    const photoModalTitleEl = document.getElementById('photoModalTitle');
+    const photoModalImgEl = document.getElementById('photoModalImg');
+    const photoModalMetaEl = document.getElementById('photoModalMeta');
+    const closePhotoModalBtn = document.getElementById('closePhotoModalBtn');
 
-    const summaryModal = document.getElementById('summaryModal');
-    const summaryModalText = document.getElementById('summaryModalText');
-    const closeSummaryBtn = document.getElementById('closeSummaryBtn');
+    // Finance UI
+    const financePillEl = document.getElementById('financePill');
+    const financeEmptyEl = document.getElementById('financeEmpty');
+    const financeGridEl = document.getElementById('financeGrid');
+    const financeAllSitesListEl = document.getElementById('financeAllSitesList');
+
+    const finSalesActualEl = document.getElementById('finSalesActual');
+    const finSalesBudgetEl = document.getElementById('finSalesBudget');
+    const finSalesVarEl = document.getElementById('finSalesVar');
+
+    const finLabourActualEl = document.getElementById('finLabourActual');
+    const finLabourBudgetEl = document.getElementById('finLabourBudget');
+    const finLabourVarEl = document.getElementById('finLabourVar');
+
+    const finGpActualEl = document.getElementById('finGpActual');
+    const finGpBudgetEl = document.getElementById('finGpBudget');
+
+    const finRetailActualEl = document.getElementById('finRetailActual');
+    const finRetailBudgetEl = document.getElementById('finRetailBudget');
+
+    const finHospActualEl = document.getElementById('finHospActual');
+    const finHospBudgetEl = document.getElementById('finHospBudget');
+
+    const finFreeActualEl = document.getElementById('finFreeActual');
+    const finFreeBudgetEl = document.getElementById('finFreeBudget');
 
     let currentMonthOffset = 0;
-    let currentSiteFilter = 'All';
 
     function safeNum(v) {
       const n = Number(v);
       return Number.isFinite(n) ? n : 0;
     }
+
     function safeText(v) { return (v ?? '').toString().trim(); }
-    function hasMeaningfulText(v) { return safeText(v).length > 0; }
+    function hasText(v) { return safeText(v).length > 0; }
+
     function money(n) { return `£${Number(n || 0).toFixed(2)}`; }
-    function calcSPH(sales, tx) { const s = safeNum(sales); const t = safeNum(tx); return t > 0 ? (s / t) : 0; }
+    function pct(n) { return `${Number(n || 0).toFixed(1)}%`; }
+
+    function isIncidentFlagTrue(v) {
+      const t = safeText(v).toLowerCase();
+      return t === 'yes' || t === 'true' || t === '1';
+    }
 
     function toISODate(d) {
       const yyyy = d.getFullYear();
@@ -470,14 +615,10 @@
       return fmt.format(d);
     }
 
-    function applySiteFilter(rows) {
-      if (currentSiteFilter === 'All') return rows;
-      return (rows || []).filter(r => (r.site || '') === currentSiteFilter);
-    }
-
-    function isIncidentFlagTrue(v) {
-      const t = safeText(v).toLowerCase();
-      return t === 'yes' || t === 'true' || t === '1';
+    function calcSPH(sales, tx) {
+      const s = safeNum(sales);
+      const t = safeNum(tx);
+      return t > 0 ? s / t : 0;
     }
 
     function renderList(containerEl, emptyEl, items) {
@@ -487,6 +628,7 @@
         return;
       }
       emptyEl.style.display = 'none';
+
       items.forEach(it => {
         const div = document.createElement('div');
         div.className = 'list-item';
@@ -501,28 +643,150 @@
       });
     }
 
-    async function ensureLatestMonthAnchor() {
-      // Keep it simple: latest month is "this month" unless you later add a month table
-      return true;
+    function clearUI() {
+      errorMessageEl.style.display = 'none';
+      errorMessageEl.textContent = '';
+
+      kpiTotalLogsEl.textContent = '0';
+      kpiStaffingSumEl.textContent = '0';
+      kpiStaffingSubEl.textContent = 'Sick • Holiday • Agency';
+      kpiRetailSalesEl.textContent = '£0.00';
+      kpiRetailSubEl.textContent = 'Transactions • SPH';
+
+      staffSickEl.textContent = '0';
+      staffHolEl.textContent = '0';
+      staffAgEl.textContent = '0';
+
+      maintListEl.innerHTML = '';
+      hsListEl.innerHTML = '';
+      maintEmptyEl.style.display = 'block';
+      hsEmptyEl.style.display = 'block';
+
+      retailTotalEl.textContent = '£0.00';
+      retailSubEl.textContent = '0 tx • SPH £0.00';
+      retailBreakdownEl.textContent = 'L7 £0 • L5 £0 • L4 £0 • L3 £0';
+      retailLevelsListEl.innerHTML = '';
+
+      photosGridEl.innerHTML = '';
+      photosEmptyEl.style.display = 'block';
+
+      // Finance reset
+      financePillEl.textContent = 'Finance';
+      financeEmptyEl.style.display = 'block';
+      financeGridEl.style.display = 'none';
+      financeAllSitesListEl.style.display = 'none';
+      financeAllSitesListEl.innerHTML = '';
     }
 
-    async function loadMonthlyRetailSales(startStr, endStr) {
+    async function loadMonthlyFinance(monthStartStr, site) {
+      // If site is All, load both and show as a list (do NOT try to sum GP%)
+      if (site === 'All') {
+        const { data, error } = await supabase
+          .from('monthly_finance_summary')
+          .select('*')
+          .eq('month_start', monthStartStr)
+          .order('site', { ascending: true });
+
+        if (error) throw error;
+
+        financePillEl.textContent = `Finance • ${monthStartStr}`;
+        financeEmptyEl.style.display = (data && data.length) ? 'none' : 'block';
+        financeGridEl.style.display = 'none';
+
+        financeAllSitesListEl.style.display = (data && data.length) ? 'grid' : 'none';
+        financeAllSitesListEl.innerHTML = '';
+
+        if (data && data.length) {
+          const items = data.map(r => {
+            const budgetSales = safeNum(r.budget_retail_sales) + safeNum(r.budget_hospitality_sales);
+            const actualSales = safeNum(r.actual_retail_sales) + safeNum(r.actual_hospitality_sales);
+            const budgetLab  = safeNum(r.budget_core_wages) + safeNum(r.budget_agency_spend);
+            const actualLab  = safeNum(r.actual_core_wages) + safeNum(r.actual_agency_spend);
+
+            return {
+              title: `${r.site} • ${monthStartStr}`,
+              badge: `GP ${pct(r.actual_gp_pct)} (Bgt ${pct(r.budget_gp_pct)})`,
+              notes:
+                `Total Sales: ${money(actualSales)} (Bgt ${money(budgetSales)})\n` +
+                `Retail: ${money(r.actual_retail_sales)} (Bgt ${money(r.budget_retail_sales)})\n` +
+                `Hospitality: ${money(r.actual_hospitality_sales)} (Bgt ${money(r.budget_hospitality_sales)})\n` +
+                `Free Issue: ${money(r.actual_free_issue)} (Bgt ${money(r.budget_free_issue)})\n` +
+                `Labour: ${money(actualLab)} (Bgt ${money(budgetLab)})`
+            };
+          });
+
+          // re-use list renderer with a dummy empty element
+          const dummyEmpty = document.createElement('div');
+          renderList(financeAllSitesListEl, dummyEmpty, items);
+        }
+
+        return;
+      }
+
       const { data, error } = await supabase
+        .from('monthly_finance_summary')
+        .select('*')
+        .eq('month_start', monthStartStr)
+        .eq('site', site)
+        .limit(1)
+        .maybeSingle();
+
+      if (error) throw error;
+
+      financePillEl.textContent = `Finance • ${site} • ${monthStartStr}`;
+
+      if (!data) {
+        financeEmptyEl.style.display = 'block';
+        financeGridEl.style.display = 'none';
+        financeAllSitesListEl.style.display = 'none';
+        return;
+      }
+
+      financeEmptyEl.style.display = 'none';
+      financeAllSitesListEl.style.display = 'none';
+      financeGridEl.style.display = 'grid';
+
+      const budgetSales = safeNum(data.budget_retail_sales) + safeNum(data.budget_hospitality_sales);
+      const actualSales = safeNum(data.actual_retail_sales) + safeNum(data.actual_hospitality_sales);
+
+      const budgetLab  = safeNum(data.budget_core_wages) + safeNum(data.budget_agency_spend);
+      const actualLab  = safeNum(data.actual_core_wages) + safeNum(data.actual_agency_spend);
+
+      finSalesActualEl.textContent = money(actualSales);
+      finSalesBudgetEl.textContent = money(budgetSales);
+      finSalesVarEl.textContent = money(actualSales - budgetSales);
+
+      finLabourActualEl.textContent = money(actualLab);
+      finLabourBudgetEl.textContent = money(budgetLab);
+      finLabourVarEl.textContent = money(actualLab - budgetLab);
+
+      finGpActualEl.textContent = pct(data.actual_gp_pct);
+      finGpBudgetEl.textContent = pct(data.budget_gp_pct);
+
+      finRetailActualEl.textContent = money(data.actual_retail_sales);
+      finRetailBudgetEl.textContent = money(data.budget_retail_sales);
+
+      finHospActualEl.textContent = money(data.actual_hospitality_sales);
+      finHospBudgetEl.textContent = money(data.budget_hospitality_sales);
+
+      finFreeActualEl.textContent = money(data.actual_free_issue);
+      finFreeBudgetEl.textContent = money(data.budget_free_issue);
+    }
+
+    async function loadMonthlyRetailSales(startStr, endStr, site) {
+      let q = supabase
         .from('retail_sales')
         .select('*')
         .gte('sales_date', startStr)
         .lte('sales_date', endStr);
 
-      if (error) {
-        console.error('Retail sales monthly error:', error);
-        return {
-          allSales: 0, allTrans: 0,
-          L7: { sales: 0, trans: 0 },
-          L5: { sales: 0, trans: 0 },
-          L4: { sales: 0, trans: 0 },
-          L3: { sales: 0, trans: 0 },
-        };
-      }
+      // retail_sales has "site" default London in your schema.
+      // If Newcastle selected, this will correctly show 0 unless you start storing Newcastle retail rows.
+      if (site !== 'All') q = q.eq('site', site);
+
+      const { data, error } = await q.order('sales_date', { ascending: true });
+
+      if (error) throw error;
 
       const totals = {
         allSales: 0, allTrans: 0,
@@ -551,9 +815,11 @@
 
     function renderRetailSales(totals) {
       const sph = calcSPH(totals.allSales, totals.allTrans);
+
       retailTotalEl.textContent = money(totals.allSales);
       retailSubEl.textContent = `${Math.round(totals.allTrans)} tx • SPH ${money(sph)}`;
-      retailBreakdownEl.textContent = `L7 ${money(totals.L7.sales)} • L5 ${money(totals.L5.sales)} • L4 ${money(totals.L4.sales)} • L3 ${money(totals.L3.sales)}`;
+      retailBreakdownEl.textContent =
+        `L7 ${money(totals.L7.sales)} • L5 ${money(totals.L5.sales)} • L4 ${money(totals.L4.sales)} • L3 ${money(totals.L3.sales)}`;
 
       kpiRetailSalesEl.textContent = money(totals.allSales);
       kpiRetailSubEl.textContent = `${Math.round(totals.allTrans)} tx • SPH ${money(sph)}`;
@@ -580,27 +846,69 @@
       });
     }
 
-    function setEmptyLists() {
-      maintListEl.innerHTML = '';
-      hsListEl.innerHTML = '';
-      notesListEl.innerHTML = '';
-      maintEmptyEl.style.display = 'block';
-      hsEmptyEl.style.display = 'block';
-      notesEmptyEl.style.display = 'block';
+    async function loadMonthlyOpsLogs(startStr, endStr, site) {
+      // FIX: include created_at fallback for legacy rows with log_date IS NULL
+      let q = supabase
+        .from('ops_logs')
+        .select('*')
+        .or(
+          `and(log_date.gte.${startStr},log_date.lte.${endStr}),and(log_date.is.null,created_at.gte.${startStr}T00:00:00Z,created_at.lte.${endStr}T23:59:59Z)`
+        )
+        .order('log_date', { ascending: true })
+        .order('created_at', { ascending: true });
+
+      if (site !== 'All') q = q.eq('site', site);
+
+      const { data, error } = await q;
+      if (error) throw error;
+      return data || [];
     }
 
-    async function loadMonthlyData() {
-      errorMessageEl.style.display = 'none';
-      errorMessageEl.textContent = '';
+    function renderPhotos(opsRows) {
+      const photos = (opsRows || [])
+        .filter(r => !!r.photo_url)
+        .map(r => {
+          const d = (r.log_date || (r.created_at ? String(r.created_at).slice(0,10) : '')).slice(0,10);
+          return {
+            url: r.photo_url,
+            date: d || '—',
+            site: r.site || '—',
+            area: r.area || '—'
+          };
+        });
 
-      try {
-        await ensureLatestMonthAnchor();
-      } catch (e) {
-        console.error(e);
-        errorMessageEl.textContent = 'There was an error loading the monthly dashboard.';
-        errorMessageEl.style.display = 'block';
+      if (!photos.length) {
+        photosEmptyEl.style.display = 'block';
+        photosGridEl.innerHTML = '';
         return;
       }
+
+      photosEmptyEl.style.display = 'none';
+
+      photos.sort((a,b) => (a.date < b.date ? -1 : 1));
+
+      photosGridEl.innerHTML = photos.map(p => `
+        <div class="photo-card" data-url="${p.url}" data-meta="${p.date} • ${p.site} • ${p.area}">
+          <img src="${p.url}" alt="Ops photo" />
+          <div class="photo-card-caption">${p.date}<br/>${p.site}${p.area ? ' • ' + p.area : ''}</div>
+        </div>
+      `).join('');
+
+      // click => modal
+      photosGridEl.querySelectorAll('.photo-card').forEach(el => {
+        el.addEventListener('click', () => {
+          const url = el.getAttribute('data-url');
+          const meta = el.getAttribute('data-meta') || '';
+          photoModalTitleEl.textContent = 'Photo';
+          photoModalImgEl.src = url;
+          photoModalMetaEl.textContent = meta;
+          photoModalEl.classList.add('open');
+        });
+      });
+    }
+
+    async function loadMonth() {
+      clearUI();
 
       nextMonthBtn.disabled = currentMonthOffset === 0;
 
@@ -614,145 +922,80 @@
       const startStr = toISODate(monthStart);
       const endStr = toISODate(monthEnd);
 
-      const monthLabel = monthLabelFromDate(target);
+      const monthStartStr = toISODate(monthStart); // month_start key for finance table
+      const site = siteFilterEl.value;
 
-      monthLabelEl.textContent = monthLabel;
-      monthPillEl.textContent = `${startStr} → ${endStr}`;
+      monthLabelEl.textContent = monthLabelFromDate(target);
+      monthRangePillEl.textContent = `${startStr} → ${endStr}`;
 
-      // OPS LOGS (FIXED: include created_at fallback when log_date is null)
-      const { data: opsRowsRaw, error: opsErr } = await supabase
-        .from('ops_logs')
-        .select('*')
-        // Include both:
-        // 1) rows that have log_date within the month, and
-        // 2) legacy rows where log_date is NULL (use created_at as fallback)
-        .or(
-          `and(log_date.gte.${startStr},log_date.lte.${endStr}),and(log_date.is.null,created_at.gte.${startStr}T00:00:00Z,created_at.lte.${endStr}T23:59:59Z)`
-        )
-        .order('log_date', { ascending: true })
-        .order('created_at', { ascending: true });
+      try {
+        const [opsRows, retailTotals] = await Promise.all([
+          loadMonthlyOpsLogs(startStr, endStr, site),
+          loadMonthlyRetailSales(startStr, endStr, site),
+        ]);
 
-      if (opsErr) {
-        console.error('Ops monthly error:', opsErr);
-        errorMessageEl.textContent = 'There was an error loading the monthly dashboard.';
-        errorMessageEl.style.display = 'block';
-        return;
-      }
+        // KPIs
+        kpiTotalLogsEl.textContent = String(opsRows.length);
 
-      const opsRows = applySiteFilter(opsRowsRaw || []);
+        const sick = opsRows.reduce((s,r) => s + safeNum(r.sickness_count), 0);
+        const hol  = opsRows.reduce((s,r) => s + safeNum(r.holiday_count), 0);
+        const ag   = opsRows.reduce((s,r) => s + safeNum(r.agency_count), 0);
 
-      // KPI: total logs
-      kpiTotalLogsEl.textContent = String(opsRows.length);
+        staffSickEl.textContent = String(sick);
+        staffHolEl.textContent  = String(hol);
+        staffAgEl.textContent   = String(ag);
 
-      // Staffing totals
-      const sick = opsRows.reduce((s, r) => s + safeNum(r.sickness_count), 0);
-      const hol  = opsRows.reduce((s, r) => s + safeNum(r.holiday_count), 0);
-      const ag   = opsRows.reduce((s, r) => s + safeNum(r.agency_count), 0);
+        kpiStaffingSumEl.textContent = String(sick + hol + ag);
+        kpiStaffingSubEl.textContent = `Sick: ${sick} • Holiday: ${hol} • Agency: ${ag}`;
 
-      staffSickEl.textContent = String(sick);
-      staffHolEl.textContent  = String(hol);
-      staffAgEl.textContent   = String(ag);
+        // Incidents
+        const maintItems = [];
+        const hsItems = [];
 
-      kpiStaffingSumEl.textContent = String(sick + hol + ag);
-      kpiStaffingSubEl.textContent = `Sick: ${sick} • Holiday: ${hol} • Agency: ${ag}`;
+        opsRows.forEach(r => {
+          const date = (r.log_date || (r.created_at ? String(r.created_at).slice(0,10) : '')).slice(0,10);
+          const titleBase = `${r.site || 'Site'} • ${r.area || 'Area'} • ${date || '—'}`;
 
-      // Retail sales
-      const retailTotals = await loadMonthlyRetailSales(startStr, endStr);
-      renderRetailSales(retailTotals);
-
-      setEmptyLists();
-
-      // Incidents
-      const maintItems = [];
-      const hsItems = [];
-
-      opsRows.forEach(r => {
-        const date = r.log_date || (r.created_at ? String(r.created_at).slice(0,10) : '');
-        const titleBase = `${r.site || 'Site'} • ${r.area || 'Area'} • ${date}`;
-
-        if (isIncidentFlagTrue(r.maintenance_issue) || hasMeaningfulText(r.maintenance_notes)) {
-          maintItems.push({
-            title: titleBase,
-            badge: '',
-            notes: safeText(r.maintenance_notes) || '(No notes entered)'
-          });
-        }
-
-        if (isIncidentFlagTrue(r.hs_issue) || hasMeaningfulText(r.hs_notes)) {
-          hsItems.push({
-            title: titleBase,
-            badge: '',
-            notes: safeText(r.hs_notes) || '(No notes entered)'
-          });
-        }
-      });
-
-      renderList(maintListEl, maintEmptyEl, maintItems);
-      renderList(hsListEl, hsEmptyEl, hsItems);
-
-      // Notes
-      const notes = opsRows
-        .filter(r => hasMeaningfulText(r.notes))
-        .map(r => {
-          const date = r.log_date || (r.created_at ? String(r.created_at).slice(0,10) : '');
-          return {
-            title: `${r.site || 'Site'} • ${r.area || 'Area'} • ${date}`,
-            badge: '',
-            notes: safeText(r.notes)
-          };
+          if (isIncidentFlagTrue(r.maintenance_issue) || hasText(r.maintenance_notes)) {
+            maintItems.push({ title: titleBase, badge: '', notes: safeText(r.maintenance_notes) || '(No notes entered)' });
+          }
+          if (isIncidentFlagTrue(r.hs_issue) || hasText(r.hs_notes)) {
+            hsItems.push({ title: titleBase, badge: '', notes: safeText(r.hs_notes) || '(No notes entered)' });
+          }
         });
 
-      renderList(notesListEl, notesEmptyEl, notes);
+        renderList(maintListEl, maintEmptyEl, maintItems);
+        renderList(hsListEl, hsEmptyEl, hsItems);
 
-      // Hide summary box on refresh
-      monthlySummaryBox.style.display = 'none';
-      monthlySummaryText.textContent = '';
+        // Retail
+        renderRetailSales(retailTotals);
+
+        // Photos
+        renderPhotos(opsRows);
+
+        // Finance (separate query)
+        await loadMonthlyFinance(monthStartStr, site);
+
+      } catch (err) {
+        errorMessageEl.style.display = 'block';
+        errorMessageEl.textContent = `Error loading monthly dashboard:\n${err?.message || err}`;
+      }
     }
 
-    function buildMonthlySummaryText() {
-      const lines = [];
-      lines.push(`Monthly Ops Summary`);
-      lines.push(`—————————————`);
-      lines.push(`Month: ${monthLabelEl.textContent}`);
-      lines.push(`Filter: ${siteFilterEl.options[siteFilterEl.selectedIndex].text}`);
-      lines.push('');
-      lines.push(`Logs: ${kpiTotalLogsEl.textContent}`);
-      lines.push('');
-      lines.push(`Staffing Impact`);
-      lines.push(`• Sickness: ${staffSickEl.textContent}`);
-      lines.push(`• Holiday: ${staffHolEl.textContent}`);
-      lines.push(`• Agency: ${staffAgEl.textContent}`);
-      lines.push('');
-      lines.push(`Retail Sales`);
-      lines.push(`• Total: ${retailTotalEl.textContent}`);
-      lines.push(`• ${retailSubEl.textContent}`);
-      return lines.join('\n');
-    }
+    prevMonthBtn.addEventListener('click', () => { currentMonthOffset -= 1; loadMonth(); });
+    nextMonthBtn.addEventListener('click', () => { if (currentMonthOffset < 0) { currentMonthOffset += 1; loadMonth(); } });
+    latestMonthBtn.addEventListener('click', () => { currentMonthOffset = 0; loadMonth(); });
 
-    generateMonthlySummaryBtn.addEventListener('click', () => {
-      const text = buildMonthlySummaryText();
-      monthlySummaryText.textContent = text;
-      monthlySummaryBox.style.display = 'block';
+    refreshBtn.addEventListener('click', loadMonth);
+    siteFilterEl.addEventListener('change', loadMonth);
 
-      summaryModalText.textContent = text;
-      summaryModal.classList.add('open');
+    closePhotoModalBtn.addEventListener('click', () => photoModalEl.classList.remove('open'));
+    photoModalEl.addEventListener('click', (e) => {
+      if (e.target === photoModalEl) photoModalEl.classList.remove('open');
     });
 
-    closeSummaryBtn.addEventListener('click', () => summaryModal.classList.remove('open'));
-    summaryModal.addEventListener('click', (e) => {
-      if (e.target === summaryModal) summaryModal.classList.remove('open');
-    });
-
-    prevMonthBtn.addEventListener('click', () => { currentMonthOffset -= 1; loadMonthlyData(); });
-    nextMonthBtn.addEventListener('click', () => { if (currentMonthOffset < 0) { currentMonthOffset += 1; loadMonthlyData(); } });
-    latestMonthBtn.addEventListener('click', () => { currentMonthOffset = 0; loadMonthlyData(); });
-
-    siteFilterEl.addEventListener('change', (e) => {
-      currentSiteFilter = e.target.value;
-      loadMonthlyData();
-    });
-
-    loadMonthlyData();
+    loadMonth();
   </script>
 </body>
 </html>
+
