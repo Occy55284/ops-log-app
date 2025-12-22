@@ -16,409 +16,312 @@
       min-height: 100vh;
     }
 
-    .page { max-width: 1400px; width: 100%; padding: 24px; box-sizing: border-box; }
+    .page { max-width: 1400px; width: 100%; padding: 18px 14px 42px; }
 
-    .header {
+    .topbar {
       display: flex;
       flex-wrap: wrap;
       align-items: center;
       justify-content: space-between;
       gap: 12px;
-      margin-bottom: 18px;
+      margin-bottom: 14px;
     }
 
-    .title-wrap { display: flex; flex-direction: column; gap: 4px; }
+    .brand { display: flex; gap: 10px; align-items: center; }
 
-    h1 {
-      margin: 0;
-      font-size: 24px;
-      letter-spacing: 0.03em;
-      text-transform: uppercase;
-      color: #e5e7eb;
+    .logo {
+      width: 42px; height: 42px; border-radius: 12px;
+      background: linear-gradient(135deg, #1f2a44, #0f172a);
+      box-shadow: 0 0 0 1px rgba(255,255,255,0.06) inset, 0 12px 24px rgba(0,0,0,0.25);
+      display: grid; place-items: center;
+      font-weight: 800; letter-spacing: 0.5px; color: #93c5fd;
     }
 
-    .subtitle { font-size: 13px; color: #9ca3af; }
+    .titleblock .title { font-size: 18px; font-weight: 750; line-height: 1.2; }
+    .titleblock .subtitle { font-size: 12px; color: rgba(255,255,255,0.68); margin-top: 2px; }
 
-    .controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .filters { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; justify-content: flex-end; }
 
-    .pill {
-      border-radius: 999px;
-      background: rgba(15, 23, 42, 0.95);
-      border: 1px solid rgba(148, 163, 184, 0.4);
-      padding: 6px 12px;
-      font-size: 12px;
-      color: #e5e7eb;
-      display: inline-flex;
+    .filter {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      padding: 10px 12px;
+      border-radius: 14px;
+      display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 10px;
+      min-width: 220px;
+      box-shadow: 0 8px 18px rgba(0,0,0,0.20);
     }
 
-    .pill-label {
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-      font-size: 11px;
-      color: #9ca3af;
-    }
+    .filter label { font-size: 12px; color: rgba(255,255,255,0.72); white-space: nowrap; }
 
-    .pill-value { font-weight: 500; }
-
-    .pill-select {
-      border: none;
-      background: transparent;
-      color: #e5e7eb;
-      font-size: 12px;
-      padding: 2px 4px;
+    select {
+      background: rgba(0,0,0,0.25);
+      border: 1px solid rgba(255,255,255,0.12);
+      color: #f9fafb;
+      padding: 8px 10px;
+      border-radius: 10px;
       outline: none;
-      cursor: pointer;
+      width: 100%;
+      font-size: 13px;
     }
-
-    .pill-select option { background: #020617; color: #e5e7eb; }
 
     .btn {
-      border-radius: 999px;
-      border: 1px solid rgba(94, 234, 212, 0.5);
-      background: radial-gradient(circle at top left, rgba(45, 212, 191, 0.35), rgba(15, 23, 42, 1));
-      color: #ecfeff;
-      padding: 8px 14px;
-      font-size: 12px;
-      font-weight: 500;
+      background: rgba(59,130,246,0.20);
+      border: 1px solid rgba(59,130,246,0.42);
+      color: rgba(219,234,254,0.95);
+      padding: 10px 12px;
+      border-radius: 14px;
+      font-weight: 750;
+      font-size: 13px;
       cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      box-shadow: 0 0 0 1px rgba(15, 23, 42, 1), 0 8px 18px rgba(45, 212, 191, 0.2);
-      transition: transform 0.1s ease, box-shadow 0.1s ease, opacity 0.1s ease;
+      box-shadow: 0 10px 22px rgba(0,0,0,0.22);
+      transition: transform .08s ease, filter .08s ease;
     }
-
-    .btn:hover:not(:disabled) {
-      transform: translateY(-1px);
-      box-shadow: 0 0 0 1px rgba(15, 23, 42, 1), 0 12px 26px rgba(45, 212, 191, 0.28);
-    }
-
-    .btn:disabled { opacity: 0.4; cursor: default; }
+    .btn:hover { filter: brightness(1.08); }
+    .btn:active { transform: translateY(1px); }
 
     .btn-secondary {
-      border-color: rgba(148, 163, 184, 0.6);
-      background: radial-gradient(circle at top left, rgba(30, 64, 175, 0.4), rgba(15, 23, 42, 1));
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.10);
+      color: rgba(255,255,255,0.88);
     }
 
-    .grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; }
-
-    .row-2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; }
-    .row-3 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr); gap: 14px; }
-
-    @media (max-width: 1100px) {
-      .row-2, .row-3 { grid-template-columns: minmax(0, 1fr); }
-      .page { padding: 16px; }
-    }
-
-    .card {
-      background: radial-gradient(circle at top left, rgba(30, 64, 175, 0.4), rgba(15, 23, 42, 0.98));
-      border-radius: 18px;
-      border: 1px solid rgba(148, 163, 184, 0.35);
-      box-shadow: 0 0 0 1px rgba(15, 23, 42, 1), 0 18px 40px rgba(15, 23, 42, 0.9);
-      padding: 14px;
-      box-sizing: border-box;
-    }
-
-    .card-header {
-      display: flex;
-      align-items: baseline;
-      justify-content: space-between;
-      gap: 10px;
-      margin-bottom: 10px;
-      flex-wrap: wrap;
-    }
-
-    .card-title {
-      font-size: 14px;
-      letter-spacing: 0.11em;
-      text-transform: uppercase;
-      color: #e5e7eb;
-    }
-
-    .card-subtitle { font-size: 11px; color: #9ca3af; }
-
-    .metric-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
-
-    @media (max-width: 1100px) {
-      .metric-row { grid-template-columns: minmax(0, 1fr); }
-    }
-
-    .metric {
-      background: radial-gradient(circle at top left, rgba(15, 23, 42, 0.9), rgba(15, 23, 42, 1));
-      border-radius: 14px;
-      padding: 10px;
-      border: 1px solid rgba(148, 163, 184, 0.5);
-      box-shadow: 0 0 0 1px rgba(15, 23, 42, 1), 0 8px 18px rgba(15, 23, 42, 0.9);
-    }
-
-    .metric-label {
+    .pill {
       font-size: 11px;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: #9ca3af;
-      margin-bottom: 6px;
+      background: rgba(59,130,246,0.18);
+      border: 1px solid rgba(59,130,246,0.35);
+      color: rgba(219,234,254,0.92);
+      padding: 6px 10px;
+      border-radius: 999px;
+      white-space: nowrap;
     }
 
-    .metric-value { font-size: 20px; font-weight: 600; color: #e5e7eb; }
-    .metric-sub { font-size: 11px; color: #9ca3af; margin-top: 2px; line-height: 1.35; }
-
-    .section-label {
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.14em;
-      color: #6b7280;
-      margin: 14px 0 8px;
-    }
-
-    .divider {
-      height: 1px;
-      background: linear-gradient(to right, transparent, rgba(148, 163, 184, 0.4), transparent);
-      margin: 12px 0;
-    }
-
-    .error-banner {
+    .error {
       display: none;
-      border-radius: 10px;
-      border: 1px solid rgba(248, 113, 113, 0.7);
-      background: rgba(127, 29, 29, 0.7);
-      color: #fee2e2;
-      padding: 8px 10px;
+      margin-top: 10px;
+      background: rgba(239,68,68,0.15);
+      border: 1px solid rgba(239,68,68,0.35);
+      color: rgba(254,226,226,0.92);
+      padding: 10px 12px;
+      border-radius: 14px;
       font-size: 12px;
-      margin-bottom: 12px;
       white-space: pre-wrap;
     }
 
-    .list {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      max-height: 280px;
-      overflow: auto;
-      padding-right: 6px;
+    .grid { display: grid; grid-template-columns: 1fr; gap: 14px; margin-top: 14px; }
+
+    .row-1, .row-2, .row-3 { display: grid; gap: 14px; }
+    .row-1 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .row-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .row-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+    @media (max-width: 1100px) {
+      .row-1 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .row-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 640px) {
+      .row-1, .row-2, .row-3 { grid-template-columns: 1fr; }
+      .filter { min-width: 100%; }
     }
 
-    .list::-webkit-scrollbar { width: 10px; }
-    .list::-webkit-scrollbar-thumb { background: rgba(148,163,184,0.25); border-radius: 999px; }
-    .list::-webkit-scrollbar-track { background: rgba(15,23,42,0.4); border-radius: 999px; }
+    .card {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 18px;
+      padding: 14px;
+      box-shadow: 0 10px 24px rgba(0,0,0,0.24);
+      position: relative;
+      overflow: hidden;
+    }
 
-    .empty-text { font-size: 11px; color: #9ca3af; margin-top: 4px; }
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: -1px;
+      background: radial-gradient(650px 140px at 15% 0%, rgba(59,130,246,0.18), transparent 65%),
+                  radial-gradient(550px 160px at 85% 0%, rgba(236,72,153,0.14), transparent 60%);
+      pointer-events: none;
+    }
+    .card > * { position: relative; }
 
-    .photos-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    .card-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+    .card-title { font-weight: 750; font-size: 14px; letter-spacing: 0.2px; }
+    .card-subtitle { font-size: 12px; color: rgba(255,255,255,0.65); margin-top: 3px; line-height: 1.25; }
+
+    .kpis { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 6px; }
+    .kpi { background: rgba(0,0,0,0.22); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 10px 10px 9px; }
+    .kpi .label { font-size: 11px; color: rgba(255,255,255,0.65); }
+    .kpi .value { font-size: 20px; font-weight: 800; margin-top: 2px; letter-spacing: 0.2px; }
+    .kpi .sub { font-size: 11px; color: rgba(255,255,255,0.65); margin-top: 2px; line-height: 1.25; }
+
+    .metric-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .metric { background: rgba(0,0,0,0.22); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 10px; }
+    .metric-label { font-size: 11px; color: rgba(255,255,255,0.65); }
+    .metric-value { font-size: 18px; font-weight: 800; margin-top: 2px; }
+    .metric-sub { font-size: 11px; color: rgba(255,255,255,0.62); margin-top: 2px; line-height: 1.25; }
+
+    .list { display: grid; gap: 8px; margin-top: 10px; }
+    .list-item { background: rgba(0,0,0,0.22); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 10px; }
+    .list-title { font-weight: 700; font-size: 12px; color: rgba(255,255,255,0.92); display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
+    .badge {
+      font-size: 11px;
+      color: rgba(255,255,255,0.70);
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.08);
+      padding: 4px 8px;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+    .list-notes { font-size: 12px; color: rgba(255,255,255,0.75); margin-top: 6px; white-space: pre-wrap; line-height: 1.25; }
+    .empty-text { padding: 8px 2px; font-size: 12px; color: rgba(255,255,255,0.65); }
+
+    .modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.65);
+      z-index: 50;
+      padding: 16px;
+    }
+    .modal.open { display: grid; place-items: center; }
+
+    .modal-card {
+      width: min(1100px, 96vw);
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.45);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.10);
+      background: rgba(0,0,0,0.20);
       gap: 10px;
     }
 
-    .photo-card {
-      background: radial-gradient(circle at top left, rgba(15, 23, 42, 0.95), rgba(15, 23, 42, 1));
-      border-radius: 12px;
-      border: 1px solid rgba(148, 163, 184, 0.4);
-      padding: 6px;
+    .modal-header .mh-title {
+      font-weight: 800;
+      font-size: 13px;
+      color: rgba(255,255,255,0.92);
       display: flex;
-      flex-direction: column;
       align-items: center;
-      text-align: center;
+      gap: 10px;
+      flex-wrap: wrap;
     }
 
-    .photo-card img {
-      border-radius: 10px;
-      width: 100%;
-      height: 110px;
-      object-fit: cover;
-      display: block;
-      margin-bottom: 6px;
+    .close {
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(0,0,0,0.25);
+      color: rgba(255,255,255,0.85);
+      border-radius: 12px;
+      padding: 8px 10px;
+      cursor: pointer;
+      font-weight: 800;
     }
 
-    .photo-card-caption { font-size: 10px; color: #9ca3af; line-height: 1.3; }
-    .photo-card a { text-decoration: none; }
-    .photo-card a:focus img,
-    .photo-card a:hover img { outline: 1px solid rgba(96, 165, 250, 0.8); outline-offset: 2px; }
-
-    /* Commercial variance styling */
-    .var-pos { color: #a7f3d0; }
-    .var-neg { color: #fecaca; }
-    .var-neu { color: #cbd5e1; }
+    .modal-body { padding: 12px; display: grid; gap: 12px; }
   </style>
 </head>
 
 <body>
   <div class="page">
-    <div class="header">
-      <div class="title-wrap">
-        <h1>Monthly Ops Dashboard</h1>
-        <div class="subtitle">
-          Month view. Drill down by site/area, with staffing, incidents, hospitality, retail activity, Newcastle metrics, retail sales/SPH, photo gallery, and monthly finance budgets/actuals.
+    <div class="topbar">
+      <div class="brand">
+        <div class="logo">OL</div>
+        <div class="titleblock">
+          <div class="title">Monthly Dashboard</div>
+          <div class="subtitle">Month view. Filter by site.</div>
         </div>
       </div>
 
-      <div class="controls">
-        <div class="pill">
-          <div class="pill-label">Month</div>
-          <div class="pill-value" id="monthLabel">–</div>
-        </div>
+      <div class="filters">
+        <button class="btn btn-secondary" id="prevMonthBtn">◀</button>
+        <div class="pill" id="monthLabel">Month</div>
+        <button class="btn btn-secondary" id="nextMonthBtn">▶</button>
+        <button class="btn" id="latestMonthBtn">Latest</button>
 
-        <div class="pill">
-          <div class="pill-label">Site / Area</div>
-          <select id="siteFilter" class="pill-select">
-            <option value="All">All</option>
-            <option value="LondonAll">London – All</option>
-            <option value="LondonKitchen">London – Kitchen</option>
-            <option value="LondonHospitality">London – Hospitality</option>
-            <option value="LondonRetail">London – Retail</option>
+        <div class="filter">
+          <label for="siteFilter">Site</label>
+          <select id="siteFilter">
+            <option value="All">All Sites</option>
+            <option value="London">London</option>
             <option value="Newcastle">Newcastle</option>
           </select>
         </div>
 
-        <button class="btn btn-secondary" id="prevMonthBtn"><span class="btn-icon">◀</span> Previous</button>
-        <button class="btn btn-secondary" id="nextMonthBtn"><span class="btn-icon">▶</span> Next</button>
-        <button class="btn" id="latestMonthBtn"><span class="btn-icon">⟳</span> Latest month</button>
-
-        <button class="btn" id="generateMonthlySummaryBtn">
-          <span class="btn-icon">📝</span>
-          Generate Summary Text
-        </button>
+        <button class="btn" id="generateMonthlySummaryBtn">Generate Summary</button>
       </div>
     </div>
 
-    <div id="errorMessage" class="error-banner"></div>
+    <div id="errorMessage" class="error"></div>
 
     <div class="grid">
-      <!-- ✅ NEW: Commercial / Finance Summary -->
-      <div class="card" id="financeCard">
-        <div class="card-header">
-          <div>
-            <div class="card-title">Commercial Summary (Budget vs Actual)</div>
-            <div class="card-subtitle">
-              Budgets and actuals are maintained in Monthly Finance Admin. GP is displayed only (no calculations).
+      <div class="row-1">
+        <div class="card" style="grid-column: 1 / span 3; padding: 0;">
+          <div style="padding: 14px 14px 0;">
+            <div class="card-header" style="margin-bottom: 8px;">
+              <div>
+                <div class="card-title">Overview</div>
+                <div class="card-subtitle">Totals for the selected month & filter.</div>
+              </div>
+              <div class="pill" id="monthPill">Month</div>
+            </div>
+
+            <div class="kpis">
+              <div class="kpi">
+                <div class="label">Total Logs</div>
+                <div class="value" id="kpiTotalLogs">0</div>
+                <div class="sub">All entries captured</div>
+              </div>
+              <div class="kpi">
+                <div class="label">Staffing Impact</div>
+                <div class="value" id="kpiStaffingSum">0</div>
+                <div class="sub" id="kpiStaffingSub">Sick • Holiday • Agency</div>
+              </div>
+              <div class="kpi">
+                <div class="label">Retail Sales</div>
+                <div class="value" id="kpiRetailSales">£0.00</div>
+                <div class="sub" id="kpiRetailSub">Transactions • SPH</div>
+              </div>
             </div>
           </div>
-          <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-            <a class="btn btn-secondary" href="./monthly-finance-admin.html" style="text-decoration:none;">Open Finance Admin</a>
-            <div class="pill">
-              <div class="pill-label">Finance Site</div>
-              <div class="pill-value" id="financeSiteLabel">–</div>
+
+          <div style="padding: 0 14px 14px;">
+            <div id="monthlySummaryBox" style="display:none; margin-top:12px;" class="list-item">
+              <div class="list-title">Monthly Summary</div>
+              <div id="monthlySummaryText" class="list-notes" style="margin-top:8px;"></div>
             </div>
-          </div>
-        </div>
-
-        <div class="metric-row" style="grid-template-columns: repeat(3, minmax(0, 1fr));">
-          <div class="metric">
-            <div class="metric-label">Retail Sales (£)</div>
-            <div class="metric-value" id="finRetailActual">£0.00</div>
-            <div class="metric-sub" id="finRetailSub">Budget £0.00 • Var £0.00</div>
-          </div>
-          <div class="metric">
-            <div class="metric-label">Hospitality Sales (£)</div>
-            <div class="metric-value" id="finHospActual">£0.00</div>
-            <div class="metric-sub" id="finHospSub">Budget £0.00 • Var £0.00</div>
-          </div>
-          <div class="metric">
-            <div class="metric-label">Free Issue (£)</div>
-            <div class="metric-value" id="finFreeActual">£0.00</div>
-            <div class="metric-sub" id="finFreeSub">Budget £0.00 • Var £0.00</div>
-          </div>
-        </div>
-
-        <div class="divider"></div>
-
-        <div class="metric-row" style="grid-template-columns: repeat(3, minmax(0, 1fr));">
-          <div class="metric">
-            <div class="metric-label">Core Wages (£)</div>
-            <div class="metric-value" id="finCoreActual">£0.00</div>
-            <div class="metric-sub" id="finCoreSub">Budget £0.00 • Var £0.00</div>
-          </div>
-          <div class="metric">
-            <div class="metric-label">Agency Spend (£)</div>
-            <div class="metric-value" id="finAgencyActual">£0.00</div>
-            <div class="metric-sub" id="finAgencySub">Budget £0.00 • Var £0.00</div>
-          </div>
-          <div class="metric">
-            <div class="metric-label">Labour Total (£)</div>
-            <div class="metric-value" id="finLabourActual">£0.00</div>
-            <div class="metric-sub" id="finLabourSub">Budget £0.00 • Var £0.00</div>
-          </div>
-        </div>
-
-        <div class="divider"></div>
-
-        <div class="metric-row" style="grid-template-columns: repeat(3, minmax(0, 1fr));">
-          <div class="metric">
-            <div class="metric-label">Total Sales (£)</div>
-            <div class="metric-value" id="finTotalSalesActual">£0.00</div>
-            <div class="metric-sub" id="finTotalSalesSub">Budget £0.00 • Var £0.00</div>
-          </div>
-          <div class="metric">
-            <div class="metric-label">GP (%)</div>
-            <div class="metric-value" id="finGpActual">0.0%</div>
-            <div class="metric-sub" id="finGpSub">Budget 0.0% • Var 0.0pp</div>
-          </div>
-          <div class="metric">
-            <div class="metric-label">Status</div>
-            <div class="metric-value" id="finStatus">OK</div>
-            <div class="metric-sub" id="finStatusSub">Finance row loaded</div>
           </div>
         </div>
       </div>
 
-      <div class="card">
-        <div class="card-header">
-          <div>
-            <div class="card-title">Monthly Summary</div>
-            <div class="card-subtitle">High-level totals for the selected month and filter.</div>
+      <div class="row-3">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Staffing Summary</div>
+              <div class="card-subtitle">Totals for the month.</div>
+            </div>
+          </div>
+          <div class="metric-row" style="grid-template-columns: repeat(3, 1fr);">
+            <div class="metric"><div class="metric-label">Sickness</div><div class="metric-value" id="staffSick">0</div></div>
+            <div class="metric"><div class="metric-label">Holiday</div><div class="metric-value" id="staffHol">0</div></div>
+            <div class="metric"><div class="metric-label">Agency</div><div class="metric-value" id="staffAg">0</div></div>
           </div>
         </div>
 
-        <div class="metric-row">
-          <div class="metric">
-            <div class="metric-label">Total Logs</div>
-            <div class="metric-value" id="kpiTotalLogs">0</div>
-            <div class="metric-sub" id="kpiTotalLogsSub">No logs</div>
-          </div>
-
-          <div class="metric">
-            <div class="metric-label">Staffing (S/H/A)</div>
-            <div class="metric-value" id="kpiStaffingSum">–</div>
-            <div class="metric-sub" id="kpiStaffingSub">Sick • Holiday • Agency</div>
-          </div>
-
-          <div class="metric">
-            <div class="metric-label">Incidents</div>
-            <div class="metric-value" id="kpiIncidentsSum">–</div>
-            <div class="metric-sub" id="kpiIncidentsSub">Maintenance • H&amp;S</div>
-          </div>
-        </div>
-
-        <div class="divider"></div>
-
-        <div class="metric-row" style="grid-template-columns: repeat(3, minmax(0, 1fr));">
-          <div class="metric">
-            <div class="metric-label">Hospitality Events</div>
-            <div class="metric-value" id="kpiHospTotal">0</div>
-            <div class="metric-sub" id="kpiHospSub">Day • Night</div>
-          </div>
-
-          <div class="metric">
-            <div class="metric-label">Retail Lunch Specials</div>
-            <div class="metric-value" id="kpiRetailSpecials">0</div>
-            <div class="metric-sub" id="kpiRetailSpecialsSub">All specials listed below</div>
-          </div>
-
-          <div class="metric">
-            <div class="metric-label">Retail Sales (All Floors)</div>
-            <div class="metric-value" id="kpiRetailSalesAll">£0.00</div>
-            <div class="metric-sub" id="kpiRetailSalesAllSub">Transactions • SPH</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="row-2">
         <div class="card">
           <div class="card-header">
             <div>
               <div class="card-title">Maintenance Incidents</div>
-              <div class="card-subtitle">All maintenance issues for the month.</div>
+              <div class="card-subtitle">Only items with incidents show.</div>
             </div>
           </div>
           <div id="maintEmpty" class="empty-text">No maintenance incidents.</div>
@@ -429,7 +332,7 @@
           <div class="card-header">
             <div>
               <div class="card-title">H&amp;S Incidents</div>
-              <div class="card-subtitle">All H&amp;S issues for the month.</div>
+              <div class="card-subtitle">Only items with incidents show.</div>
             </div>
           </div>
           <div id="hsEmpty" class="empty-text">No H&amp;S incidents.</div>
@@ -437,172 +340,51 @@
         </div>
       </div>
 
-      <div class="row-3">
+      <div class="row-2">
         <div class="card">
           <div class="card-header">
             <div>
-              <div class="card-title">Hospitality</div>
-              <div class="card-subtitle">Totals split by day/night events.</div>
+              <div class="card-title">Retail Sales (Monthly)</div>
+              <div class="card-subtitle">Totals by level for the month.</div>
             </div>
           </div>
-
-          <div class="metric-row" style="grid-template-columns: repeat(2, minmax(0, 1fr));">
-            <div class="metric">
-              <div class="metric-label">Day Events</div>
-              <div class="metric-value" id="hospDayTotal">0</div>
-              <div class="metric-sub">Total day events</div>
-            </div>
-            <div class="metric">
-              <div class="metric-label">Night Events</div>
-              <div class="metric-value" id="hospNightTotal">0</div>
-              <div class="metric-sub">Total night events</div>
-            </div>
-          </div>
-
-          <div class="divider"></div>
-          <div class="metric">
-            <div class="metric-label">Total Events</div>
-            <div class="metric-value" id="hospTotalEvents">0</div>
-            <div class="metric-sub" id="hospTotalEventsSub">Day + Night</div>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-header">
-            <div>
-              <div class="card-title">Retail Lunch Specials</div>
-              <div class="card-subtitle">All specials recorded in ops logs.</div>
-            </div>
-          </div>
-          <div id="specialsEmpty" class="empty-text">No lunch specials recorded.</div>
-          <div id="specialsList" class="list"></div>
-        </div>
-
-        <div class="card">
-          <div class="card-header">
-            <div>
-              <div class="card-title">Newcastle Metrics</div>
-              <div class="card-subtitle">Free Breakfast + Hot Lunch summary.</div>
-            </div>
-          </div>
-
-          <div class="section-label">Free Breakfast</div>
-          <div class="metric-row" style="grid-template-columns: repeat(2, minmax(0, 1fr));">
+          <div class="metric-row" style="grid-template-columns: 1fr;">
             <div class="metric">
               <div class="metric-label">Total</div>
-              <div class="metric-value" id="ncFreeBreakfastTotal">0</div>
-              <div class="metric-sub" id="ncFreeBreakfastSub">Newcastle only</div>
-            </div>
-            <div class="metric">
-              <div class="metric-label">Days Issued</div>
-              <div class="metric-value" id="ncFreeBreakfastDays">0</div>
-              <div class="metric-sub" id="ncFreeBreakfastDaysSub">Days with value &gt; 0</div>
+              <div class="metric-value" id="retailTotal">£0.00</div>
+              <div class="metric-sub" id="retailSub">0 tx • SPH £0.00</div>
+              <div class="metric-sub" id="retailBreakdown" style="margin-top:6px;">L7 £0 • L5 £0 • L4 £0 • L3 £0</div>
             </div>
           </div>
+          <div id="retailLevelsList" class="list"></div>
+        </div>
 
-          <div class="divider"></div>
-
-          <div class="section-label">Hot Lunch</div>
-          <div class="metric-row" style="grid-template-columns: repeat(2, minmax(0, 1fr));">
-            <div class="metric">
-              <div class="metric-label">Total Dishes</div>
-              <div class="metric-value" id="ncHotLunchTotal">0</div>
-              <div class="metric-sub" id="ncHotLunchSub">Newcastle only</div>
-            </div>
-            <div class="metric">
-              <div class="metric-label">Busiest Day</div>
-              <div class="metric-value" id="ncHotLunchBusiest">–</div>
-              <div class="metric-sub" id="ncHotLunchBusiestSub">–</div>
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Notes</div>
+              <div class="card-subtitle">All notes recorded for the month.</div>
             </div>
           </div>
+          <div id="notesEmpty" class="empty-text">No notes recorded.</div>
+          <div id="notesList" class="list"></div>
         </div>
-      </div>
-
-      <div class="card">
-        <div class="card-header">
-          <div>
-            <div class="card-title">Retail Sales Breakdown</div>
-            <div class="card-subtitle">Totals per floor with transactions and SPH (sales per head).</div>
-          </div>
-        </div>
-
-        <div class="metric-row" style="grid-template-columns: repeat(4, minmax(0, 1fr));">
-          <div class="metric">
-            <div class="metric-label">Level 7</div>
-            <div class="metric-value" id="salesL7">£0.00</div>
-            <div class="metric-sub" id="salesL7Sub">0 tx • SPH £0.00</div>
-          </div>
-          <div class="metric">
-            <div class="metric-label">Level 5</div>
-            <div class="metric-value" id="salesL5">£0.00</div>
-            <div class="metric-sub" id="salesL5Sub">0 tx • SPH £0.00</div>
-          </div>
-          <div class="metric">
-            <div class="metric-label">Level 4</div>
-            <div class="metric-value" id="salesL4">£0.00</div>
-            <div class="metric-sub" id="salesL4Sub">0 tx • SPH £0.00</div>
-          </div>
-          <div class="metric">
-            <div class="metric-label">Level 3</div>
-            <div class="metric-value" id="salesL3">£0.00</div>
-            <div class="metric-sub" id="salesL3Sub">0 tx • SPH £0.00</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-header">
-          <div>
-            <div class="card-title">Photo Gallery</div>
-            <div class="card-subtitle">All photos uploaded within the selected month.</div>
-          </div>
-        </div>
-        <div id="photosEmpty" class="empty-text">No photos uploaded this month.</div>
-        <div id="photosGrid" class="photos-grid"></div>
       </div>
     </div>
-  </div>
 
-  <!-- ✅ SUMMARY MODAL -->
-  <div id="summaryModal" style="
-    display:none;
-    position:fixed;
-    inset:0;
-    background:rgba(0,0,0,0.75);
-    backdrop-filter:blur(4px);
-    z-index:9999;
-    padding:40px;
-  ">
-    <div style="
-      max-width:900px;
-      margin:0 auto;
-      background:#111827;
-      padding:20px;
-      border-radius:14px;
-      border:1px solid #334155;
-      box-shadow:0 0 40px rgba(0,0,0,0.4);
-    ">
-      <h2 style="margin:0 0 12px; font-size:18px; color:#e5e7eb;">
-        Monthly Summary Text
-      </h2>
-
-      <textarea id="summaryOutput" style="
-        width:100%;
-        height:440px;
-        padding:12px;
-        border-radius:10px;
-        background:#0f172a;
-        color:#e2e8f0;
-        border:1px solid #475569;
-        font-size:13px;
-        line-height:1.5;
-      "></textarea>
-
-      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:12px;">
-        <button id="copySummaryBtn" class="btn" style="padding:6px 14px; font-size:12px;">Copy</button>
-        <button id="closeSummaryBtn" class="btn btn-secondary" style="padding:6px 14px; font-size:12px;">
-          Close
-        </button>
+    <!-- Summary modal (kept for compatibility) -->
+    <div class="modal" id="summaryModal">
+      <div class="modal-card">
+        <div class="modal-header">
+          <div class="mh-title">Monthly Summary</div>
+          <button id="closeSummaryBtn" class="btn btn-secondary" style="padding:6px 14px; font-size:12px;">Close</button>
+        </div>
+        <div class="modal-body">
+          <div class="list-item" style="margin:0;">
+            <div class="list-title">Summary</div>
+            <div id="summaryModalText" class="list-notes" style="margin-top:8px;"></div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -611,198 +393,117 @@
     import { supabase } from './supabase-config.js';
 
     const monthLabelEl = document.getElementById('monthLabel');
+    const monthPillEl = document.getElementById('monthPill');
     const errorMessageEl = document.getElementById('errorMessage');
     const siteFilterEl = document.getElementById('siteFilter');
     const prevMonthBtn = document.getElementById('prevMonthBtn');
     const nextMonthBtn = document.getElementById('nextMonthBtn');
     const latestMonthBtn = document.getElementById('latestMonthBtn');
 
-    // Finance IDs
-    const financeSiteLabelEl = document.getElementById('financeSiteLabel');
-    const finRetailActualEl = document.getElementById('finRetailActual');
-    const finRetailSubEl = document.getElementById('finRetailSub');
-    const finHospActualEl = document.getElementById('finHospActual');
-    const finHospSubEl = document.getElementById('finHospSub');
-    const finFreeActualEl = document.getElementById('finFreeActual');
-    const finFreeSubEl = document.getElementById('finFreeSub');
-
-    const finCoreActualEl = document.getElementById('finCoreActual');
-    const finCoreSubEl = document.getElementById('finCoreSub');
-    const finAgencyActualEl = document.getElementById('finAgencyActual');
-    const finAgencySubEl = document.getElementById('finAgencySub');
-    const finLabourActualEl = document.getElementById('finLabourActual');
-    const finLabourSubEl = document.getElementById('finLabourSub');
-
-    const finTotalSalesActualEl = document.getElementById('finTotalSalesActual');
-    const finTotalSalesSubEl = document.getElementById('finTotalSalesSub');
-    const finGpActualEl = document.getElementById('finGpActual');
-    const finGpSubEl = document.getElementById('finGpSub');
-
-    const finStatusEl = document.getElementById('finStatus');
-    const finStatusSubEl = document.getElementById('finStatusSub');
-
     const kpiTotalLogsEl = document.getElementById('kpiTotalLogs');
-    const kpiTotalLogsSubEl = document.getElementById('kpiTotalLogsSub');
     const kpiStaffingSumEl = document.getElementById('kpiStaffingSum');
     const kpiStaffingSubEl = document.getElementById('kpiStaffingSub');
-    const kpiIncidentsSumEl = document.getElementById('kpiIncidentsSum');
-    const kpiIncidentsSubEl = document.getElementById('kpiIncidentsSub');
+    const kpiRetailSalesEl = document.getElementById('kpiRetailSales');
+    const kpiRetailSubEl = document.getElementById('kpiRetailSub');
 
-    const kpiHospTotalEl = document.getElementById('kpiHospTotal');
-    const kpiHospSubEl = document.getElementById('kpiHospSub');
-
-    const kpiRetailSpecialsEl = document.getElementById('kpiRetailSpecials');
-    const kpiRetailSpecialsSubEl = document.getElementById('kpiRetailSpecialsSub');
-
-    const kpiRetailSalesAllEl = document.getElementById('kpiRetailSalesAll');
-    const kpiRetailSalesAllSubEl = document.getElementById('kpiRetailSalesAllSub');
+    const staffSickEl = document.getElementById('staffSick');
+    const staffHolEl = document.getElementById('staffHol');
+    const staffAgEl = document.getElementById('staffAg');
 
     const maintEmptyEl = document.getElementById('maintEmpty');
     const maintListEl = document.getElementById('maintList');
     const hsEmptyEl = document.getElementById('hsEmpty');
     const hsListEl = document.getElementById('hsList');
 
-    const specialsEmptyEl = document.getElementById('specialsEmpty');
-    const specialsListEl = document.getElementById('specialsList');
+    const retailTotalEl = document.getElementById('retailTotal');
+    const retailSubEl = document.getElementById('retailSub');
+    const retailBreakdownEl = document.getElementById('retailBreakdown');
+    const retailLevelsListEl = document.getElementById('retailLevelsList');
 
-    const hospDayTotalEl = document.getElementById('hospDayTotal');
-    const hospNightTotalEl = document.getElementById('hospNightTotal');
-    const hospTotalEventsEl = document.getElementById('hospTotalEvents');
-    const hospTotalEventsSubEl = document.getElementById('hospTotalEventsSub');
+    const notesEmptyEl = document.getElementById('notesEmpty');
+    const notesListEl = document.getElementById('notesList');
 
-    const ncFreeBreakfastTotalEl = document.getElementById('ncFreeBreakfastTotal');
-    const ncFreeBreakfastDaysEl = document.getElementById('ncFreeBreakfastDays');
-    const ncFreeBreakfastSubEl = document.getElementById('ncFreeBreakfastSub');
-    const ncFreeBreakfastDaysSubEl = document.getElementById('ncFreeBreakfastDaysSub');
-
-    const ncHotLunchTotalEl = document.getElementById('ncHotLunchTotal');
-    const ncHotLunchBusiestEl = document.getElementById('ncHotLunchBusiest');
-    const ncHotLunchBusiestSubEl = document.getElementById('ncHotLunchBusiestSub');
-    const ncHotLunchSubEl = document.getElementById('ncHotLunchSub');
-
-    const salesL7El = document.getElementById('salesL7');
-    const salesL7SubEl = document.getElementById('salesL7Sub');
-    const salesL5El = document.getElementById('salesL5');
-    const salesL5SubEl = document.getElementById('salesL5Sub');
-    const salesL4El = document.getElementById('salesL4');
-    const salesL4SubEl = document.getElementById('salesL4Sub');
-    const salesL3El = document.getElementById('salesL3');
-    const salesL3SubEl = document.getElementById('salesL3Sub');
-
-    const photosEmptyEl = document.getElementById('photosEmpty');
-    const photosGridEl = document.getElementById('photosGrid');
-
-    // Summary modal
     const generateMonthlySummaryBtn = document.getElementById('generateMonthlySummaryBtn');
-    const summaryModal = document.getElementById('summaryModal');
-    const summaryOutput = document.getElementById('summaryOutput');
-    const closeSummaryBtn = document.getElementById('closeSummaryBtn');
-    const copySummaryBtn = document.getElementById('copySummaryBtn');
+    const monthlySummaryBox = document.getElementById('monthlySummaryBox');
+    const monthlySummaryText = document.getElementById('monthlySummaryText');
 
-    window._monthlySummaryState = {
-      monthLabel: '',
-      filterLabel: '',
-      opsRows: [],
-      maintItems: [],
-      hsItems: [],
-      specials: [],
-      photos: [],
-      staffing: { sick: 0, hol: 0, agency: 0 },
-      hospitality: { day: 0, night: 0 },
-      newcastle: { freeBreakfastTotal: 0, freeBreakfastDays: [], hotTotal: 0, hotBusiestDay: null, hotBusiestVal: 0 },
-      retail: {
-        allSales: 0, allTrans: 0, allSPH: 0,
-        L7: { sales: 0, trans: 0, sph: 0 },
-        L5: { sales: 0, trans: 0, sph: 0 },
-        L4: { sales: 0, trans: 0, sph: 0 },
-        L3: { sales: 0, trans: 0, sph: 0 }
-      },
-      finance: null
-    };
+    const summaryModal = document.getElementById('summaryModal');
+    const summaryModalText = document.getElementById('summaryModalText');
+    const closeSummaryBtn = document.getElementById('closeSummaryBtn');
 
     let currentMonthOffset = 0;
-    let latestMonthAnchor = null;
     let currentSiteFilter = 'All';
 
-    function toISODate(d) {
-      const y = d.getFullYear();
-      const m = String(d.getMonth() + 1).padStart(2, '0');
-      const day = String(d.getDate()).padStart(2, '0');
-      return `${y}-${m}-${day}`;
-    }
-
-    function formatMonthLabel(d) {
-      return d.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
-    }
-
-    function parseCount(v) {
-      if (!v) return 0;
-      if (v === '3+') return 3;
-      const n = parseInt(v, 10);
-      return isNaN(n) ? 0 : n;
-    }
-
-    function parseNumber(value) {
-      if (value === null || value === undefined || value === '') return 0;
-      const n = Number(value);
+    function safeNum(v) {
+      const n = Number(v);
       return Number.isFinite(n) ? n : 0;
     }
+    function safeText(v) { return (v ?? '').toString().trim(); }
+    function hasMeaningfulText(v) { return safeText(v).length > 0; }
+    function money(n) { return `£${Number(n || 0).toFixed(2)}`; }
+    function calcSPH(sales, tx) { const s = safeNum(sales); const t = safeNum(tx); return t > 0 ? (s / t) : 0; }
 
-    function money(n) {
-      const v = Number(n) || 0;
-      return `£${v.toFixed(2)}`;
+    function toISODate(d) {
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      return `${yyyy}-${mm}-${dd}`;
     }
 
-    function pct(n) {
-      const v = Number(n) || 0;
-      return `${v.toFixed(1)}%`;
+    function startOfMonth(d) {
+      const x = new Date(d);
+      x.setDate(1);
+      x.setHours(0,0,0,0);
+      return x;
     }
 
-    function varClass(delta) {
-      const d = Number(delta) || 0;
-      if (d > 0.00001) return 'var-pos';
-      if (d < -0.00001) return 'var-neg';
-      return 'var-neu';
+    function endOfMonth(d) {
+      const x = new Date(d);
+      x.setMonth(x.getMonth() + 1);
+      x.setDate(0);
+      x.setHours(0,0,0,0);
+      return x;
     }
 
-    function getMonthStartISO(monthStartDateObj) {
-      const ms = new Date(monthStartDateObj.getFullYear(), monthStartDateObj.getMonth(), 1);
-      return toISODate(ms);
+    function monthLabelFromDate(d) {
+      const fmt = new Intl.DateTimeFormat('en-GB', { month: 'long', year: 'numeric' });
+      return fmt.format(d);
     }
 
-    function siteFromFilter(filterVal) {
-      if (filterVal === 'Newcastle') return 'Newcastle';
-      if (filterVal.startsWith('London')) return 'London';
-      if (filterVal === 'All') return 'All';
-      return 'All';
+    function applySiteFilter(rows) {
+      if (currentSiteFilter === 'All') return rows;
+      return (rows || []).filter(r => (r.site || '') === currentSiteFilter);
+    }
+
+    function isIncidentFlagTrue(v) {
+      const t = safeText(v).toLowerCase();
+      return t === 'yes' || t === 'true' || t === '1';
+    }
+
+    function renderList(containerEl, emptyEl, items) {
+      containerEl.innerHTML = '';
+      if (!items || items.length === 0) {
+        emptyEl.style.display = 'block';
+        return;
+      }
+      emptyEl.style.display = 'none';
+      items.forEach(it => {
+        const div = document.createElement('div');
+        div.className = 'list-item';
+        div.innerHTML = `
+          <div class="list-title">
+            <span>${it.title}</span>
+            ${it.badge ? `<span class="badge">${it.badge}</span>` : ``}
+          </div>
+          <div class="list-notes">${(it.notes || '').replace(/</g, '&lt;')}</div>
+        `;
+        containerEl.appendChild(div);
+      });
     }
 
     async function ensureLatestMonthAnchor() {
-      if (latestMonthAnchor) return;
-
-      const { data, error } = await supabase
-        .from('ops_logs')
-        .select('log_date')
-        .not('log_date', 'is', null)
-        .order('log_date', { ascending: false })
-        .limit(1);
-
-      if (error || !data || !data.length || !data[0].log_date) {
-        throw new Error('Could not determine latest month from ops logs.');
-      }
-
-      const latest = new Date(data[0].log_date + 'T00:00:00');
-      latestMonthAnchor = new Date(latest.getFullYear(), latest.getMonth(), 1);
-    }
-
-    function getMonthRange() {
-      const monthStart = new Date(
-        latestMonthAnchor.getFullYear(),
-        latestMonthAnchor.getMonth() - currentMonthOffset,
-        1
-      );
-      const monthEnd = new Date(monthStart.getFullYear(), monthStart.getMonth() + 1, 0);
-      return { monthStart, monthEnd };
+      // Keep it simple: latest month is "this month" unless you later add a month table
+      return true;
     }
 
     async function loadMonthlyRetailSales(startStr, endStr) {
@@ -819,7 +520,7 @@
           L7: { sales: 0, trans: 0 },
           L5: { sales: 0, trans: 0 },
           L4: { sales: 0, trans: 0 },
-          L3: { sales: 0, trans: 0 }
+          L3: { sales: 0, trans: 0 },
         };
       }
 
@@ -828,394 +529,65 @@
         L7: { sales: 0, trans: 0 },
         L5: { sales: 0, trans: 0 },
         L4: { sales: 0, trans: 0 },
-        L3: { sales: 0, trans: 0 }
+        L3: { sales: 0, trans: 0 },
       };
 
-      data.forEach(row => {
-        const sales = Number(row.sales) || 0;
-        const trans = Number(row.transactions) || 0;
+      (data || []).forEach(r => {
+        const lvl = (r.level || '').toString();
+        const sales = safeNum(r.sales);
+        const tx = safeNum(r.transactions);
+
         totals.allSales += sales;
-        totals.allTrans += trans;
+        totals.allTrans += tx;
 
-        const lvl = (row.level || '').toString().trim().toLowerCase();
-        let bucket = null;
-        if (lvl === 'level 7' || lvl === 'l7') bucket = 'L7';
-        else if (lvl === 'level 5' || lvl === 'l5') bucket = 'L5';
-        else if (lvl === 'level 4' || lvl === 'l4') bucket = 'L4';
-        else if (lvl === 'level 3' || lvl === 'l3') bucket = 'L3';
-
-        if (bucket && totals[bucket]) {
-          totals[bucket].sales += sales;
-          totals[bucket].trans += trans;
-        }
+        if (lvl === 'Level 7') { totals.L7.sales += sales; totals.L7.trans += tx; }
+        if (lvl === 'Level 5') { totals.L5.sales += sales; totals.L5.trans += tx; }
+        if (lvl === 'Level 4') { totals.L4.sales += sales; totals.L4.trans += tx; }
+        if (lvl === 'Level 3') { totals.L3.sales += sales; totals.L3.trans += tx; }
       });
 
       return totals;
     }
 
     function renderRetailSales(totals) {
-      const overallSPH = totals.allTrans ? (totals.allSales / totals.allTrans) : 0;
+      const sph = calcSPH(totals.allSales, totals.allTrans);
+      retailTotalEl.textContent = money(totals.allSales);
+      retailSubEl.textContent = `${Math.round(totals.allTrans)} tx • SPH ${money(sph)}`;
+      retailBreakdownEl.textContent = `L7 ${money(totals.L7.sales)} • L5 ${money(totals.L5.sales)} • L4 ${money(totals.L4.sales)} • L3 ${money(totals.L3.sales)}`;
 
-      kpiRetailSalesAllEl.textContent = `£${totals.allSales.toFixed(2)}`;
-      kpiRetailSalesAllSubEl.textContent = totals.allTrans
-        ? `${totals.allTrans} tx • SPH £${overallSPH.toFixed(2)}`
-        : `0 tx • SPH £0.00`;
+      kpiRetailSalesEl.textContent = money(totals.allSales);
+      kpiRetailSubEl.textContent = `${Math.round(totals.allTrans)} tx • SPH ${money(sph)}`;
 
-      function floor(elVal, elSub, t) {
-        const sph = t.trans ? (t.sales / t.trans) : 0;
-        elVal.textContent = `£${t.sales.toFixed(2)}`;
-        elSub.textContent = `${t.trans} tx • SPH £${sph.toFixed(2)}`;
-      }
+      retailLevelsListEl.innerHTML = '';
+      const levels = [
+        { name: 'Level 7', s: totals.L7.sales, t: totals.L7.trans },
+        { name: 'Level 5', s: totals.L5.sales, t: totals.L5.trans },
+        { name: 'Level 4', s: totals.L4.sales, t: totals.L4.trans },
+        { name: 'Level 3', s: totals.L3.sales, t: totals.L3.trans },
+      ];
 
-      floor(salesL7El, salesL7SubEl, totals.L7);
-      floor(salesL5El, salesL5SubEl, totals.L5);
-      floor(salesL4El, salesL4SubEl, totals.L4);
-      floor(salesL3El, salesL3SubEl, totals.L3);
-
-      const retailState = window._monthlySummaryState.retail;
-      retailState.allSales = totals.allSales;
-      retailState.allTrans = totals.allTrans;
-      retailState.allSPH = overallSPH;
-
-      retailState.L7 = { sales: totals.L7.sales, trans: totals.L7.trans, sph: totals.L7.trans ? totals.L7.sales / totals.L7.trans : 0 };
-      retailState.L5 = { sales: totals.L5.sales, trans: totals.L5.trans, sph: totals.L5.trans ? totals.L5.sales / totals.L5.trans : 0 };
-      retailState.L4 = { sales: totals.L4.sales, trans: totals.L4.trans, sph: totals.L4.trans ? totals.L4.sales / totals.L4.trans : 0 };
-      retailState.L3 = { sales: totals.L3.sales, trans: totals.L3.trans, sph: totals.L3.trans ? totals.L3.sales / totals.L3.trans : 0 };
-    }
-
-    function getFreeBreakfastValue(row) {
-      return parseNumber(
-        row.free_breakfast_count ??
-        row.free_breakfast ??
-        row.freeBreakfast ??
-        row.free_breakfast_total ??
-        row.free_breakfast_qty ??
-        0
-      );
-    }
-
-    function getRetailLunchSpecialText(row) {
-      const raw = (row.retail_lunch_special ?? '').toString().trim();
-      if (!raw) return null;
-
-      const norm = raw.toLowerCase();
-
-      const isYesFlag = (norm === 'yes' || norm === 'y' || norm === 'true' || norm === '1');
-      const isNoFlag = (norm === 'no' || norm === 'n' || norm === 'false' || norm === '0' || norm === 'none');
-
-      if (isNoFlag) return null;
-
-      if (isYesFlag) {
-        const detail =
-          (row.retail_lunch_special_details ?? '') ||
-          (row.retail_lunch_special_text ?? '') ||
-          (row.retail_lunch_special_notes ?? '') ||
-          (row.retail_special_details ?? '') ||
-          (row.retail_special_notes ?? '') ||
-          (row.lunch_special_details ?? '') ||
-          (row.lunch_special_notes ?? '');
-
-        const cleaned = detail.toString().trim();
-        return cleaned ? cleaned : '(Special recorded – no details entered)';
-      }
-
-      return raw;
-    }
-
-    function applySiteFilter(rows) {
-      const filter = currentSiteFilter;
-      if (filter === 'All') return rows;
-
-      const isLondon = site => site && site.toLowerCase().includes('london');
-      const isNewcastle = site => site && site.toLowerCase().includes('newcastle');
-      const area = r => (r.area || '').trim().toLowerCase();
-
-      if (filter === 'LondonAll') return rows.filter(r => isLondon(r.site));
-      if (filter === 'LondonKitchen') return rows.filter(r => isLondon(r.site) && area(r) === 'kitchen');
-      if (filter === 'LondonHospitality') return rows.filter(r => isLondon(r.site) && area(r) === 'hospitality');
-      if (filter === 'LondonRetail') return rows.filter(r => isLondon(r.site) && area(r) === 'retail');
-      if (filter === 'Newcastle') return rows.filter(r => isNewcastle(r.site));
-
-      return rows;
-    }
-
-    function metricLine(title, meta, notes, reported) {
-      const safeNotes = (notes && String(notes).trim())
-        ? String(notes).trim()
-        : '<span style="opacity:0.7;">No notes.</span>';
-      const safeMeta = meta ? meta : '';
-      const safeReported = reported ? `Reported: <strong>${reported}</strong>` : '';
-      return `
-        <div class="metric">
-          <div class="metric-label">${title}</div>
-          <div class="metric-sub">${safeMeta}</div>
-          <div class="metric-sub">${safeNotes}</div>
-          ${safeReported ? `<div class="metric-sub">${safeReported}</div>` : ''}
-        </div>
-      `;
+      levels.forEach(l => {
+        const div = document.createElement('div');
+        div.className = 'list-item';
+        div.innerHTML = `
+          <div class="list-title">
+            <span>${l.name}</span>
+            <span class="badge">SPH ${money(calcSPH(l.s, l.t))}</span>
+          </div>
+          <div class="list-notes">Sales: ${money(l.s)} • Transactions: ${Math.round(l.t)}</div>
+        `;
+        retailLevelsListEl.appendChild(div);
+      });
     }
 
     function setEmptyLists() {
       maintListEl.innerHTML = '';
       hsListEl.innerHTML = '';
-      specialsListEl.innerHTML = '';
-      photosGridEl.innerHTML = '';
-
+      notesListEl.innerHTML = '';
       maintEmptyEl.style.display = 'block';
       hsEmptyEl.style.display = 'block';
-      specialsEmptyEl.style.display = 'block';
-      photosEmptyEl.style.display = 'block';
+      notesEmptyEl.style.display = 'block';
     }
-
-    async function loadFinanceForMonth(monthStartStr, financeSite) {
-      // financeSite: 'London' | 'Newcastle' | 'All'
-      finStatusEl.textContent = 'OK';
-      finStatusSubEl.textContent = 'Finance row loaded';
-
-      const base = {
-        bRetail: 0, aRetail: 0,
-        bHosp: 0, aHosp: 0,
-        bFree: 0, aFree: 0,
-        bCore: 0, aCore: 0,
-        bAgency: 0, aAgency: 0,
-        bGp: 0, aGp: 0
-      };
-
-      if (!monthStartStr) return base;
-
-      const { data, error } = await supabase
-        .from('monthly_finance_summary')
-        .select('*')
-        .eq('month_start', monthStartStr)
-        .in('site', ['London', 'Newcastle']);
-
-      if (error) {
-        finStatusEl.textContent = 'ERROR';
-        finStatusSubEl.textContent = 'Finance query failed';
-        console.error('Finance load error:', error);
-        return base;
-      }
-
-      const rows = data || [];
-      const london = rows.find(r => r.site === 'London') || null;
-      const newcastle = rows.find(r => r.site === 'Newcastle') || null;
-
-      function addFromRow(acc, r) {
-        if (!r) return acc;
-        acc.bRetail += parseNumber(r.budget_retail_sales);
-        acc.aRetail += parseNumber(r.actual_retail_sales);
-
-        acc.bHosp += parseNumber(r.budget_hospitality_sales);
-        acc.aHosp += parseNumber(r.actual_hospitality_sales);
-
-        acc.bFree += parseNumber(r.budget_free_issue);
-        acc.aFree += parseNumber(r.actual_free_issue);
-
-        acc.bCore += parseNumber(r.budget_core_wages);
-        acc.aCore += parseNumber(r.actual_core_wages);
-
-        acc.bAgency += parseNumber(r.budget_agency_spend);
-        acc.aAgency += parseNumber(r.actual_agency_spend);
-
-        // For GP%:
-        // - For All: we will show an average weighted by total sales budget/actual where possible.
-        // - For single site: direct value.
-        // If no sales values exist, fall back to simple average.
-        acc._rows.push(r);
-        return acc;
-      }
-
-      const acc = { ...base, _rows: [] };
-
-      if (financeSite === 'London') addFromRow(acc, london);
-      else if (financeSite === 'Newcastle') addFromRow(acc, newcastle);
-      else {
-        addFromRow(acc, london);
-        addFromRow(acc, newcastle);
-      }
-
-      // GP% handling (no calculation of GP itself; just combining displayed numbers)
-      if (acc._rows.length === 1) {
-        acc.bGp = parseNumber(acc._rows[0].budget_gp_pct);
-        acc.aGp = parseNumber(acc._rows[0].actual_gp_pct);
-      } else if (acc._rows.length > 1) {
-        // Weighted average by sales if possible
-        const bSalesTotal = acc.bRetail + acc.bHosp;
-        const aSalesTotal = acc.aRetail + acc.aHosp;
-
-        if (bSalesTotal > 0) {
-          let weighted = 0;
-          acc._rows.forEach(r => {
-            const rSales = parseNumber(r.budget_retail_sales) + parseNumber(r.budget_hospitality_sales);
-            weighted += (rSales / bSalesTotal) * parseNumber(r.budget_gp_pct);
-          });
-          acc.bGp = weighted;
-        } else {
-          acc.bGp = acc._rows.reduce((s,r) => s + parseNumber(r.budget_gp_pct), 0) / acc._rows.length;
-        }
-
-        if (aSalesTotal > 0) {
-          let weighted = 0;
-          acc._rows.forEach(r => {
-            const rSales = parseNumber(r.actual_retail_sales) + parseNumber(r.actual_hospitality_sales);
-            weighted += (rSales / aSalesTotal) * parseNumber(r.actual_gp_pct);
-          });
-          acc.aGp = weighted;
-        } else {
-          acc.aGp = acc._rows.reduce((s,r) => s + parseNumber(r.actual_gp_pct), 0) / acc._rows.length;
-        }
-      } else {
-        finStatusEl.textContent = 'MISSING';
-        finStatusSubEl.textContent = 'No finance row found for this month. Use Finance Admin to create it.';
-      }
-
-      delete acc._rows;
-      return acc;
-    }
-
-    function renderFinance(financeSite, f) {
-      financeSiteLabelEl.textContent = financeSite;
-
-      const totalSalesB = (f.bRetail + f.bHosp);
-      const totalSalesA = (f.aRetail + f.aHosp);
-
-      const labourB = (f.bCore + f.bAgency);
-      const labourA = (f.aCore + f.aAgency);
-
-      function subLine(b, a) {
-        const d = a - b;
-        const cls = varClass(d);
-        return `Budget ${money(b)} • Var <span class="${cls}">${money(d)}</span>`;
-      }
-
-      finRetailActualEl.textContent = money(f.aRetail);
-      finRetailSubEl.innerHTML = subLine(f.bRetail, f.aRetail);
-
-      finHospActualEl.textContent = money(f.aHosp);
-      finHospSubEl.innerHTML = subLine(f.bHosp, f.aHosp);
-
-      finFreeActualEl.textContent = money(f.aFree);
-      finFreeSubEl.innerHTML = subLine(f.bFree, f.aFree);
-
-      finCoreActualEl.textContent = money(f.aCore);
-      finCoreSubEl.innerHTML = subLine(f.bCore, f.aCore);
-
-      finAgencyActualEl.textContent = money(f.aAgency);
-      finAgencySubEl.innerHTML = subLine(f.bAgency, f.aAgency);
-
-      finLabourActualEl.textContent = money(labourA);
-      finLabourSubEl.innerHTML = subLine(labourB, labourA);
-
-      finTotalSalesActualEl.textContent = money(totalSalesA);
-      finTotalSalesSubEl.innerHTML = subLine(totalSalesB, totalSalesA);
-
-      finGpActualEl.textContent = pct(f.aGp);
-      const gpDelta = (Number(f.aGp) || 0) - (Number(f.bGp) || 0);
-      const gpCls = gpDelta > 0.00001 ? 'var-pos' : (gpDelta < -0.00001 ? 'var-neg' : 'var-neu');
-      finGpSubEl.innerHTML = `Budget ${pct(f.bGp)} • Var <span class="${gpCls}">${gpDelta.toFixed(1)}pp</span>`;
-
-      window._monthlySummaryState.finance = { financeSite, ...f };
-    }
-
-    // -----------------------------
-    // SUMMARY TEXT (kept as you had it, no finance added here yet)
-    // -----------------------------
-    function currency(n) {
-      const num = Number(n) || 0;
-      return `£${num.toFixed(2)}`;
-    }
-
-    function buildMonthlySummaryText() {
-      const s = window._monthlySummaryState || {};
-      const opsRows = s.opsRows || [];
-      const maint = s.maintItems || [];
-      const hs = s.hsItems || [];
-      const specials = s.specials || [];
-      const photos = s.photos || [];
-      const staffing = s.staffing || { sick: 0, hol: 0, agency: 0 };
-      const hosp = s.hospitality || { day: 0, night: 0 };
-      const nc = s.newcastle || { freeBreakfastTotal: 0, freeBreakfastDays: [], hotTotal: 0, hotBusiestDay: null, hotBusiestVal: 0 };
-      const retail = s.retail || {};
-
-      let text = '';
-      text += `Monthly Ops Summary\n`;
-      text += `-------------------\n`;
-      text += `Month: ${s.monthLabel || monthLabelEl.textContent || '–'}\n`;
-      text += `Filter: ${s.filterLabel || siteFilterEl.options[siteFilterEl.selectedIndex].text}\n\n`;
-
-      text += `Activity Snapshot\n`;
-      text += `-----------------\n`;
-      text += `• Total Ops Logs: ${opsRows.length}\n`;
-      text += `• Photos uploaded: ${photos.length}\n\n`;
-
-      text += `Retail Performance\n`;
-      text += `------------------\n`;
-      text += `• Total Retail Sales (EPOS): ${currency(retail.allSales)}\n`;
-      text += `• Total Transactions: ${retail.allTrans || 0}\n`;
-      text += `• Overall SPH: ${currency(retail.allSPH)}\n\n`;
-
-      text += `Hospitality Events\n`;
-      text += `------------------\n`;
-      text += `• Day events: ${hosp.day || 0}\n`;
-      text += `• Night events: ${hosp.night || 0}\n`;
-      text += `• Total events: ${(hosp.day || 0) + (hosp.night || 0)}\n\n`;
-
-      text += `Staffing Impact\n`;
-      text += `---------------\n`;
-      text += `• Sick: ${staffing.sick || 0}\n`;
-      text += `• Holiday: ${staffing.hol || 0}\n`;
-      text += `• Agency: ${staffing.agency || 0}\n\n`;
-
-      text += `Incidents\n`;
-      text += `---------\n`;
-      if ((maint.length + hs.length) === 0) {
-        text += `No incidents reported.\n\n`;
-      } else {
-        text += `Maintenance incidents: ${maint.length}\n`;
-        text += `H&S incidents: ${hs.length}\n\n`;
-      }
-
-      text += `Retail Lunch Specials\n`;
-      text += `--------------------\n`;
-      if (!specials.length) text += `No lunch specials recorded.\n\n`;
-      else text += `Total specials: ${specials.length}\n\n`;
-
-      text += `Newcastle Summary\n`;
-      text += `-----------------\n`;
-      text += `• Free breakfasts: ${nc.freeBreakfastTotal || 0} (days: ${(nc.freeBreakfastDays || []).length})\n`;
-      text += `• Hot lunch dishes: ${nc.hotTotal || 0}\n`;
-      if (nc.hotBusiestDay) text += `  Busiest day: ${nc.hotBusiestDay} (${nc.hotBusiestVal} dishes)\n`;
-      text += `\n`;
-
-      // Optional: include finance snapshot if present
-      if (s.finance) {
-        const f = s.finance;
-        text += `Commercial Snapshot (Budget vs Actual)\n`;
-        text += `-------------------------------------\n`;
-        text += `Finance Site: ${f.financeSite}\n`;
-        text += `• Retail Sales: ${currency(f.aRetail)} (Budget ${currency(f.bRetail)})\n`;
-        text += `• Hospitality Sales: ${currency(f.aHosp)} (Budget ${currency(f.bHosp)})\n`;
-        text += `• Free Issue: ${currency(f.aFree)} (Budget ${currency(f.bFree)})\n`;
-        text += `• Core Wages: ${currency(f.aCore)} (Budget ${currency(f.bCore)})\n`;
-        text += `• Agency Spend: ${currency(f.aAgency)} (Budget ${currency(f.bAgency)})\n`;
-        text += `• GP%: ${(Number(f.aGp)||0).toFixed(1)}% (Budget ${(Number(f.bGp)||0).toFixed(1)}%)\n`;
-        text += `\n`;
-      }
-
-      return text;
-    }
-
-    generateMonthlySummaryBtn.addEventListener('click', () => {
-      summaryOutput.value = buildMonthlySummaryText();
-      summaryModal.style.display = 'block';
-    });
-
-    closeSummaryBtn.addEventListener('click', () => { summaryModal.style.display = 'none'; });
-    copySummaryBtn.addEventListener('click', () => {
-      navigator.clipboard.writeText(summaryOutput.value || '');
-      copySummaryBtn.textContent = 'Copied!';
-      setTimeout(() => copySummaryBtn.textContent = 'Copy', 1000);
-    });
 
     async function loadMonthlyData() {
       errorMessageEl.style.display = 'none';
@@ -1232,11 +604,155 @@
 
       nextMonthBtn.disabled = currentMonthOffset === 0;
 
-      const { monthStart, monthEnd } = getMonthRange();
-      const monthLabel = formatMonthLabel(monthStart);
-      monthLabelEl.textContent = monthLabel;
+      const anchor = new Date();
+      const target = new Date(anchor);
+      target.setMonth(target.getMonth() + currentMonthOffset);
+
+      const monthStart = startOfMonth(target);
+      const monthEnd = endOfMonth(target);
 
       const startStr = toISODate(monthStart);
       const endStr = toISODate(monthEnd);
 
-      const filterLabel = siteFilterEl.options[siteFilterEl
+      const monthLabel = monthLabelFromDate(target);
+
+      monthLabelEl.textContent = monthLabel;
+      monthPillEl.textContent = `${startStr} → ${endStr}`;
+
+      // OPS LOGS (FIXED: include created_at fallback when log_date is null)
+      const { data: opsRowsRaw, error: opsErr } = await supabase
+        .from('ops_logs')
+        .select('*')
+        // Include both:
+        // 1) rows that have log_date within the month, and
+        // 2) legacy rows where log_date is NULL (use created_at as fallback)
+        .or(
+          `and(log_date.gte.${startStr},log_date.lte.${endStr}),and(log_date.is.null,created_at.gte.${startStr}T00:00:00Z,created_at.lte.${endStr}T23:59:59Z)`
+        )
+        .order('log_date', { ascending: true })
+        .order('created_at', { ascending: true });
+
+      if (opsErr) {
+        console.error('Ops monthly error:', opsErr);
+        errorMessageEl.textContent = 'There was an error loading the monthly dashboard.';
+        errorMessageEl.style.display = 'block';
+        return;
+      }
+
+      const opsRows = applySiteFilter(opsRowsRaw || []);
+
+      // KPI: total logs
+      kpiTotalLogsEl.textContent = String(opsRows.length);
+
+      // Staffing totals
+      const sick = opsRows.reduce((s, r) => s + safeNum(r.sickness_count), 0);
+      const hol  = opsRows.reduce((s, r) => s + safeNum(r.holiday_count), 0);
+      const ag   = opsRows.reduce((s, r) => s + safeNum(r.agency_count), 0);
+
+      staffSickEl.textContent = String(sick);
+      staffHolEl.textContent  = String(hol);
+      staffAgEl.textContent   = String(ag);
+
+      kpiStaffingSumEl.textContent = String(sick + hol + ag);
+      kpiStaffingSubEl.textContent = `Sick: ${sick} • Holiday: ${hol} • Agency: ${ag}`;
+
+      // Retail sales
+      const retailTotals = await loadMonthlyRetailSales(startStr, endStr);
+      renderRetailSales(retailTotals);
+
+      setEmptyLists();
+
+      // Incidents
+      const maintItems = [];
+      const hsItems = [];
+
+      opsRows.forEach(r => {
+        const date = r.log_date || (r.created_at ? String(r.created_at).slice(0,10) : '');
+        const titleBase = `${r.site || 'Site'} • ${r.area || 'Area'} • ${date}`;
+
+        if (isIncidentFlagTrue(r.maintenance_issue) || hasMeaningfulText(r.maintenance_notes)) {
+          maintItems.push({
+            title: titleBase,
+            badge: '',
+            notes: safeText(r.maintenance_notes) || '(No notes entered)'
+          });
+        }
+
+        if (isIncidentFlagTrue(r.hs_issue) || hasMeaningfulText(r.hs_notes)) {
+          hsItems.push({
+            title: titleBase,
+            badge: '',
+            notes: safeText(r.hs_notes) || '(No notes entered)'
+          });
+        }
+      });
+
+      renderList(maintListEl, maintEmptyEl, maintItems);
+      renderList(hsListEl, hsEmptyEl, hsItems);
+
+      // Notes
+      const notes = opsRows
+        .filter(r => hasMeaningfulText(r.notes))
+        .map(r => {
+          const date = r.log_date || (r.created_at ? String(r.created_at).slice(0,10) : '');
+          return {
+            title: `${r.site || 'Site'} • ${r.area || 'Area'} • ${date}`,
+            badge: '',
+            notes: safeText(r.notes)
+          };
+        });
+
+      renderList(notesListEl, notesEmptyEl, notes);
+
+      // Hide summary box on refresh
+      monthlySummaryBox.style.display = 'none';
+      monthlySummaryText.textContent = '';
+    }
+
+    function buildMonthlySummaryText() {
+      const lines = [];
+      lines.push(`Monthly Ops Summary`);
+      lines.push(`—————————————`);
+      lines.push(`Month: ${monthLabelEl.textContent}`);
+      lines.push(`Filter: ${siteFilterEl.options[siteFilterEl.selectedIndex].text}`);
+      lines.push('');
+      lines.push(`Logs: ${kpiTotalLogsEl.textContent}`);
+      lines.push('');
+      lines.push(`Staffing Impact`);
+      lines.push(`• Sickness: ${staffSickEl.textContent}`);
+      lines.push(`• Holiday: ${staffHolEl.textContent}`);
+      lines.push(`• Agency: ${staffAgEl.textContent}`);
+      lines.push('');
+      lines.push(`Retail Sales`);
+      lines.push(`• Total: ${retailTotalEl.textContent}`);
+      lines.push(`• ${retailSubEl.textContent}`);
+      return lines.join('\n');
+    }
+
+    generateMonthlySummaryBtn.addEventListener('click', () => {
+      const text = buildMonthlySummaryText();
+      monthlySummaryText.textContent = text;
+      monthlySummaryBox.style.display = 'block';
+
+      summaryModalText.textContent = text;
+      summaryModal.classList.add('open');
+    });
+
+    closeSummaryBtn.addEventListener('click', () => summaryModal.classList.remove('open'));
+    summaryModal.addEventListener('click', (e) => {
+      if (e.target === summaryModal) summaryModal.classList.remove('open');
+    });
+
+    prevMonthBtn.addEventListener('click', () => { currentMonthOffset -= 1; loadMonthlyData(); });
+    nextMonthBtn.addEventListener('click', () => { if (currentMonthOffset < 0) { currentMonthOffset += 1; loadMonthlyData(); } });
+    latestMonthBtn.addEventListener('click', () => { currentMonthOffset = 0; loadMonthlyData(); });
+
+    siteFilterEl.addEventListener('change', (e) => {
+      currentSiteFilter = e.target.value;
+      loadMonthlyData();
+    });
+
+    loadMonthlyData();
+  </script>
+</body>
+</html>
