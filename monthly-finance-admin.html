@@ -126,6 +126,7 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
+      gap: 8px;
     }
 
     .btn-secondary {
@@ -165,7 +166,7 @@
       <div>
         <div class="title">Monthly Finance Admin</div>
         <div class="subtitle">
-          Create/update monthly_finance_summary rows (Budget + Actual). GP% is entered manually.
+          Enter budgets + actuals for the month. GP% is entered manually (no calculation).
         </div>
       </div>
 
@@ -190,7 +191,7 @@
         </div>
         <div>
           <label>&nbsp;</label>
-          <button class="btn" id="loadBtn" type="button">Load</button>
+          <button class="btn" id="loadBtn" type="button">Load Existing (Optional)</button>
         </div>
       </div>
 
@@ -220,7 +221,7 @@
       </div>
 
       <div class="btnrow">
-        <button class="btn" id="saveBtn" type="button">Save (Upsert)</button>
+        <button class="btn" id="saveBtn" type="button">Save</button>
         <button class="btn btn-secondary" id="clearBtn" type="button">Clear</button>
       </div>
 
@@ -261,6 +262,7 @@
 
     function showOk(t) { msgErr.style.display = 'none'; msgOk.textContent = t; msgOk.style.display = 'block'; }
     function showErr(t) { msgOk.style.display = 'none'; msgErr.textContent = t; msgErr.style.display = 'block'; }
+    function hideMsgs() { msgOk.style.display = 'none'; msgErr.style.display = 'none'; msgOk.textContent = ''; msgErr.textContent = ''; }
 
     function n(v) {
       const x = Number(v);
@@ -268,19 +270,23 @@
     }
 
     function monthStartFromInput(monthYYYYMM) {
+      // input type=month returns YYYY-MM
       if (!monthYYYYMM) return null;
       return `${monthYYYYMM}-01`;
     }
 
-    function clearForm() {
+    function clearFieldsOnly() {
+      // Clears entry fields only (keeps month/site)
       Object.values(fields).forEach(el => el.value = '');
-      msgOk.style.display = 'none';
-      msgErr.style.display = 'none';
+    }
+
+    function resetForNewEntry() {
+      clearFieldsOnly();
+      hideMsgs();
     }
 
     async function loadRow() {
-      msgOk.style.display = 'none';
-      msgErr.style.display = 'none';
+      hideMsgs();
 
       const monthStart = monthStartFromInput(monthSelect.value);
       const site = siteSelect.value;
@@ -298,8 +304,8 @@
       if (error) { showErr(`Load error: ${error.message}`); return; }
 
       if (!data) {
-        clearForm();
-        showOk(`No row found for ${site} • ${monthStart}. Enter budgets/actuals and Save to create it.`);
+        resetForNewEntry();
+        showOk(`No existing row for ${site} • ${monthStart}. Enter figures and Save.`);
         return;
       }
 
@@ -319,12 +325,11 @@
 
       fields.notes.value = data.notes ?? '';
 
-      showOk(`Loaded ${site} • ${monthStart}.`);
+      showOk(`Loaded existing row for ${site} • ${monthStart}.`);
     }
 
     async function saveRow() {
-      msgOk.style.display = 'none';
-      msgErr.style.display = 'none';
+      hideMsgs();
 
       const monthStart = monthStartFromInput(monthSelect.value);
       const site = siteSelect.value;
@@ -359,25 +364,32 @@
       if (error) {
         showErr(
           `Save error: ${error.message}\n\n` +
-          `If you see an onConflict/duplicate issue, add a UNIQUE constraint on (month_start, site):\n` +
-          `alter table public.monthly_finance_summary add constraint monthly_finance_summary_unique unique (month_start, site);`
+          `If you see an onConflict/duplicate issue, add a UNIQUE constraint on (month_start, site).`
         );
         return;
       }
 
-      showOk(`Saved ${site} • ${monthStart}.`);
+      // Required behaviour: clear fields ready for next entry
+      clearFieldsOnly();
+      showOk(`Saved ${site} • ${monthStart}. Fields cleared ready for next entry.`);
     }
 
+    // Default month = current month
     (function init() {
       const now = new Date();
       const yyyy = now.getFullYear();
       const mm = String(now.getMonth() + 1).padStart(2, '0');
       monthSelect.value = `${yyyy}-${mm}`;
+      resetForNewEntry();
     })();
 
     loadBtn.addEventListener('click', loadRow);
     saveBtn.addEventListener('click', saveRow);
-    clearBtn.addEventListener('click', clearForm);
+    clearBtn.addEventListener('click', resetForNewEntry);
+
+    // Required behaviour: clear fields when toggling site/month
+    siteSelect.addEventListener('change', resetForNewEntry);
+    monthSelect.addEventListener('change', resetForNewEntry);
   </script>
 </body>
 </html>
