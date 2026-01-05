@@ -264,13 +264,9 @@
     function showErr(t) { msgOk.style.display = 'none'; msgErr.textContent = t; msgErr.style.display = 'block'; }
     function hideMsgs() { msgOk.style.display = 'none'; msgErr.style.display = 'none'; msgOk.textContent = ''; msgErr.textContent = ''; }
 
-    function numOrUndef(raw) {
-      // IMPORTANT: budgets and actuals are often entered at different times.
-      // If a field is blank, do NOT write 0 (that would overwrite an existing value).
-      const s = (raw ?? '').toString().trim();
-      if (s === '') return undefined;
-      const x = Number(s);
-      return Number.isFinite(x) ? x : undefined;
+    function n(v) {
+      const x = Number(v);
+      return Number.isFinite(x) ? x : 0;
     }
 
     function monthStartFromInput(monthYYYYMM) {
@@ -340,35 +336,32 @@
 
       if (!monthStart) { showErr('Please select a month.'); return; }
 
-      // Build a PATCH-like payload (omit blanks so we don't overwrite existing values).
-      const payload = {
-        month_start: monthStart,
-        site
-      };
+      // Only include filled fields so budgets and actuals can be saved at different times without overwriting.
+      const payload = { month_start: monthStart, site };
 
-      const map = [
-        ['budget_retail_sales', fields.bRetail],
-        ['budget_hospitality_sales', fields.bHosp],
-        ['budget_free_issue', fields.bFree],
-        ['budget_core_wages', fields.bCore],
-        ['budget_agency_spend', fields.bAgency],
-        ['budget_gp_pct', fields.bGp],
-
-        ['actual_retail_sales', fields.aRetail],
-        ['actual_hospitality_sales', fields.aHosp],
-        ['actual_free_issue', fields.aFree],
-        ['actual_core_wages', fields.aCore],
-        ['actual_agency_spend', fields.aAgency],
-        ['actual_gp_pct', fields.aGp]
-      ];
-
-      for (const [col, el] of map) {
-        const v = numOrUndef(el.value);
-        if (v !== undefined) payload[col] = v;
+      function addNum(key, el) {
+        const v = (el?.value ?? '').toString().trim();
+        if (v === '') return;
+        const num = n(v);
+        if (Number.isFinite(num)) payload[key] = num;
       }
 
-      const notesRaw = (fields.notes.value || '').trim();
-      if (notesRaw !== '') payload.notes = notesRaw;
+      addNum('budget_retail_sales', fields.bRetail);
+      addNum('budget_hospitality_sales', fields.bHosp);
+      addNum('budget_free_issue', fields.bFree);
+      addNum('budget_core_wages', fields.bCore);
+      addNum('budget_agency_spend', fields.bAgency);
+      addNum('budget_gp_pct', fields.bGp);
+
+      addNum('actual_retail_sales', fields.aRetail);
+      addNum('actual_hospitality_sales', fields.aHosp);
+      addNum('actual_free_issue', fields.aFree);
+      addNum('actual_core_wages', fields.aCore);
+      addNum('actual_agency_spend', fields.aAgency);
+      addNum('actual_gp_pct', fields.aGp);
+
+      const notesVal = (fields.notes?.value ?? '').toString().trim();
+      if (notesVal !== '') payload.notes = notesVal;
 
       const { error } = await supabase
         .from('monthly_finance_summary')
@@ -384,10 +377,7 @@
 
       // Required behaviour: clear fields ready for next entry
       clearFieldsOnly();
-      showOk(
-        `Saved ${site} • ${monthStart}.\n` +
-        `Tip: budgets and actuals can be saved at separate times — blanks will no longer overwrite existing values.`
-      );
+      showOk(`Saved ${site} • ${monthStart}. Fields cleared ready for next entry.`);
     }
 
     // Default month = current month

@@ -1,11 +1,10 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<title>Ops Log • Monthly Dashboard</title>
-<meta content="width=device-width, initial-scale=1" name="viewport"/>
-<style>
+  <meta charset="UTF-8" />
+  <title>Ops Log • Monthly Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
     body {
       margin: 0;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -282,202 +281,359 @@
     }
     .modal-body { padding: 12px; display: grid; gap: 12px; }
     .modal-body img { width: 100%; border-radius: 14px; border: 1px solid rgba(255,255,255,0.10); }
+    /* Finance visualisation */
+    .fin-viz{
+      display:grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 12px;
+      margin-top: 12px;
+    }
+    .fin-bars{ display:grid; gap: 10px; }
+    .fin-bar{
+      padding: 10px 10px 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.04);
+      box-shadow: 0 10px 22px rgba(0,0,0,0.20);
+    }
+    .fin-bar-top{
+      display:flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+    .fin-bar-title{ font-weight: 750; font-size: 12px; }
+    .fin-bar-nums{ font-size: 11px; color: rgba(255,255,255,0.70); white-space: nowrap; }
+
+    .bar-track{
+      position: relative;
+      height: 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.07);
+      overflow:hidden;
+    }
+    .bar-budget{
+      position:absolute; inset:0 auto 0 0;
+      height:100%;
+      background: rgba(147,197,253,0.40);
+      border-radius: 999px;
+    }
+    .bar-actual{
+      position:absolute; inset:0 auto 0 0;
+      height:100%;
+      background: rgba(52,211,153,0.55);
+      border-radius: 999px;
+      box-shadow: 0 0 0 1px rgba(0,0,0,0.12) inset;
+    }
+    .fin-bar-foot{
+      display:flex; justify-content: space-between; gap: 8px;
+      margin-top: 8px; font-size: 11px; color: rgba(255,255,255,0.66);
+    }
+    .var-pill{
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.10);
+      background: rgba(255,255,255,0.05);
+      font-weight: 650;
+    }
+
+    .gp-gauge{
+      width: 100%;
+      min-height: 168px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.04);
+      box-shadow: 0 10px 22px rgba(0,0,0,0.20);
+      display:grid;
+      place-items:center;
+      padding: 14px 12px;
+    }
+    .gp-donut{
+      width: 132px; height: 132px;
+      border-radius: 999px;
+      display:grid;
+      place-items:center;
+      background: conic-gradient(rgba(52,211,153,0.85) 0deg, rgba(52,211,153,0.85) 0deg, rgba(255,255,255,0.10) 0deg);
+    }
+    .gp-inner{
+      width: 104px; height: 104px;
+      border-radius: 999px;
+      background: #0b1220;
+      border: 1px solid rgba(255,255,255,0.08);
+      display:flex;
+      flex-direction: column;
+      align-items:center;
+      justify-content:center;
+      text-align:center;
+      padding: 6px;
+    }
+    .gp-big{ font-size: 18px; font-weight: 800; letter-spacing: 0.2px; }
+    .gp-sub{ font-size: 11px; color: rgba(255,255,255,0.66); margin-top: 4px; }
+
+    .fin-notes{
+      margin-top: 10px;
+      padding: 10px 10px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.03);
+      font-size: 12px;
+      color: rgba(255,255,255,0.80);
+      white-space: pre-wrap;
+      line-height: 1.35;
+    }
+
+    .financeAllSitesCards{
+      display:grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    @media (max-width: 980px){
+      .fin-viz{ grid-template-columns: 1fr; }
+      .financeAllSitesCards{ grid-template-columns: 1fr; }
+    }
+
+
   </style>
 </head>
+
 <body>
-<div class="wrap">
-<div class="topbar">
-<div class="brand">
-<div class="logo">OL</div>
-<div class="titleblock">
-<div class="title">Monthly Dashboard</div>
-<div class="subtitle">Month view. Filter by site.</div>
-</div>
-</div>
-<div class="filters">
-<a class="btn btn-secondary" href="./index.html">Home</a>
-<button class="btn btn-secondary" id="prevMonthBtn">◀</button>
-<div class="pill" id="monthLabel" role="button" tabindex="0" title="Click to choose a month">Month</div><input aria-label="Select month" id="monthPicker" style="position:absolute; left:-9999px; width:1px; height:1px; opacity:0;" type="month"/>
-<button class="btn btn-secondary" id="nextMonthBtn">▶</button>
-<button class="btn" id="latestMonthBtn">Latest</button>
-<a class="btn" href="./monthly-finance-admin.html">Finance Admin</a>
-<div class="filter">
-<label for="siteFilter">Site</label>
-<select id="siteFilter">
-<option value="All">All Sites</option>
-<option value="London">London</option>
-<option value="Newcastle">Newcastle</option>
-</select>
-</div>
-<button class="btn" id="refreshBtn">Refresh</button>
-</div>
-</div>
-<div class="error" id="errorMessage"></div>
-<div class="grid">
-<!-- Overview -->
-<div class="row-1">
-<div class="card" style="grid-column: 1 / span 3; padding: 0;">
-<div style="padding: 14px 14px 14px;">
-<div class="card-header" style="margin-bottom: 8px;">
-<div>
-<div class="card-title">Overview</div>
-<div class="card-subtitle">Totals for the selected month &amp; filter.</div>
-</div>
-<div class="pill" id="monthRangePill">Month</div>
-</div>
-<div class="kpis">
-<div class="kpi">
-<div class="label">Total Logs</div>
-<div class="value" id="kpiTotalLogs">0</div>
-<div class="sub">All entries captured</div>
-</div>
-<div class="kpi">
-<div class="label">Staffing Impact</div>
-<div class="value" id="kpiStaffingSum">0</div>
-<div class="sub" id="kpiStaffingSub">Sick • Holiday • Agency</div>
-</div>
-<div class="kpi">
-<div class="label">Retail Sales</div>
-<div class="value" id="kpiRetailSales">£0.00</div>
-<div class="sub" id="kpiRetailSub">Transactions • SPH</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-<!-- Finance -->
-<div class="row-2">
-<div class="card" style="grid-column: 1 / span 2;">
-<div class="card-header">
-<div>
-<div class="card-title">Finance Snapshot (Budget vs Actual)</div>
-<div class="card-subtitle">Uses monthly_finance_summary. GP% displayed as entered.</div>
-</div>
-<div class="pill" id="financePill">Finance</div>
-</div>
-<div class="empty-text" id="financeEmpty">
+  <div class="wrap">
+    <div class="topbar">
+      <div class="brand">
+        <div class="logo">OL</div>
+        <div class="titleblock">
+          <div class="title">Monthly Dashboard</div>
+          <div class="subtitle">Month view. Filter by site.</div>
+        </div>
+      </div>
+
+      <div class="filters">
+        <a class="btn btn-secondary" href="./index.html">Home</a>
+
+        <button class="btn btn-secondary" id="prevMonthBtn">◀</button>
+        <div class="pill" id="monthLabel" title="Click to choose month">Month</div>
+        <input type="month" id="monthPicker" style="position:absolute; opacity:0; width:1px; height:1px; pointer-events:none;" />
+        <button class="btn btn-secondary" id="nextMonthBtn">▶</button>
+        <button class="btn" id="latestMonthBtn">Latest</button>
+
+        <a class="btn" href="./monthly-finance-admin.html">Finance Admin</a>
+
+        <div class="filter">
+          <label for="siteFilter">Site</label>
+          <select id="siteFilter">
+            <option value="All">All Sites</option>
+            <option value="London">London</option>
+            <option value="Newcastle">Newcastle</option>
+          </select>
+        </div>
+
+        <button class="btn" id="refreshBtn">Refresh</button>
+      </div>
+    </div>
+
+    <div id="errorMessage" class="error"></div>
+
+    <div class="grid">
+      <!-- Overview -->
+      <div class="row-1">
+        <div class="card" style="grid-column: 1 / span 3; padding: 0;">
+          <div style="padding: 14px 14px 14px;">
+            <div class="card-header" style="margin-bottom: 8px;">
+              <div>
+                <div class="card-title">Overview</div>
+                <div class="card-subtitle">Totals for the selected month & filter.</div>
+              </div>
+              <div class="pill" id="monthRangePill">Month</div>
+            </div>
+
+            <div class="kpis">
+              <div class="kpi">
+                <div class="label">Total Logs</div>
+                <div class="value" id="kpiTotalLogs">0</div>
+                <div class="sub">All entries captured</div>
+              </div>
+              <div class="kpi">
+                <div class="label">Staffing Impact</div>
+                <div class="value" id="kpiStaffingSum">0</div>
+                <div class="sub" id="kpiStaffingSub">Sick • Holiday • Agency</div>
+              </div>
+              <div class="kpi">
+                <div class="label">Retail Sales</div>
+                <div class="value" id="kpiRetailSales">£0.00</div>
+                <div class="sub" id="kpiRetailSub">Transactions • SPH</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Finance -->
+      <div class="row-2">
+        <div class="card" style="grid-column: 1 / span 2;">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Finance Snapshot (Budget vs Actual)</div>
+              <div class="card-subtitle">Uses monthly_finance_summary. GP% displayed as entered.</div>
+            </div>
+            <div class="pill" id="financePill">Finance</div>
+          </div>
+
+          <div id="financeEmpty" class="empty-text">
             No finance row found for this month/site yet. Click “Finance Admin” (top right) to create one.
           </div>
-<div class="metric-row" id="financeGrid" style="grid-template-columns: repeat(3, minmax(0, 1fr)); display:none;">
-<div class="metric">
-<div class="metric-label">Total Sales (£)</div>
-<div class="metric-value" id="finSalesActual">£0.00</div>
-<div class="metric-sub">Budget: <span id="finSalesBudget">£0.00</span> • Var: <span id="finSalesVar">£0.00</span></div>
-</div>
-<div class="metric">
-<div class="metric-label">Labour (£) (Core + Agency)</div>
-<div class="metric-value" id="finLabourActual">£0.00</div>
-<div class="metric-sub">Budget: <span id="finLabourBudget">£0.00</span> • Var: <span id="finLabourVar">£0.00</span></div>
-</div>
-<div class="metric">
-<div class="metric-label">GP %</div>
-<div class="metric-value" id="finGpActual">0%</div>
-<div class="metric-sub">Budget: <span id="finGpBudget">0%</span></div>
-</div>
-<div class="metric">
-<div class="metric-label">Retail Sales (£)</div>
-<div class="metric-value" id="finRetailActual">£0.00</div>
-<div class="metric-sub">Budget: <span id="finRetailBudget">£0.00</span></div>
-</div>
-<div class="metric">
-<div class="metric-label">Hospitality Sales (£)</div>
-<div class="metric-value" id="finHospActual">£0.00</div>
-<div class="metric-sub">Budget: <span id="finHospBudget">£0.00</span></div>
-</div>
-<div class="metric">
-<div class="metric-label">Free Issue (£)</div>
-<div class="metric-value" id="finFreeActual">£0.00</div>
-<div class="metric-sub">Budget: <span id="finFreeBudget">£0.00</span></div>
-</div>
-</div>
-<div class="metric-sub" style="margin-top:10px;">
+
+          <div class="fin-viz" id="financeViz" style="display:none;">
+            <div class="fin-bars" id="finBars"></div>
+
+            <div>
+              <div class="gp-gauge">
+                <div class="gp-donut" id="gpDonut">
+                  <div class="gp-inner">
+                    <div class="gp-big" id="gpGaugeVal">0%</div>
+                    <div class="gp-sub" id="gpGaugeSub">Bgt 0%</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="fin-notes" id="finNotes" style="display:none;"></div>
+            </div>
+          </div>
+
+          <div id="financeGrid" class="metric-row" style="grid-template-columns: repeat(3, minmax(0, 1fr)); display:none;">
+            <div class="metric">
+              <div class="metric-label">Total Sales (£)</div>
+              <div class="metric-value" id="finSalesActual">£0.00</div>
+              <div class="metric-sub">Budget: <span id="finSalesBudget">£0.00</span> • Var: <span id="finSalesVar">£0.00</span></div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">Labour (£) (Core + Cost to Client)</div>
+              <div class="metric-value" id="finLabourActual">£0.00</div>
+              <div class="metric-sub">Budget: <span id="finLabourBudget">£0.00</span> • Var: <span id="finLabourVar">£0.00</span></div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">GP %</div>
+              <div class="metric-value" id="finGpActual">0%</div>
+              <div class="metric-sub">Budget: <span id="finGpBudget">0%</span></div>
+            </div>
+
+            <div class="metric">
+              <div class="metric-label">Retail Sales (£)</div>
+              <div class="metric-value" id="finRetailActual">£0.00</div>
+              <div class="metric-sub">Budget: <span id="finRetailBudget">£0.00</span></div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">Hospitality Sales (£)</div>
+              <div class="metric-value" id="finHospActual">£0.00</div>
+              <div class="metric-sub">Budget: <span id="finHospBudget">£0.00</span></div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">Free Issue (£)</div>
+              <div class="metric-value" id="finFreeActual">£0.00</div>
+              <div class="metric-sub">Budget: <span id="finFreeBudget">£0.00</span></div>
+            </div>
+          </div>
+
+          <div class="metric-sub" style="margin-top:10px;">
             If Site = All, finance is displayed as a per-site list (London + Newcastle) rather than a combined total.
           </div>
-<div class="list" id="financeAllSitesList" style="display:none;"></div>
-</div>
-</div>
-<!-- Staffing + incidents -->
-<div class="row-3">
-<div class="card">
-<div class="card-header">
-<div>
-<div class="card-title">Staffing Summary</div>
-<div class="card-subtitle">Totals for the month.</div>
-</div>
-</div>
-<div class="metric-row" style="grid-template-columns: repeat(3, 1fr);">
-<div class="metric"><div class="metric-label">Sickness</div><div class="metric-value" id="staffSick">0</div></div>
-<div class="metric"><div class="metric-label">Holiday</div><div class="metric-value" id="staffHol">0</div></div>
-<div class="metric"><div class="metric-label">Agency</div><div class="metric-value" id="staffAg">0</div></div>
-</div>
-</div>
-<div class="card">
-<div class="card-header">
-<div>
-<div class="card-title">Maintenance Incidents</div>
-<div class="card-subtitle">Only items with incidents show.</div>
-</div>
-</div>
-<div class="empty-text" id="maintEmpty">No maintenance incidents.</div>
-<div class="list" id="maintList"></div>
-</div>
-<div class="card">
-<div class="card-header">
-<div>
-<div class="card-title">H&amp;S Incidents</div>
-<div class="card-subtitle">Only items with incidents show.</div>
-</div>
-</div>
-<div class="empty-text" id="hsEmpty">No H&amp;S incidents.</div>
-<div class="list" id="hsList"></div>
-</div>
-</div>
-<!-- Retail + Photos -->
-<div class="row-2">
-<div class="card">
-<div class="card-header">
-<div>
-<div class="card-title">Retail Sales (Monthly)</div>
-<div class="card-subtitle">Totals by level for the month (from retail_sales).</div>
-</div>
-</div>
-<div class="metric-row" style="grid-template-columns: 1fr;">
-<div class="metric">
-<div class="metric-label">Total</div>
-<div class="metric-value" id="retailTotal">£0.00</div>
-<div class="metric-sub" id="retailSub">0 tx • SPH £0.00</div>
-<div class="metric-sub" id="retailBreakdown" style="margin-top:6px;">L7 £0 • L5 £0 • L4 £0 • L3 £0</div>
-</div>
-</div>
-<div class="list" id="retailLevelsList"></div>
-</div>
-<div class="card">
-<div class="card-header">
-<div>
-<div class="card-title">Photo Gallery</div>
-<div class="card-subtitle">All photos uploaded within the selected month.</div>
-</div>
-</div>
-<div class="empty-text" id="photosEmpty">No photos uploaded this month.</div>
-<div class="photos-grid" id="photosGrid"></div>
-</div>
-</div>
-</div>
-</div>
-<!-- Photo modal -->
-<div class="modal" id="photoModal">
-<div class="modal-card">
-<div class="modal-header">
-<div class="mh-title" id="photoModalTitle">Photo</div>
-<button class="close" id="closePhotoModalBtn">Close</button>
-</div>
-<div class="modal-body">
-<img alt="Photo" id="photoModalImg"/>
-<div class="metric-sub" id="photoModalMeta"></div>
-</div>
-</div>
-</div>
-<script type="module">
+
+          <div id="financeAllSitesList" class="list" style="display:none;"></div>
+        </div>
+      </div>
+
+      <!-- Staffing + incidents -->
+      <div class="row-3">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Staffing Summary</div>
+              <div class="card-subtitle">Totals for the month.</div>
+            </div>
+          </div>
+          <div class="metric-row" style="grid-template-columns: repeat(3, 1fr);">
+            <div class="metric"><div class="metric-label">Sickness</div><div class="metric-value" id="staffSick">0</div></div>
+            <div class="metric"><div class="metric-label">Holiday</div><div class="metric-value" id="staffHol">0</div></div>
+            <div class="metric"><div class="metric-label">Agency</div><div class="metric-value" id="staffAg">0</div></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Maintenance Incidents</div>
+              <div class="card-subtitle">Only items with incidents show.</div>
+            </div>
+          </div>
+          <div id="maintEmpty" class="empty-text">No maintenance incidents.</div>
+          <div id="maintList" class="list"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">H&amp;S Incidents</div>
+              <div class="card-subtitle">Only items with incidents show.</div>
+            </div>
+          </div>
+          <div id="hsEmpty" class="empty-text">No H&amp;S incidents.</div>
+          <div id="hsList" class="list"></div>
+        </div>
+      </div>
+
+      <!-- Retail + Photos -->
+      <div class="row-2">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Retail Sales (Monthly)</div>
+              <div class="card-subtitle">Totals by level for the month (from retail_sales).</div>
+            </div>
+          </div>
+
+          <div class="metric-row" style="grid-template-columns: 1fr;">
+            <div class="metric">
+              <div class="metric-label">Total</div>
+              <div class="metric-value" id="retailTotal">£0.00</div>
+              <div class="metric-sub" id="retailSub">0 tx • SPH £0.00</div>
+              <div class="metric-sub" id="retailBreakdown" style="margin-top:6px;">L7 £0 • L5 £0 • L4 £0 • L3 £0</div>
+            </div>
+          </div>
+
+          <div id="retailLevelsList" class="list"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Photo Gallery</div>
+              <div class="card-subtitle">All photos uploaded within the selected month.</div>
+            </div>
+          </div>
+          <div id="photosEmpty" class="empty-text">No photos uploaded this month.</div>
+          <div id="photosGrid" class="photos-grid"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Photo modal -->
+  <div class="modal" id="photoModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="mh-title" id="photoModalTitle">Photo</div>
+        <button class="close" id="closePhotoModalBtn">Close</button>
+      </div>
+      <div class="modal-body">
+        <img id="photoModalImg" alt="Photo" />
+        <div class="metric-sub" id="photoModalMeta"></div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
     import { supabase } from './supabase-config.js';
 
     const errorMessageEl = document.getElementById('errorMessage');
@@ -488,8 +644,8 @@
     const refreshBtn = document.getElementById('refreshBtn');
 
     const monthLabelEl = document.getElementById('monthLabel');
-    const monthRangePillEl = document.getElementById('monthRangePill');
     const monthPickerEl = document.getElementById('monthPicker');
+    const monthRangePillEl = document.getElementById('monthRangePill');
     const siteFilterEl = document.getElementById('siteFilter');
 
     const kpiTotalLogsEl = document.getElementById('kpiTotalLogs');
@@ -525,6 +681,12 @@
     const financeEmptyEl = document.getElementById('financeEmpty');
     const financeGridEl = document.getElementById('financeGrid');
     const financeAllSitesListEl = document.getElementById('financeAllSitesList');
+    const financeVizEl = document.getElementById('financeViz');
+    const finBarsEl = document.getElementById('finBars');
+    const gpDonutEl = document.getElementById('gpDonut');
+    const gpGaugeValEl = document.getElementById('gpGaugeVal');
+    const gpGaugeSubEl = document.getElementById('gpGaugeSub');
+    const finNotesEl = document.getElementById('finNotes');
 
     const finSalesActualEl = document.getElementById('finSalesActual');
     const finSalesBudgetEl = document.getElementById('finSalesBudget');
@@ -558,6 +720,54 @@
 
     function money(n) { return `£${Number(n || 0).toFixed(2)}`; }
     function pct(n) { return `${Number(n || 0).toFixed(1)}%`; }
+
+    function clamp01(x){ return Math.max(0, Math.min(1, x)); }
+
+    function barRowHTML(label, actual, budget) {
+      const a = safeNum(actual);
+      const b = safeNum(budget);
+      const maxV = Math.max(a, b, 1);
+      const budgetPct = clamp01(b / maxV) * 100;
+      const actualPct = clamp01(a / maxV) * 100;
+      const variance = a - b;
+
+      const abs = money(Math.abs(variance));
+      const sign = variance > 0 ? '+' : (variance < 0 ? '-' : '');
+      const varLabel = `${sign}${abs}`;
+
+      return `
+        <div class="fin-bar">
+          <div class="fin-bar-top">
+            <div class="fin-bar-title">${label}</div>
+            <div class="fin-bar-nums">Act ${money(a)} • Bgt ${money(b)}</div>
+          </div>
+
+          <div class="bar-track" aria-label="${label} budget vs actual">
+            <div class="bar-budget" style="width:${budgetPct}%;"></div>
+            <div class="bar-actual" style="width:${actualPct}%;"></div>
+          </div>
+
+          <div class="fin-bar-foot">
+            <span>Variance</span>
+            <span class="var-pill">${varLabel}</span>
+          </div>
+        </div>
+      `;
+    }
+
+    function setGpGauge(actualGpPct, budgetGpPct){
+      const a = safeNum(actualGpPct);
+      const b = safeNum(budgetGpPct);
+      const aDeg = clamp01(a / 100) * 360;
+
+      if (gpDonutEl) {
+        gpDonutEl.style.background =
+          `conic-gradient(rgba(52,211,153,0.85) 0deg, rgba(52,211,153,0.85) ${aDeg}deg, rgba(255,255,255,0.10) ${aDeg}deg)`;
+      }
+      if (gpGaugeValEl) gpGaugeValEl.textContent = pct(a);
+      if (gpGaugeSubEl) gpGaugeSubEl.textContent = `Bgt ${pct(b)}`;
+    }
+
 
     function isIncidentFlagTrue(v) {
       const t = safeText(v).toLowerCase();
@@ -649,6 +859,7 @@
       financePillEl.textContent = 'Finance';
       financeEmptyEl.style.display = 'block';
       financeGridEl.style.display = 'none';
+        if (financeVizEl) financeVizEl.style.display = 'none';
       financeAllSitesListEl.style.display = 'none';
       financeAllSitesListEl.innerHTML = '';
     }
@@ -666,34 +877,49 @@
         financePillEl.textContent = `Finance • ${monthStartStr}`;
         financeEmptyEl.style.display = (data && data.length) ? 'none' : 'block';
         financeGridEl.style.display = 'none';
+        if (financeVizEl) financeVizEl.style.display = 'none';
 
         financeAllSitesListEl.style.display = (data && data.length) ? 'grid' : 'none';
         financeAllSitesListEl.innerHTML = '';
 
         if (data && data.length) {
-          const items = data.map(r => {
-            const budgetSales = safeNum(r.budget_retail_sales) + safeNum(r.budget_hospitality_sales);
-            const actualSales = safeNum(r.actual_retail_sales) + safeNum(r.actual_hospitality_sales);
-            const budgetLab  = safeNum(r.budget_core_wages) + safeNum(r.budget_agency_spend);
-            const actualLab  = safeNum(r.actual_core_wages) + safeNum(r.actual_agency_spend);
+          financeAllSitesListEl.innerHTML = data.map(r => {
+            const bRetail = safeNum(r.budget_retail_sales);
+            const aRetail = safeNum(r.actual_retail_sales);
+            const bHosp   = safeNum(r.budget_hospitality_sales);
+            const aHosp   = safeNum(r.actual_hospitality_sales);
+            const bFree   = safeNum(r.budget_free_issue);
+            const aFree   = safeNum(r.actual_free_issue);
 
-            return {
-              title: `${r.site} • ${monthStartStr}`,
-              badge: `GP ${pct(r.actual_gp_pct)} (Bgt ${pct(r.budget_gp_pct)})`,
-              notes:
-                `Total Sales: ${money(actualSales)} (Bgt ${money(budgetSales)})\n` +
-                `Retail: ${money(r.actual_retail_sales)} (Bgt ${money(r.budget_retail_sales)})\n` +
-                `Hospitality: ${money(r.actual_hospitality_sales)} (Bgt ${money(r.budget_hospitality_sales)})\n` +
-                `Free Issue: ${money(r.actual_free_issue)} (Bgt ${money(r.budget_free_issue)})\n` +
-                `Labour: ${money(actualLab)} (Bgt ${money(budgetLab)})`
-            };
-          });
+            const budgetSales = bRetail + bHosp;
+            const actualSales = aRetail + aHosp;
 
-          const dummyEmpty = document.createElement('div');
-          renderList(financeAllSitesListEl, dummyEmpty, items);
+            const bLab = safeNum(r.budget_core_wages) + safeNum(r.budget_agency_spend);
+            const aLab = safeNum(r.actual_core_wages) + safeNum(r.actual_agency_spend);
+
+            const notes = safeText(r.notes || '');
+
+            return `
+              <div class="fin-bar" style="padding:14px;">
+                <div class="fin-bar-top" style="margin-bottom:10px;">
+                  <div class="fin-bar-title">${safeText(r.site)} • ${monthStartStr}</div>
+                  <div class="fin-bar-nums">GP ${pct(r.actual_gp_pct)} • Bgt ${pct(r.budget_gp_pct)}</div>
+                </div>
+
+                <div class="fin-bars">
+                  ${barRowHTML('Total Sales', actualSales, budgetSales)}
+                  ${barRowHTML('Labour (Core + Cost to Client)', aLab, bLab)}
+                  ${barRowHTML('Retail Sales', aRetail, bRetail)}
+                  ${barRowHTML('Hospitality Sales', aHosp, bHosp)}
+                  ${barRowHTML('Free Issue', aFree, bFree)}
+                </div>
+
+                ${notes ? `<div class="fin-notes" style="display:block; margin-top:12px;">${notes.replace(/</g,'&lt;')}</div>` : ``}
+              </div>
+            `;
+          }).join('');
         }
-
-        return;
+return;
       }
 
       const { data, error } = await supabase
@@ -711,6 +937,7 @@
       if (!data) {
         financeEmptyEl.style.display = 'block';
         financeGridEl.style.display = 'none';
+        if (financeVizEl) financeVizEl.style.display = 'none';
         financeAllSitesListEl.style.display = 'none';
         return;
       }
@@ -718,12 +945,36 @@
       financeEmptyEl.style.display = 'none';
       financeAllSitesListEl.style.display = 'none';
       financeGridEl.style.display = 'grid';
+      if (financeVizEl) financeVizEl.style.display = 'grid';
 
       const budgetSales = safeNum(data.budget_retail_sales) + safeNum(data.budget_hospitality_sales);
       const actualSales = safeNum(data.actual_retail_sales) + safeNum(data.actual_hospitality_sales);
 
       const budgetLab  = safeNum(data.budget_core_wages) + safeNum(data.budget_agency_spend);
       const actualLab  = safeNum(data.actual_core_wages) + safeNum(data.actual_agency_spend);
+
+      // Visual summary (bars + GP gauge + notes)
+      if (finBarsEl) {
+        finBarsEl.innerHTML =
+          barRowHTML('Total Sales', actualSales, budgetSales) +
+          barRowHTML('Labour (Core + Cost to Client)', actualLab, budgetLab) +
+          barRowHTML('Retail Sales', safeNum(data.actual_retail_sales), safeNum(data.budget_retail_sales)) +
+          barRowHTML('Hospitality Sales', safeNum(data.actual_hospitality_sales), safeNum(data.budget_hospitality_sales)) +
+          barRowHTML('Free Issue', safeNum(data.actual_free_issue), safeNum(data.budget_free_issue));
+      }
+
+      setGpGauge(safeNum(data.actual_gp_pct), safeNum(data.budget_gp_pct));
+
+      const notes = safeText(data.notes || '');
+      if (finNotesEl) {
+        if (notes) {
+          finNotesEl.style.display = 'block';
+          finNotesEl.textContent = notes;
+        } else {
+          finNotesEl.style.display = 'none';
+          finNotesEl.textContent = '';
+        }
+      }
 
       finSalesActualEl.textContent = money(actualSales);
       finSalesBudgetEl.textContent = money(budgetSales);
@@ -873,41 +1124,7 @@
       });
     }
 
-    
-    function monthValueFromDate(d){
-      const yyyy = d.getFullYear();
-      const mm = String(d.getMonth() + 1).padStart(2,'0');
-      return `${yyyy}-${mm}`;
-    }
-
-    function monthOffsetFromValue(monthValue){
-      // monthValue is YYYY-MM
-      const [yStr, mStr] = (monthValue || '').split('-');
-      const y = Number(yStr);
-      const m = Number(mStr);
-      if (!Number.isFinite(y) || !Number.isFinite(m)) return 0;
-
-      const anchor = new Date();
-      const anchorYM = anchor.getFullYear() * 12 + anchor.getMonth(); // 0-index month
-      const selYM = y * 12 + (m - 1);
-      return selYM - anchorYM;
-    }
-
-    function openMonthPicker(){
-      if (!monthPickerEl) return;
-      // keep picker aligned with current target month
-      const anchor = new Date();
-      const target = new Date(anchor);
-      target.setMonth(target.getMonth() + currentMonthOffset);
-      if (monthPickerEl) monthPickerEl.value = monthValueFromDate(target);
-      monthPickerEl.value = monthValueFromDate(target);
-
-      // showPicker is supported in Chromium; fallback to click/focus.
-      try { monthPickerEl.showPicker(); }
-      catch(e){ monthPickerEl.focus(); monthPickerEl.click(); }
-    }
-
-async function loadMonth() {
+    async function loadMonth() {
       clearUI();
 
       nextMonthBtn.disabled = currentMonthOffset === 0;
@@ -979,17 +1196,39 @@ async function loadMonth() {
     prevMonthBtn.addEventListener('click', () => { currentMonthOffset -= 1; loadMonth(); });
     nextMonthBtn.addEventListener('click', () => { if (currentMonthOffset < 0) { currentMonthOffset += 1; loadMonth(); } });
     latestMonthBtn.addEventListener('click', () => { currentMonthOffset = 0; loadMonth(); });
-    // Allow direct month selection by clicking the Month pill
-    monthLabelEl.addEventListener('click', openMonthPicker);
-    monthLabelEl.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openMonthPicker(); } });
 
-    if (monthPickerEl){
-      monthPickerEl.addEventListener('change', () => {
-        currentMonthOffset = monthOffsetFromValue(monthPickerEl.value);
-        loadMonth();
-      });
+    // Month picker (jump to any month)
+    function monthInputValueFromOffset(offset){
+      const d = new Date();
+      d.setDate(1);
+      d.setMonth(d.getMonth() + offset);
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      return `${yyyy}-${mm}`;
     }
 
+    function offsetFromMonthInput(value){
+      // value: YYYY-MM
+      const [y, m] = (value || '').split('-').map(Number);
+      if (!y || !m) return 0;
+      const now = new Date();
+      const base = new Date(now.getFullYear(), now.getMonth(), 1);
+      const target = new Date(y, m - 1, 1);
+      return (target.getFullYear() - base.getFullYear()) * 12 + (target.getMonth() - base.getMonth());
+    }
+
+    monthLabelEl.addEventListener('click', () => {
+      if (!monthPickerEl) return;
+      monthPickerEl.value = monthInputValueFromOffset(currentMonthOffset);
+      monthPickerEl.showPicker ? monthPickerEl.showPicker() : monthPickerEl.click();
+    });
+
+    if (monthPickerEl) {
+      monthPickerEl.addEventListener('change', async () => {
+        currentMonthOffset = offsetFromMonthInput(monthPickerEl.value);
+        await loadAll();
+      });
+    }
 
     refreshBtn.addEventListener('click', loadMonth);
     siteFilterEl.addEventListener('change', loadMonth);
