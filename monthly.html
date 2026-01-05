@@ -1,10 +1,11 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Ops Log • Monthly Dashboard</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <style>
+<meta charset="utf-8"/>
+<title>Ops Log • Monthly Dashboard</title>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<style>
     body {
       margin: 0;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -283,266 +284,200 @@
     .modal-body img { width: 100%; border-radius: 14px; border: 1px solid rgba(255,255,255,0.10); }
   </style>
 </head>
-
 <body>
-  <div class="wrap">
-    <div class="topbar">
-      <div class="brand">
-        <div class="logo">OL</div>
-        <div class="titleblock">
-          <div class="title">Monthly Dashboard</div>
-          <div class="subtitle">Month view. Filter by site.</div>
-        </div>
-      </div>
-
-      <div class="filters">
-        <a class="btn btn-secondary" href="./index.html">Home</a>
-
-        <button class="btn btn-secondary" id="prevMonthBtn">◀</button>
-        <div class="pill" id="monthLabel">Month</div>
-        <button class="btn btn-secondary" id="nextMonthBtn">▶</button>
-        <button class="btn" id="latestMonthBtn">Latest</button>
-
-        <a class="btn" href="./monthly-finance-admin.html">Finance Admin</a>
-
-        <div class="filter">
-          <label for="siteFilter">Site</label>
-          <select id="siteFilter">
-            <option value="All">All Sites</option>
-            <option value="London">London</option>
-            <option value="Newcastle">Newcastle</option>
-          </select>
-        </div>
-
-        <button class="btn" id="refreshBtn">Refresh</button>
-      </div>
-    </div>
-
-    <div id="errorMessage" class="error"></div>
-
-    <div class="grid">
-      <!-- Overview -->
-      <div class="row-1">
-        <div class="card" style="grid-column: 1 / span 3; padding: 0;">
-          <div style="padding: 14px 14px 14px;">
-            <div class="card-header" style="margin-bottom: 8px;">
-              <div>
-                <div class="card-title">Overview</div>
-                <div class="card-subtitle">Totals for the selected month & filter.</div>
-              </div>
-              <div class="pill" id="monthRangePill">Month</div>
-            </div>
-
-            <div class="kpis">
-              <div class="kpi">
-                <div class="label">Total Logs</div>
-                <div class="value" id="kpiTotalLogs">0</div>
-                <div class="sub">All entries captured</div>
-              </div>
-              <div class="kpi">
-                <div class="label">Staffing Impact</div>
-                <div class="value" id="kpiStaffingSum">0</div>
-                <div class="sub" id="kpiStaffingSub">Sick • Holiday</div>
-              </div>
-              <div class="kpi">
-                <div class="label">Retail Sales</div>
-                <div class="value" id="kpiRetailSales">£0.00</div>
-                <div class="sub" id="kpiRetailSub">Transactions • SPH</div>
-              </div>
-            </div>
-
-            <div style="margin-top: 12px;">
-              <button id="generateMonthlySummaryBtn" class="btn">Generate Monthly Summary</button>
-
-              <div id="monthlySummaryBox" style="display:none; margin-top:12px;" class="list-item">
-                <div class="list-title">AI Monthly Summary</div>
-                <div id="monthlySummaryText" class="list-notes" style="margin-top:8px;"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Finance -->
-      <div class="row-2">
-        <div class="card" style="grid-column: 1 / span 2;">
-          <div class="card-header">
-            <div>
-              <div class="card-title">Finance Snapshot (Budget vs Actual)</div>
-              <div class="card-subtitle">Uses monthly_finance_summary. GP% displayed as entered.</div>
-            </div>
-            <div class="pill" id="financePill">Finance</div>
-          </div>
-
-          <div id="financeEmpty" class="empty-text">
+<div class="wrap">
+<div class="topbar">
+<div class="brand">
+<div class="logo">OL</div>
+<div class="titleblock">
+<div class="title">Monthly Dashboard</div>
+<div class="subtitle">Month view. Filter by site.</div>
+</div>
+</div>
+<div class="filters">
+<a class="btn btn-secondary" href="./index.html">Home</a>
+<button class="btn btn-secondary" id="prevMonthBtn">◀</button>
+<div class="pill" id="monthLabel" role="button" tabindex="0" title="Click to choose a month">Month</div><input aria-label="Select month" id="monthPicker" style="position:absolute; left:-9999px; width:1px; height:1px; opacity:0;" type="month"/>
+<button class="btn btn-secondary" id="nextMonthBtn">▶</button>
+<button class="btn" id="latestMonthBtn">Latest</button>
+<a class="btn" href="./monthly-finance-admin.html">Finance Admin</a>
+<div class="filter">
+<label for="siteFilter">Site</label>
+<select id="siteFilter">
+<option value="All">All Sites</option>
+<option value="London">London</option>
+<option value="Newcastle">Newcastle</option>
+</select>
+</div>
+<button class="btn" id="refreshBtn">Refresh</button>
+</div>
+</div>
+<div class="error" id="errorMessage"></div>
+<div class="grid">
+<!-- Overview -->
+<div class="row-1">
+<div class="card" style="grid-column: 1 / span 3; padding: 0;">
+<div style="padding: 14px 14px 14px;">
+<div class="card-header" style="margin-bottom: 8px;">
+<div>
+<div class="card-title">Overview</div>
+<div class="card-subtitle">Totals for the selected month &amp; filter.</div>
+</div>
+<div class="pill" id="monthRangePill">Month</div>
+</div>
+<div class="kpis">
+<div class="kpi">
+<div class="label">Total Logs</div>
+<div class="value" id="kpiTotalLogs">0</div>
+<div class="sub">All entries captured</div>
+</div>
+<div class="kpi">
+<div class="label">Staffing Impact</div>
+<div class="value" id="kpiStaffingSum">0</div>
+<div class="sub" id="kpiStaffingSub">Sick • Holiday • Agency</div>
+</div>
+<div class="kpi">
+<div class="label">Retail Sales</div>
+<div class="value" id="kpiRetailSales">£0.00</div>
+<div class="sub" id="kpiRetailSub">Transactions • SPH</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Finance -->
+<div class="row-2">
+<div class="card" style="grid-column: 1 / span 2;">
+<div class="card-header">
+<div>
+<div class="card-title">Finance Snapshot (Budget vs Actual)</div>
+<div class="card-subtitle">Uses monthly_finance_summary. GP% displayed as entered.</div>
+</div>
+<div class="pill" id="financePill">Finance</div>
+</div>
+<div class="empty-text" id="financeEmpty">
             No finance row found for this month/site yet. Click “Finance Admin” (top right) to create one.
           </div>
-
-          <div id="financeGrid" class="metric-row" style="grid-template-columns: repeat(3, minmax(0, 1fr)); display:none;">
-            <div class="metric">
-              <div class="metric-label">Total Sales (£)</div>
-              <div class="metric-value" id="finSalesActual">£0.00</div>
-              <div class="metric-sub">Budget: <span id="finSalesBudget">£0.00</span> • Var: <span id="finSalesVar">£0.00</span></div>
-            </div>
-            <div class="metric">
-              <div class="metric-label">Labour (£) (Core + Agency)</div>
-              <div class="metric-value" id="finLabourActual">£0.00</div>
-              <div class="metric-sub">Budget: <span id="finLabourBudget">£0.00</span> • Var: <span id="finLabourVar">£0.00</span></div>
-            </div>
-            <div class="metric">
-              <div class="metric-label">GP %</div>
-              <div class="metric-value" id="finGpActual">0%</div>
-              <div class="metric-sub">Budget: <span id="finGpBudget">0%</span></div>
-            </div>
-
-            <div class="metric">
-              <div class="metric-label">Retail Sales (£)</div>
-              <div class="metric-value" id="finRetailActual">£0.00</div>
-              <div class="metric-sub">Budget: <span id="finRetailBudget">£0.00</span> • Var: <span id="finRetailVar">£0.00</span></div>
-            </div>
-            <div class="metric">
-              <div class="metric-label">Hospitality Sales (£)</div>
-              <div class="metric-value" id="finHospActual">£0.00</div>
-              <div class="metric-sub">Budget: <span id="finHospBudget">£0.00</span> • Var: <span id="finHospVar">£0.00</span></div>
-            </div>
-            <div class="metric">
-              <div class="metric-label">Free Issue (£)</div>
-              <div class="metric-value" id="finFreeActual">£0.00</div>
-              <div class="metric-sub">Budget: <span id="finFreeBudget">£0.00</span> • Var: <span id="finFreeVar">£0.00</span></div>
-            </div>
-          </div>
-
-          <div id="financeNotesBox" class="list-item" style="display:none; margin-top:10px;">
-            <div class="list-title">
-              <span>Finance Notes</span>
-              <span class="badge">From Finance Admin</span>
-            </div>
-            <div id="financeNotesText" class="list-notes" style="margin-top:8px;"></div>
-          </div>
-
-          <div class="metric-sub" style="margin-top:10px;">
+<div class="metric-row" id="financeGrid" style="grid-template-columns: repeat(3, minmax(0, 1fr)); display:none;">
+<div class="metric">
+<div class="metric-label">Total Sales (£)</div>
+<div class="metric-value" id="finSalesActual">£0.00</div>
+<div class="metric-sub">Budget: <span id="finSalesBudget">£0.00</span> • Var: <span id="finSalesVar">£0.00</span></div>
+</div>
+<div class="metric">
+<div class="metric-label">Labour (£) (Core + Agency)</div>
+<div class="metric-value" id="finLabourActual">£0.00</div>
+<div class="metric-sub">Budget: <span id="finLabourBudget">£0.00</span> • Var: <span id="finLabourVar">£0.00</span></div>
+</div>
+<div class="metric">
+<div class="metric-label">GP %</div>
+<div class="metric-value" id="finGpActual">0%</div>
+<div class="metric-sub">Budget: <span id="finGpBudget">0%</span></div>
+</div>
+<div class="metric">
+<div class="metric-label">Retail Sales (£)</div>
+<div class="metric-value" id="finRetailActual">£0.00</div>
+<div class="metric-sub">Budget: <span id="finRetailBudget">£0.00</span></div>
+</div>
+<div class="metric">
+<div class="metric-label">Hospitality Sales (£)</div>
+<div class="metric-value" id="finHospActual">£0.00</div>
+<div class="metric-sub">Budget: <span id="finHospBudget">£0.00</span></div>
+</div>
+<div class="metric">
+<div class="metric-label">Free Issue (£)</div>
+<div class="metric-value" id="finFreeActual">£0.00</div>
+<div class="metric-sub">Budget: <span id="finFreeBudget">£0.00</span></div>
+</div>
+</div>
+<div class="metric-sub" style="margin-top:10px;">
             If Site = All, finance is displayed as a per-site list (London + Newcastle) rather than a combined total.
           </div>
-
-          <div id="financeAllSitesList" class="list" style="display:none;"></div>
-        </div>
-      </div>
-
-      <!-- Staffing + incidents -->
-      <div class="row-3">
-        <div class="card">
-          <div class="card-header">
-            <div>
-              <div class="card-title">Staffing Summary</div>
-              <div class="card-subtitle">Totals for the month.</div>
-            </div>
-          </div>
-          <div class="metric-row" style="grid-template-columns: repeat(2, 1fr);">
-            <div class="metric"><div class="metric-label">Sickness</div><div class="metric-value" id="staffSick">0</div></div>
-            <div class="metric"><div class="metric-label">Holiday</div><div class="metric-value" id="staffHol">0</div></div>
-          </div>
-
-          <div class="list" style="margin-top:10px; grid-template-columns: 1fr;">
-            <div class="list-item">
-              <div class="list-title"><span>Sickness breakdown</span><span class="badge">Names from daily logs</span></div>
-              <div id="staffSickBreakdown" class="list-notes" style="margin-top:8px;">—</div>
-            </div>
-            <div class="list-item">
-              <div class="list-title"><span>Holiday breakdown</span><span class="badge">Names from daily logs</span></div>
-              <div id="staffHolBreakdown" class="list-notes" style="margin-top:8px;">—</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-header">
-            <div>
-              <div class="card-title">Maintenance Incidents</div>
-              <div class="card-subtitle">Only items with incidents show.</div>
-            </div>
-          </div>
-          <div id="maintEmpty" class="empty-text">No maintenance incidents.</div>
-          <div id="maintList" class="list"></div>
-        </div>
-
-        <div class="card">
-          <div class="card-header">
-            <div>
-              <div class="card-title">H&amp;S Incidents</div>
-              <div class="card-subtitle">Only items with incidents show.</div>
-            </div>
-          </div>
-          <div id="hsEmpty" class="empty-text">No H&amp;S incidents.</div>
-          <div id="hsList" class="list"></div>
-        </div>
-      </div>
-
-      <!-- Retail + Photos -->
-      <div class="row-2">
-        <div class="card">
-          <div class="card-header">
-            <div>
-              <div class="card-title">Retail Sales (Monthly)</div>
-              <div class="card-subtitle">Totals by level for the month (from retail_sales).</div>
-            </div>
-          </div>
-
-          <div class="metric-row" style="grid-template-columns: 1fr;">
-            <div class="metric">
-              <div class="metric-label">Total</div>
-              <div class="metric-value" id="retailTotal">£0.00</div>
-              <div class="metric-sub" id="retailSub">0 tx • SPH £0.00</div>
-              <div class="metric-sub" id="retailBreakdown" style="margin-top:6px;">L7 £0 • L5 £0 • L4 £0 • L3 £0</div>
-            </div>
-          </div>
-
-          <div class="chart-wrap" style="margin-top:10px;">
-            <div class="chart-head" style="display:flex; justify-content:space-between; align-items:baseline; gap:10px; flex-wrap:wrap;">
-              <div class="left" id="monthlyRetailChartLabel" style="font-size:12px; color: rgba(255,255,255,0.75);">Weekly totals within the month (stacked by level)</div>
-              <div class="right" id="monthlyRetailChartAvgLabel" style="font-size:12px; color: rgba(255,255,255,0.65);">Avg/week: £0.00</div>
-            </div>
-            <canvas id="monthlyRetailSalesChart" width="900" height="320" style="width:100%; height:260px; border-radius:16px; margin-top:10px; background: rgba(0,0,0,0.18); border: 1px solid rgba(255,255,255,0.08);"></canvas>
-            <div class="legend" id="monthlyRetailChartLegend" style="display:flex; gap:12px; flex-wrap:wrap; margin-top:10px; font-size:12px; color: rgba(255,255,255,0.7);">
-              <span class="key"><span class="swatch" data-swatch="lvl7"></span>Level 7</span>
-              <span class="key"><span class="swatch" data-swatch="lvl5"></span>Level 5</span>
-              <span class="key"><span class="swatch" data-swatch="lvl4"></span>Level 4</span>
-              <span class="key"><span class="swatch" data-swatch="lvl3"></span>Level 3</span>
-              <span class="key"><span class="swatch" data-swatch="avg"></span>Avg line</span>
-            </div>
-          </div>
-
-          <div id="retailLevelsList" class="list"></div>
-        </div>
-
-        <div class="card">
-          <div class="card-header">
-            <div>
-              <div class="card-title">Photo Gallery</div>
-              <div class="card-subtitle">All photos uploaded within the selected month.</div>
-            </div>
-          </div>
-          <div id="photosEmpty" class="empty-text">No photos uploaded this month.</div>
-          <div id="photosGrid" class="photos-grid"></div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Photo modal -->
-  <div class="modal" id="photoModal">
-    <div class="modal-card">
-      <div class="modal-header">
-        <div class="mh-title" id="photoModalTitle">Photo</div>
-        <button class="close" id="closePhotoModalBtn">Close</button>
-      </div>
-      <div class="modal-body">
-        <img id="photoModalImg" alt="Photo" />
-        <div class="metric-sub" id="photoModalMeta"></div>
-      </div>
-    </div>
-  </div>
-
-  <script type="module">
+<div class="list" id="financeAllSitesList" style="display:none;"></div>
+</div>
+</div>
+<!-- Staffing + incidents -->
+<div class="row-3">
+<div class="card">
+<div class="card-header">
+<div>
+<div class="card-title">Staffing Summary</div>
+<div class="card-subtitle">Totals for the month.</div>
+</div>
+</div>
+<div class="metric-row" style="grid-template-columns: repeat(3, 1fr);">
+<div class="metric"><div class="metric-label">Sickness</div><div class="metric-value" id="staffSick">0</div></div>
+<div class="metric"><div class="metric-label">Holiday</div><div class="metric-value" id="staffHol">0</div></div>
+<div class="metric"><div class="metric-label">Agency</div><div class="metric-value" id="staffAg">0</div></div>
+</div>
+</div>
+<div class="card">
+<div class="card-header">
+<div>
+<div class="card-title">Maintenance Incidents</div>
+<div class="card-subtitle">Only items with incidents show.</div>
+</div>
+</div>
+<div class="empty-text" id="maintEmpty">No maintenance incidents.</div>
+<div class="list" id="maintList"></div>
+</div>
+<div class="card">
+<div class="card-header">
+<div>
+<div class="card-title">H&amp;S Incidents</div>
+<div class="card-subtitle">Only items with incidents show.</div>
+</div>
+</div>
+<div class="empty-text" id="hsEmpty">No H&amp;S incidents.</div>
+<div class="list" id="hsList"></div>
+</div>
+</div>
+<!-- Retail + Photos -->
+<div class="row-2">
+<div class="card">
+<div class="card-header">
+<div>
+<div class="card-title">Retail Sales (Monthly)</div>
+<div class="card-subtitle">Totals by level for the month (from retail_sales).</div>
+</div>
+</div>
+<div class="metric-row" style="grid-template-columns: 1fr;">
+<div class="metric">
+<div class="metric-label">Total</div>
+<div class="metric-value" id="retailTotal">£0.00</div>
+<div class="metric-sub" id="retailSub">0 tx • SPH £0.00</div>
+<div class="metric-sub" id="retailBreakdown" style="margin-top:6px;">L7 £0 • L5 £0 • L4 £0 • L3 £0</div>
+</div>
+</div>
+<div class="list" id="retailLevelsList"></div>
+</div>
+<div class="card">
+<div class="card-header">
+<div>
+<div class="card-title">Photo Gallery</div>
+<div class="card-subtitle">All photos uploaded within the selected month.</div>
+</div>
+</div>
+<div class="empty-text" id="photosEmpty">No photos uploaded this month.</div>
+<div class="photos-grid" id="photosGrid"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Photo modal -->
+<div class="modal" id="photoModal">
+<div class="modal-card">
+<div class="modal-header">
+<div class="mh-title" id="photoModalTitle">Photo</div>
+<button class="close" id="closePhotoModalBtn">Close</button>
+</div>
+<div class="modal-body">
+<img alt="Photo" id="photoModalImg"/>
+<div class="metric-sub" id="photoModalMeta"></div>
+</div>
+</div>
+</div>
+<script type="module">
     import { supabase } from './supabase-config.js';
 
     const errorMessageEl = document.getElementById('errorMessage');
@@ -554,6 +489,7 @@
 
     const monthLabelEl = document.getElementById('monthLabel');
     const monthRangePillEl = document.getElementById('monthRangePill');
+    const monthPickerEl = document.getElementById('monthPicker');
     const siteFilterEl = document.getElementById('siteFilter');
 
     const kpiTotalLogsEl = document.getElementById('kpiTotalLogs');
@@ -562,15 +498,9 @@
     const kpiRetailSalesEl = document.getElementById('kpiRetailSales');
     const kpiRetailSubEl = document.getElementById('kpiRetailSub');
 
-    // Monthly summary (AI-style template)
-    const monthlySummaryBtn = document.getElementById('generateMonthlySummaryBtn');
-    const monthlySummaryBox = document.getElementById('monthlySummaryBox');
-    const monthlySummaryText = document.getElementById('monthlySummaryText');
-
     const staffSickEl = document.getElementById('staffSick');
     const staffHolEl = document.getElementById('staffHol');
-    const staffSickBreakdownEl = document.getElementById('staffSickBreakdown');
-    const staffHolBreakdownEl = document.getElementById('staffHolBreakdown');
+    const staffAgEl = document.getElementById('staffAg');
 
     const maintEmptyEl = document.getElementById('maintEmpty');
     const maintListEl = document.getElementById('maintList');
@@ -581,13 +511,6 @@
     const retailSubEl = document.getElementById('retailSub');
     const retailBreakdownEl = document.getElementById('retailBreakdown');
     const retailLevelsListEl = document.getElementById('retailLevelsList');
-
-    const monthlyRetailSalesChartEl = document.getElementById('monthlyRetailSalesChart');
-    const monthlyRetailChartAvgLabelEl = document.getElementById('monthlyRetailChartAvgLabel');
-
-    // Monthly retail chart (weekly totals within month)
-    const monthlyRetailChartEl = document.getElementById('monthlyRetailSalesChart');
-    const monthlyRetailChartAvgLabelEl = document.getElementById('monthlyRetailChartAvgLabel');
 
     const photosEmptyEl = document.getElementById('photosEmpty');
     const photosGridEl = document.getElementById('photosGrid');
@@ -602,8 +525,6 @@
     const financeEmptyEl = document.getElementById('financeEmpty');
     const financeGridEl = document.getElementById('financeGrid');
     const financeAllSitesListEl = document.getElementById('financeAllSitesList');
-    const financeNotesBoxEl = document.getElementById('financeNotesBox');
-    const financeNotesTextEl = document.getElementById('financeNotesText');
 
     const finSalesActualEl = document.getElementById('finSalesActual');
     const finSalesBudgetEl = document.getElementById('finSalesBudget');
@@ -618,23 +539,14 @@
 
     const finRetailActualEl = document.getElementById('finRetailActual');
     const finRetailBudgetEl = document.getElementById('finRetailBudget');
-    const finRetailVarEl = document.getElementById('finRetailVar');
 
     const finHospActualEl = document.getElementById('finHospActual');
     const finHospBudgetEl = document.getElementById('finHospBudget');
-    const finHospVarEl = document.getElementById('finHospVar');
 
     const finFreeActualEl = document.getElementById('finFreeActual');
     const finFreeBudgetEl = document.getElementById('finFreeBudget');
-    const finFreeVarEl = document.getElementById('finFreeVar');
 
     let currentMonthOffset = 0;
-    let lastOpsRows = [];
-    let lastRetailRes = { totals: null, rows: [] };
-    let lastFinanceRes = null;
-    let lastSiteFilter = 'All';
-    let lastMonthRangeText = '';
-    let lastMonthLabelText = '';
 
     function safeNum(v) {
       const n = Number(v);
@@ -685,211 +597,11 @@
       return t > 0 ? s / t : 0;
     }
 
-    // --- Retail chart helpers (mirrors weekly dashboard style) ---
-    const CHART_COLORS = {
-      grid: 'rgba(255,255,255,0.10)',
-      textMain: 'rgba(255,255,255,0.92)',
-      textSub: 'rgba(255,255,255,0.68)',
-      labelSoft: 'rgba(255,255,255,0.55)',
-
-      lvl7Fill: 'rgba(59,130,246,0.35)',
-      lvl7Stroke: 'rgba(59,130,246,0.65)',
-      lvl5Fill: 'rgba(236,72,153,0.25)',
-      lvl5Stroke: 'rgba(236,72,153,0.55)',
-      lvl4Fill: 'rgba(16,185,129,0.22)',
-      lvl4Stroke: 'rgba(16,185,129,0.50)',
-      lvl3Fill: 'rgba(250,204,21,0.22)',
-      lvl3Stroke: 'rgba(250,204,21,0.50)',
-
-      avgLine: 'rgba(255,255,255,0.55)'
-    };
-
-    function startOfWeekMonday(d) {
-      const x = new Date(d);
-      const day = x.getDay(); // 0=Sun
-      const diff = (day === 0 ? -6 : 1) - day;
-      x.setDate(x.getDate() + diff);
-      x.setHours(0,0,0,0);
-      return x;
-    }
-
-    function scaleCanvasToDisplaySize(canvas) {
-      const rect = canvas.getBoundingClientRect();
-      const dpr = Math.max(1, window.devicePixelRatio || 1);
-      const width = Math.floor(rect.width * dpr);
-      const height = Math.floor(rect.height * dpr);
-      if (canvas.width !== width || canvas.height !== height) {
-        canvas.width = width;
-        canvas.height = height;
-        return true;
-      }
-      return false;
-    }
-
-    function drawRetailStackedChart(labels, totalsByLevel, grandTotals, avg, rangeText) {
-      if (!monthlyRetailSalesChartEl) return;
-
-      scaleCanvasToDisplaySize(monthlyRetailSalesChartEl);
-      const ctx = monthlyRetailSalesChartEl.getContext('2d');
-      const w = monthlyRetailSalesChartEl.width;
-      const h = monthlyRetailSalesChartEl.height;
-
-      ctx.clearRect(0, 0, w, h);
-
-      const padL = Math.floor(w * 0.06);
-      const padR = Math.floor(w * 0.03);
-      const padT = Math.floor(h * 0.10);
-      const padB = Math.floor(h * 0.22);
-
-      const plotW = w - padL - padR;
-      const plotH = h - padT - padB;
-
-      const maxV = Math.max(1, ...(grandTotals || [0]), avg || 0);
-      const yMax = maxV * 1.15;
-
-      function yFor(v) {
-        return padT + (plotH - (v / yMax) * plotH);
-      }
-
-      ctx.strokeStyle = CHART_COLORS.grid;
-      ctx.lineWidth = 1;
-      const gridCount = 4;
-      for (let i = 0; i <= gridCount; i++) {
-        const y = padT + (plotH / gridCount) * i;
-        ctx.beginPath();
-        ctx.moveTo(padL, y);
-        ctx.lineTo(padL + plotW, y);
-        ctx.stroke();
-      }
-
-      const n = labels.length;
-      if (n === 0) return;
-
-      const gap = Math.floor(plotW * 0.03);
-      const barW = Math.floor((plotW - gap * (n - 1)) / n);
-
-      const lvl7 = totalsByLevel['Level 7'] || new Array(n).fill(0);
-      const lvl5 = totalsByLevel['Level 5'] || new Array(n).fill(0);
-      const lvl4 = totalsByLevel['Level 4'] || new Array(n).fill(0);
-      const lvl3 = totalsByLevel['Level 3'] || new Array(n).fill(0);
-
-      for (let i = 0; i < n; i++) {
-        const x = padL + i * (barW + gap);
-
-        const v7 = lvl7[i] || 0;
-        const v5 = lvl5[i] || 0;
-        const v4 = lvl4[i] || 0;
-        const v3 = lvl3[i] || 0;
-        const total = v7 + v5 + v4 + v3;
-
-        let yBottom = padT + plotH;
-
-        function drawSeg(val, fill, stroke) {
-          if (val <= 0) return;
-          const segH = (val / yMax) * plotH;
-          const yTop = yBottom - segH;
-          ctx.fillStyle = fill;
-          ctx.fillRect(x, yTop, barW, segH);
-          ctx.strokeStyle = stroke;
-          ctx.strokeRect(x + 0.5, yTop + 0.5, barW - 1, Math.max(0, segH - 1));
-          yBottom = yTop;
-        }
-
-        drawSeg(v3, CHART_COLORS.lvl3Fill, CHART_COLORS.lvl3Stroke);
-        drawSeg(v4, CHART_COLORS.lvl4Fill, CHART_COLORS.lvl4Stroke);
-        drawSeg(v5, CHART_COLORS.lvl5Fill, CHART_COLORS.lvl5Stroke);
-        drawSeg(v7, CHART_COLORS.lvl7Fill, CHART_COLORS.lvl7Stroke);
-
-        const yTopOfBar = yFor(total);
-        ctx.fillStyle = CHART_COLORS.textMain;
-        ctx.font = `${Math.floor(h * 0.055)}px system-ui, -apple-system, Segoe UI, sans-serif`;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'bottom';
-        ctx.fillText(`£${Math.round(total)}`, x + barW / 2, yTopOfBar - 6);
-
-        ctx.fillStyle = CHART_COLORS.textSub;
-        ctx.font = `${Math.floor(h * 0.05)}px system-ui, -apple-system, Segoe UI, sans-serif`;
-        ctx.textBaseline = 'top';
-        ctx.fillText(labels[i] || '', x + barW / 2, padT + plotH + 10);
-      }
-
-      const yAvg = yFor(avg || 0);
-      ctx.strokeStyle = CHART_COLORS.avgLine;
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(padL, yAvg);
-      ctx.lineTo(padL + plotW, yAvg);
-      ctx.stroke();
-
-      ctx.fillStyle = CHART_COLORS.avgLine;
-      ctx.font = `${Math.floor(h * 0.05)}px system-ui, -apple-system, Segoe UI, sans-serif`;
-      ctx.textAlign = 'left';
-      ctx.textBaseline = 'bottom';
-      ctx.fillText(`Avg ${money(avg || 0)}`, padL + 6, yAvg - 6);
-
-      if (rangeText) {
-        ctx.fillStyle = CHART_COLORS.labelSoft;
-        ctx.font = `${Math.floor(h * 0.045)}px system-ui, -apple-system, Segoe UI, sans-serif`;
-        ctx.textAlign = 'right';
-        ctx.textBaseline = 'top';
-        ctx.fillText(rangeText, padL + plotW, 8);
-      }
-    }
-
-    function computeMonthlyRetailWeeklyChart(rows, startStr, endStr) {
-      // Groups daily retail_sales rows by WC Monday within the selected month
-      const byWeek = new Map();
-
-      (rows || []).forEach(r => {
-        const dStr = (r.sales_date || '').toString().slice(0, 10);
-        if (!dStr) return;
-        if (dStr < startStr || dStr > endStr) return;
-        const d = new Date(dStr + 'T00:00:00');
-        const wk = toISODate(startOfWeekMonday(d));
-        if (!byWeek.has(wk)) {
-          byWeek.set(wk, {
-            'Level 7': 0,
-            'Level 5': 0,
-            'Level 4': 0,
-            'Level 3': 0
-          });
-        }
-        const lvl = (r.level || '').toString();
-        if (!byWeek.get(wk)[lvl] && byWeek.get(wk)[lvl] !== 0) return;
-        byWeek.get(wk)[lvl] += safeNum(r.sales);
-      });
-
-      const weekKeys = Array.from(byWeek.keys()).sort();
-      const labels = weekKeys.map(wk => {
-        const d = new Date(wk + 'T00:00:00');
-        const dd = String(d.getDate()).padStart(2, '0');
-        const mon = new Intl.DateTimeFormat('en-GB', { month: 'short' }).format(d);
-        return `WC ${dd} ${mon}`;
-      });
-
-      const totalsByLevel = {
-        'Level 7': weekKeys.map(wk => byWeek.get(wk)['Level 7'] || 0),
-        'Level 5': weekKeys.map(wk => byWeek.get(wk)['Level 5'] || 0),
-        'Level 4': weekKeys.map(wk => byWeek.get(wk)['Level 4'] || 0),
-        'Level 3': weekKeys.map(wk => byWeek.get(wk)['Level 3'] || 0)
-      };
-
-      const grandTotals = weekKeys.map((_, i) =>
-        totalsByLevel['Level 7'][i] +
-        totalsByLevel['Level 5'][i] +
-        totalsByLevel['Level 4'][i] +
-        totalsByLevel['Level 3'][i]
-      );
-
-      const avg = grandTotals.length ? (grandTotals.reduce((s,v) => s + v, 0) / grandTotals.length) : 0;
-      return { labels, totalsByLevel, grandTotals, avg };
-    }
-
     function renderList(containerEl, emptyEl, items) {
       containerEl.innerHTML = '';
       if (!items || items.length === 0) {
         emptyEl.style.display = 'block';
-        return { mode: 'all', rows: data || [] };
+        return;
       }
       emptyEl.style.display = 'none';
 
@@ -907,43 +619,19 @@
       });
     }
 
-    function parseNamesFromNotes(text) {
-      // Accept comma/semicolon/newline separated values.
-      const raw = safeText(text);
-      if (!raw) return [];
-      return raw
-        .split(/\n|,|;|\u2022|\-|\t/)
-        .map(s => s.trim())
-        .filter(Boolean)
-        .map(s => s.replace(/\s{2,}/g, ' '));
-    }
-
-    function buildBreakdownText(map) {
-      const entries = Array.from(map.entries()).sort((a,b) => b[1] - a[1]);
-      if (!entries.length) return '—';
-      return entries
-        .slice(0, 20)
-        .map(([name, count]) => `${name} — ${count} day(s)`)
-        .join('\n');
-    }
-
     function clearUI() {
       errorMessageEl.style.display = 'none';
       errorMessageEl.textContent = '';
 
       kpiTotalLogsEl.textContent = '0';
       kpiStaffingSumEl.textContent = '0';
-      kpiStaffingSubEl.textContent = 'Sick • Holiday';
+      kpiStaffingSubEl.textContent = 'Sick • Holiday • Agency';
       kpiRetailSalesEl.textContent = '£0.00';
       kpiRetailSubEl.textContent = 'Transactions • SPH';
 
       staffSickEl.textContent = '0';
       staffHolEl.textContent = '0';
-      staffSickBreakdownEl.textContent = '—';
-      staffHolBreakdownEl.textContent = '—';
-
-      monthlySummaryBox.style.display = 'none';
-      monthlySummaryText.textContent = '';
+      staffAgEl.textContent = '0';
 
       maintListEl.innerHTML = '';
       hsListEl.innerHTML = '';
@@ -955,22 +643,12 @@
       retailBreakdownEl.textContent = 'L7 £0 • L5 £0 • L4 £0 • L3 £0';
       retailLevelsListEl.innerHTML = '';
 
-      monthlyRetailChartAvgLabelEl.textContent = 'Avg/week: £0.00';
-      try {
-        if (monthlyRetailSalesChartEl) {
-          const ctx = monthlyRetailSalesChartEl.getContext('2d');
-          ctx && ctx.clearRect(0, 0, monthlyRetailSalesChartEl.width, monthlyRetailSalesChartEl.height);
-        }
-      } catch { /* no-op */ }
-
       photosGridEl.innerHTML = '';
       photosEmptyEl.style.display = 'block';
 
       financePillEl.textContent = 'Finance';
       financeEmptyEl.style.display = 'block';
       financeGridEl.style.display = 'none';
-      financeNotesBoxEl.style.display = 'none';
-      financeNotesTextEl.textContent = '';
       financeAllSitesListEl.style.display = 'none';
       financeAllSitesListEl.innerHTML = '';
     }
@@ -988,8 +666,6 @@
         financePillEl.textContent = `Finance • ${monthStartStr}`;
         financeEmptyEl.style.display = (data && data.length) ? 'none' : 'block';
         financeGridEl.style.display = 'none';
-        financeNotesBoxEl.style.display = 'none';
-        financeNotesTextEl.textContent = '';
 
         financeAllSitesListEl.style.display = (data && data.length) ? 'grid' : 'none';
         financeAllSitesListEl.innerHTML = '';
@@ -1009,8 +685,7 @@
                 `Retail: ${money(r.actual_retail_sales)} (Bgt ${money(r.budget_retail_sales)})\n` +
                 `Hospitality: ${money(r.actual_hospitality_sales)} (Bgt ${money(r.budget_hospitality_sales)})\n` +
                 `Free Issue: ${money(r.actual_free_issue)} (Bgt ${money(r.budget_free_issue)})\n` +
-                `Labour: ${money(actualLab)} (Bgt ${money(budgetLab)})` +
-                (hasText(r.notes) ? `\n\nNotes: ${safeText(r.notes)}` : '')
+                `Labour: ${money(actualLab)} (Bgt ${money(budgetLab)})`
             };
           });
 
@@ -1018,7 +693,7 @@
           renderList(financeAllSitesListEl, dummyEmpty, items);
         }
 
-        return { mode: 'site', row: null };
+        return;
       }
 
       const { data, error } = await supabase
@@ -1063,29 +738,12 @@
 
       finRetailActualEl.textContent = money(data.actual_retail_sales);
       finRetailBudgetEl.textContent = money(data.budget_retail_sales);
-      finRetailVarEl.textContent = money(safeNum(data.actual_retail_sales) - safeNum(data.budget_retail_sales));
 
       finHospActualEl.textContent = money(data.actual_hospitality_sales);
       finHospBudgetEl.textContent = money(data.budget_hospitality_sales);
-      finHospVarEl.textContent = money(safeNum(data.actual_hospitality_sales) - safeNum(data.budget_hospitality_sales));
-      finHospVarEl.textContent = money(safeNum(data.actual_hospitality_sales) - safeNum(data.budget_hospitality_sales));
 
       finFreeActualEl.textContent = money(data.actual_free_issue);
       finFreeBudgetEl.textContent = money(data.budget_free_issue);
-      finFreeVarEl.textContent = money(safeNum(data.actual_free_issue) - safeNum(data.budget_free_issue));
-      finFreeVarEl.textContent = money(safeNum(data.actual_free_issue) - safeNum(data.budget_free_issue));
-      finFreeVarEl.textContent = money(safeNum(data.actual_free_issue) - safeNum(data.budget_free_issue));
-
-      const notesTxt = safeText(data.notes);
-      if (notesTxt) {
-        financeNotesTextEl.textContent = notesTxt;
-        financeNotesBoxEl.style.display = 'block';
-      } else {
-        financeNotesTextEl.textContent = '';
-        financeNotesBoxEl.style.display = 'none';
-      }
-
-      return { mode: 'site', row: data };
     }
 
     async function loadMonthlyRetailSales(startStr, endStr, site) {
@@ -1122,7 +780,7 @@
         if (lvl === 'Level 3') { totals.L3.sales += sales; totals.L3.trans += tx; }
       });
 
-      return { totals, rows: data || [] };
+      return totals;
     }
 
     function renderRetailSales(totals) {
@@ -1156,56 +814,6 @@
         `;
         retailLevelsListEl.appendChild(div);
       });
-    }
-
-    function formatWeekLabel(weekStartStr) {
-      // weekStartStr is YYYY-MM-DD (Monday)
-      const d = new Date(weekStartStr + 'T00:00:00');
-      const dd = String(d.getDate()).padStart(2, '0');
-      const mmm = d.toLocaleString('en-GB', { month: 'short' });
-      return `WC ${dd} ${mmm}`;
-    }
-
-    function computeMonthlyWeeklyChartData(retailRows) {
-      // Group all rows in the month into week-start buckets (Mon-based), and sum by level.
-      const levels = ['Level 7', 'Level 5', 'Level 4', 'Level 3'];
-      const weeks = new Map(); // weekStart -> { level -> sales }
-
-      for (const r of (retailRows || [])) {
-        const ds = (r.sales_date || '').toString().slice(0, 10);
-        if (!ds) continue;
-        const d = new Date(ds + 'T00:00:00');
-        const wk = toISODate(startOfWeekMonday(d));
-        if (!weeks.has(wk)) {
-          const obj = {};
-          levels.forEach(l => obj[l] = 0);
-          weeks.set(wk, obj);
-        }
-        const lvl = (r.level || '').toString();
-        if (!levels.includes(lvl)) continue;
-        weeks.get(wk)[lvl] += safeNum(r.sales);
-      }
-
-      const weekKeys = Array.from(weeks.keys()).sort();
-      const labels = weekKeys.map(formatWeekLabel);
-
-      const dayTotalsByLevel = {
-        'Level 7': weekKeys.map(k => weeks.get(k)['Level 7'] || 0),
-        'Level 5': weekKeys.map(k => weeks.get(k)['Level 5'] || 0),
-        'Level 4': weekKeys.map(k => weeks.get(k)['Level 4'] || 0),
-        'Level 3': weekKeys.map(k => weeks.get(k)['Level 3'] || 0)
-      };
-
-      const dailyGrand = weekKeys.map((_, i) =>
-        (dayTotalsByLevel['Level 7'][i] || 0) +
-        (dayTotalsByLevel['Level 5'][i] || 0) +
-        (dayTotalsByLevel['Level 4'][i] || 0) +
-        (dayTotalsByLevel['Level 3'][i] || 0)
-      );
-
-      const avgGrand = dailyGrand.length ? (dailyGrand.reduce((s, v) => s + v, 0) / dailyGrand.length) : 0;
-
-      return { labels, dayTotalsByLevel, dailyGrand, avgGrand, weekCount: weekKeys.length };
     }
 
     async function loadMonthlyOpsLogs(startStr, endStr, site) {
@@ -1265,7 +873,41 @@
       });
     }
 
-    async function loadMonth() {
+    
+    function monthValueFromDate(d){
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2,'0');
+      return `${yyyy}-${mm}`;
+    }
+
+    function monthOffsetFromValue(monthValue){
+      // monthValue is YYYY-MM
+      const [yStr, mStr] = (monthValue || '').split('-');
+      const y = Number(yStr);
+      const m = Number(mStr);
+      if (!Number.isFinite(y) || !Number.isFinite(m)) return 0;
+
+      const anchor = new Date();
+      const anchorYM = anchor.getFullYear() * 12 + anchor.getMonth(); // 0-index month
+      const selYM = y * 12 + (m - 1);
+      return selYM - anchorYM;
+    }
+
+    function openMonthPicker(){
+      if (!monthPickerEl) return;
+      // keep picker aligned with current target month
+      const anchor = new Date();
+      const target = new Date(anchor);
+      target.setMonth(target.getMonth() + currentMonthOffset);
+      if (monthPickerEl) monthPickerEl.value = monthValueFromDate(target);
+      monthPickerEl.value = monthValueFromDate(target);
+
+      // showPicker is supported in Chromium; fallback to click/focus.
+      try { monthPickerEl.showPicker(); }
+      catch(e){ monthPickerEl.focus(); monthPickerEl.click(); }
+    }
+
+async function loadMonth() {
       clearUI();
 
       nextMonthBtn.disabled = currentMonthOffset === 0;
@@ -1287,51 +929,23 @@
       monthRangePillEl.textContent = `${startStr} → ${endStr}`;
 
       try {
-        const [opsRows, retailRes] = await Promise.all([
+        const [opsRows, retailTotals] = await Promise.all([
           loadMonthlyOpsLogs(startStr, endStr, site),
           loadMonthlyRetailSales(startStr, endStr, site),
         ]);
 
         kpiTotalLogsEl.textContent = String(opsRows.length);
 
-        const sickTotal = opsRows.reduce((s,r) => s + safeNum(r.sickness_count), 0);
-        const holTotal  = opsRows.reduce((s,r) => s + safeNum(r.holiday_count), 0);
+        const sick = opsRows.reduce((s,r) => s + safeNum(r.sickness_count), 0);
+        const hol  = opsRows.reduce((s,r) => s + safeNum(r.holiday_count), 0);
+        const ag   = opsRows.reduce((s,r) => s + safeNum(r.agency_count), 0);
 
-        // Name breakdowns (from sickness_notes / holiday_notes)
-        const sickMap = new Map();
-        const holMap = new Map();
+        staffSickEl.textContent = String(sick);
+        staffHolEl.textContent  = String(hol);
+        staffAgEl.textContent   = String(ag);
 
-        opsRows.forEach(r => {
-          const sCount = safeNum(r.sickness_count);
-          const hCount = safeNum(r.holiday_count);
-
-          if (sCount > 0) {
-            const names = parseNamesFromNotes(r.sickness_notes);
-            if (names.length) {
-              names.forEach(n => sickMap.set(n, (sickMap.get(n) || 0) + 1));
-            } else {
-              sickMap.set('Unspecified', (sickMap.get('Unspecified') || 0) + 1);
-            }
-          }
-
-          if (hCount > 0) {
-            const names = parseNamesFromNotes(r.holiday_notes);
-            if (names.length) {
-              names.forEach(n => holMap.set(n, (holMap.get(n) || 0) + 1));
-            } else {
-              holMap.set('Unspecified', (holMap.get('Unspecified') || 0) + 1);
-            }
-          }
-        });
-
-        staffSickEl.textContent = String(sickTotal);
-        staffHolEl.textContent  = String(holTotal);
-
-        staffSickBreakdownEl.textContent = buildBreakdownText(sickMap);
-        staffHolBreakdownEl.textContent  = buildBreakdownText(holMap);
-
-        kpiStaffingSumEl.textContent = String(sickTotal + holTotal);
-        kpiStaffingSubEl.textContent = `Sick: ${sickTotal} • Holiday: ${holTotal}`;
+        kpiStaffingSumEl.textContent = String(sick + hol + ag);
+        kpiStaffingSubEl.textContent = `Sick: ${sick} • Holiday: ${hol} • Agency: ${ag}`;
 
         const maintItems = [];
         const hsItems = [];
@@ -1351,22 +965,10 @@
         renderList(maintListEl, maintEmptyEl, maintItems);
         renderList(hsListEl, hsEmptyEl, hsItems);
 
-        renderRetailSales(retailRes.totals);
-
-        // Sales graph (weekly totals within the month)
-        const chartData = computeMonthlyWeeklyChartData(retailRes.rows);
-        monthlyRetailChartAvgLabelEl.textContent = `Avg/week: ${money(chartData.avgGrand)}`;
-        drawRetailStackedChart(chartData.labels, chartData.dayTotalsByLevel, chartData.dailyGrand, chartData.avgGrand, monthRangePillEl.textContent);
+        renderRetailSales(retailTotals);
         renderPhotos(opsRows);
 
-        lastFinanceRes = await loadMonthlyFinance(monthStartStr, site);
-
-        // Cache for monthly summary generation
-        lastOpsRows = opsRows;
-        lastRetailRes = retailRes;
-        lastSiteFilter = site;
-        lastMonthRangeText = monthRangePillEl.textContent;
-        lastMonthLabelText = monthLabelEl.textContent;
+        await loadMonthlyFinance(monthStartStr, site);
 
       } catch (err) {
         errorMessageEl.style.display = 'block';
@@ -1374,134 +976,23 @@
       }
     }
 
-    function generateMonthlySummaryText() {
-      const opsRows = lastOpsRows || [];
-      const photosCount = opsRows.filter(r => !!r.photo_url).length;
-
-      const sickTotal = opsRows.reduce((s,r) => s + safeNum(r.sickness_count), 0);
-      const holTotal  = opsRows.reduce((s,r) => s + safeNum(r.holiday_count), 0);
-
-      const maintCount = opsRows.filter(r => isIncidentFlagTrue(r.maintenance_issue) || hasText(r.maintenance_notes)).length;
-      const hsCount = opsRows.filter(r => isIncidentFlagTrue(r.hs_issue) || hasText(r.hs_notes)).length;
-
-      const topNotes = opsRows
-        .filter(r => hasText(r.notes))
-        .slice(-40)
-        .map(r => {
-          const date = (r.log_date || (r.created_at ? String(r.created_at).slice(0,10) : '')).slice(0,10);
-          return `${r.site || 'Site'} — ${r.area || 'Area'} — ${date || '—'}\n  ${safeText(r.notes)}`;
-        })
-        .slice(-8)
-        .reverse();
-
-      const retailTotals = lastRetailRes?.totals || { allSales: 0, allTrans: 0 };
-      const retailSPH = calcSPH(retailTotals.allSales, retailTotals.allTrans);
-
-      // Staffing breakdown summaries (top 8)
-      const sickMap = new Map();
-      const holMap = new Map();
-      opsRows.forEach(r => {
-        if (safeNum(r.sickness_count) > 0) {
-          const names = parseNamesFromNotes(r.sickness_notes);
-          (names.length ? names : ['Unspecified']).forEach(n => sickMap.set(n, (sickMap.get(n) || 0) + 1));
-        }
-        if (safeNum(r.holiday_count) > 0) {
-          const names = parseNamesFromNotes(r.holiday_notes);
-          (names.length ? names : ['Unspecified']).forEach(n => holMap.set(n, (holMap.get(n) || 0) + 1));
-        }
-      });
-
-      function topN(map, n) {
-        return Array.from(map.entries())
-          .sort((a,b) => b[1] - a[1])
-          .slice(0, n)
-          .map(([name, count]) => `${name} (${count})`)
-          .join(', ');
-      }
-
-      const lines = [];
-      lines.push('Monthly Ops Summary');
-      lines.push('---------------------');
-      lines.push(`Month: ${lastMonthLabelText || '—'} (${lastMonthRangeText || '—'})`);
-      lines.push(`Filter: ${lastSiteFilter || 'All'}`);
-      lines.push('');
-      lines.push(`Total Logs: ${opsRows.length}`);
-      lines.push(`Logs with photos: ${photosCount}`);
-      lines.push('');
-      lines.push('Staffing Impact');
-      lines.push('---------------------');
-      lines.push(`• Sick: ${sickTotal}` + (sickTotal ? ` (${topN(sickMap, 8) || '—'})` : ''));
-      lines.push(`• Holiday: ${holTotal}` + (holTotal ? ` (${topN(holMap, 8) || '—'})` : ''));
-      lines.push('');
-      lines.push('Incidents');
-      lines.push('---------------------');
-      lines.push(`• Maintenance incidents: ${maintCount}`);
-      lines.push(`• H&S incidents: ${hsCount}`);
-      lines.push('');
-      lines.push('Retail');
-      lines.push('---------------------');
-      lines.push(`• Sales: ${money(retailTotals.allSales)} • Tx: ${Math.round(retailTotals.allTrans || 0)} • SPH: ${money(retailSPH)}`);
-
-      // Finance summary
-      lines.push('');
-      lines.push('Finance');
-      lines.push('---------------------');
-      if (!lastFinanceRes) {
-        lines.push('• No finance data loaded.');
-      } else if (lastFinanceRes.mode === 'all') {
-        const rows = lastFinanceRes.rows || [];
-        if (!rows.length) {
-          lines.push('• No finance rows found for this month.');
-        } else {
-          rows.forEach(r => {
-            const bSales = safeNum(r.budget_retail_sales) + safeNum(r.budget_hospitality_sales);
-            const aSales = safeNum(r.actual_retail_sales) + safeNum(r.actual_hospitality_sales);
-            const varSales = aSales - bSales;
-            lines.push(`• ${r.site}: Sales ${money(aSales)} (Bgt ${money(bSales)} • Var ${money(varSales)}) • GP ${pct(r.actual_gp_pct)}`);
-            if (hasText(r.notes)) lines.push(`  Notes: ${safeText(r.notes)}`);
-          });
-        }
-      } else {
-        const r = lastFinanceRes.row;
-        if (!r) {
-          lines.push('• No finance row found for this month/site.');
-        } else {
-          const bSales = safeNum(r.budget_retail_sales) + safeNum(r.budget_hospitality_sales);
-          const aSales = safeNum(r.actual_retail_sales) + safeNum(r.actual_hospitality_sales);
-          const bLab = safeNum(r.budget_core_wages) + safeNum(r.budget_agency_spend);
-          const aLab = safeNum(r.actual_core_wages) + safeNum(r.actual_agency_spend);
-          lines.push(`• Total Sales: ${money(aSales)} (Bgt ${money(bSales)} • Var ${money(aSales - bSales)})`);
-          lines.push(`• Labour: ${money(aLab)} (Bgt ${money(bLab)} • Var ${money(aLab - bLab)})`);
-          lines.push(`• GP: ${pct(r.actual_gp_pct)} (Bgt ${pct(r.budget_gp_pct)})`);
-          if (hasText(r.notes)) lines.push(`• Notes: ${safeText(r.notes)}`);
-        }
-      }
-
-      if (topNotes.length) {
-        lines.push('');
-        lines.push('Key Notes');
-        lines.push('---------------------');
-        topNotes.forEach(n => lines.push(`• ${n}`));
-      }
-
-      return lines.join('\n');
-    }
-
     prevMonthBtn.addEventListener('click', () => { currentMonthOffset -= 1; loadMonth(); });
     nextMonthBtn.addEventListener('click', () => { if (currentMonthOffset < 0) { currentMonthOffset += 1; loadMonth(); } });
     latestMonthBtn.addEventListener('click', () => { currentMonthOffset = 0; loadMonth(); });
+    // Allow direct month selection by clicking the Month pill
+    monthLabelEl.addEventListener('click', openMonthPicker);
+    monthLabelEl.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openMonthPicker(); } });
+
+    if (monthPickerEl){
+      monthPickerEl.addEventListener('change', () => {
+        currentMonthOffset = monthOffsetFromValue(monthPickerEl.value);
+        loadMonth();
+      });
+    }
+
 
     refreshBtn.addEventListener('click', loadMonth);
     siteFilterEl.addEventListener('change', loadMonth);
-
-    if (monthlySummaryBtn) {
-      monthlySummaryBtn.addEventListener('click', () => {
-        const txt = generateMonthlySummaryText();
-        monthlySummaryText.style.whiteSpace = 'pre-wrap';
-        monthlySummaryText.textContent = txt;
-        monthlySummaryBox.style.display = 'block';
-      });
-    }
 
     closePhotoModalBtn.addEventListener('click', () => photoModalEl.classList.remove('open'));
     photoModalEl.addEventListener('click', (e) => {
