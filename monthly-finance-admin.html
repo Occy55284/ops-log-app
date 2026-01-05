@@ -211,7 +211,7 @@
         <div><label>Actual Hospitality Sales (£)</label><input id="aHosp" type="number" step="0.01" /></div>
         <div><label>Actual Free Issue (£)</label><input id="aFree" type="number" step="0.01" /></div>
         <div><label>Actual Core Wages (£)</label><input id="aCore" type="number" step="0.01" /></div>
-        <div><label>Actual Agency Spend (£)</label><input id="aAgency" type="number" step="0.01" /></div>
+        <div><label>Cost to Client (£)</label><input id="aAgency" type="number" step="0.01" /></div>
         <div><label>Actual GP (%)</label><input id="aGp" type="number" step="0.1" /></div>
       </div>
 
@@ -264,9 +264,13 @@
     function showErr(t) { msgOk.style.display = 'none'; msgErr.textContent = t; msgErr.style.display = 'block'; }
     function hideMsgs() { msgOk.style.display = 'none'; msgErr.style.display = 'none'; msgOk.textContent = ''; msgErr.textContent = ''; }
 
-    function n(v) {
-      const x = Number(v);
-      return Number.isFinite(x) ? x : 0;
+    function numOrUndef(raw) {
+      // IMPORTANT: budgets and actuals are often entered at different times.
+      // If a field is blank, do NOT write 0 (that would overwrite an existing value).
+      const s = (raw ?? '').toString().trim();
+      if (s === '') return undefined;
+      const x = Number(s);
+      return Number.isFinite(x) ? x : undefined;
     }
 
     function monthStartFromInput(monthYYYYMM) {
@@ -336,26 +340,35 @@
 
       if (!monthStart) { showErr('Please select a month.'); return; }
 
+      // Build a PATCH-like payload (omit blanks so we don't overwrite existing values).
       const payload = {
         month_start: monthStart,
-        site,
-
-        budget_retail_sales: n(fields.bRetail.value),
-        budget_hospitality_sales: n(fields.bHosp.value),
-        budget_free_issue: n(fields.bFree.value),
-        budget_core_wages: n(fields.bCore.value),
-        budget_agency_spend: n(fields.bAgency.value),
-        budget_gp_pct: n(fields.bGp.value),
-
-        actual_retail_sales: n(fields.aRetail.value),
-        actual_hospitality_sales: n(fields.aHosp.value),
-        actual_free_issue: n(fields.aFree.value),
-        actual_core_wages: n(fields.aCore.value),
-        actual_agency_spend: n(fields.aAgency.value),
-        actual_gp_pct: n(fields.aGp.value),
-
-        notes: fields.notes.value || null
+        site
       };
+
+      const map = [
+        ['budget_retail_sales', fields.bRetail],
+        ['budget_hospitality_sales', fields.bHosp],
+        ['budget_free_issue', fields.bFree],
+        ['budget_core_wages', fields.bCore],
+        ['budget_agency_spend', fields.bAgency],
+        ['budget_gp_pct', fields.bGp],
+
+        ['actual_retail_sales', fields.aRetail],
+        ['actual_hospitality_sales', fields.aHosp],
+        ['actual_free_issue', fields.aFree],
+        ['actual_core_wages', fields.aCore],
+        ['actual_agency_spend', fields.aAgency],
+        ['actual_gp_pct', fields.aGp]
+      ];
+
+      for (const [col, el] of map) {
+        const v = numOrUndef(el.value);
+        if (v !== undefined) payload[col] = v;
+      }
+
+      const notesRaw = (fields.notes.value || '').trim();
+      if (notesRaw !== '') payload.notes = notesRaw;
 
       const { error } = await supabase
         .from('monthly_finance_summary')
@@ -371,7 +384,10 @@
 
       // Required behaviour: clear fields ready for next entry
       clearFieldsOnly();
-      showOk(`Saved ${site} • ${monthStart}. Fields cleared ready for next entry.`);
+      showOk(
+        `Saved ${site} • ${monthStart}.\n` +
+        `Tip: budgets and actuals can be saved at separate times — blanks will no longer overwrite existing values.`
+      );
     }
 
     // Default month = current month
