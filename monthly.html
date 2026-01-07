@@ -1858,8 +1858,55 @@ async function loadMonthlyRetailSales(startStr, endStr, site) {
 
     prevMonthBtn.addEventListener('click', () => { currentMonthOffset -= 1; loadMonth(); });
     nextMonthBtn.addEventListener('click', () => { if (currentMonthOffset < 0) { currentMonthOffset += 1; loadMonth(); } });
-    latestMonthBtn.addEventListener('click', () => { currentMonthOffset = 0; loadMonth(); });
 
+    function monthDiff(fromDate, toDate){
+      // months to add to fromDate to reach toDate (can be negative)
+      return (toDate.getFullYear() - fromDate.getFullYear()) * 12 + (toDate.getMonth() - fromDate.getMonth());
+    }
+
+    async function findLatestMonthStart(site){
+      // Prefer latest month with any data in ops_logs or finance for the selected site.
+      // Falls back to current month if nothing found.
+      let latest = null;
+
+      // Latest ops log date
+      try {
+        let q1 = supabase.from('ops_logs').select('log_date,created_at').order('log_date', { ascending: false }).limit(1);
+        if (site !== 'All') q1 = q1.eq('site', site);
+        const { data: d1 } = await q1;
+        const r = d1 && d1[0];
+        const dtStr = (r && (r.log_date || r.created_at)) ? (r.log_date || r.created_at) : null;
+        if (dtStr) {
+          const dt = new Date(dtStr);
+          if (!isNaN(dt)) latest = dt;
+        }
+      } catch(_) {}
+
+      // Latest finance month_start
+      try {
+        let q2 = supabase.from('monthly_finance_summary').select('month_start').order('month_start', { ascending: false }).limit(1);
+        if (site !== 'All') q2 = q2.eq('site', site);
+        const { data: d2 } = await q2;
+        const r2 = d2 && d2[0];
+        if (r2 && r2.month_start) {
+          const dt2 = new Date(r2.month_start);
+          if (!isNaN(dt2) && (!latest || dt2 > latest)) latest = dt2;
+        }
+      } catch(_) {}
+
+      if (!latest) latest = new Date(); // fallback
+      return startOfMonth(latest);
+    }
+
+    async function setToLatestWithData(){
+      const site = siteFilterEl?.value || 'All';
+      const latestMonthStart = await findLatestMonthStart(site);
+      const anchor = startOfMonth(new Date());
+      currentMonthOffset = monthDiff(anchor, latestMonthStart);
+      await loadMonth();
+    }
+
+    latestMonthBtn.addEventListener('click', () => { setToLatestWithData(); });
     // Month picker (jump to any month)
     function monthInputValueFromOffset(offset){
       const d = new Date();
@@ -2017,7 +2064,7 @@ ${s}`);
       if (e.target === photoModalEl) photoModalEl.classList.remove('open');
     });
 
-    loadMonth();
+    setToLatestWithData();
   </script>
 </body>
 </html>
