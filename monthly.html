@@ -352,6 +352,45 @@
       font-weight: 650;
     }
 
+    .var-pill.var-good{
+      background: rgba(34,197,94,0.12);
+      border-color: rgba(34,197,94,0.35);
+      color: rgba(220,252,231,0.95);
+    }
+    .var-pill.var-bad{
+      background: rgba(239,68,68,0.12);
+      border-color: rgba(239,68,68,0.35);
+      color: rgba(254,226,226,0.95);
+    }
+    .var-pill.var-neutral{
+      background: rgba(251,191,36,0.10);
+      border-color: rgba(251,191,36,0.28);
+      color: rgba(254,243,199,0.92);
+    }
+
+    /* Optional: tint actual bar to match variance */
+    .fin-bar.var-good .bar-actual{ background: rgba(34,197,94,0.55); }
+    .fin-bar.var-bad .bar-actual{ background: rgba(239,68,68,0.45); }
+    .fin-bar.var-neutral .bar-actual{ background: rgba(251,191,36,0.42); }
+
+    /* Export snapshot modal */
+    .textarea{
+      width: 100%;
+      min-height: 260px;
+      resize: vertical;
+      background: rgba(0,0,0,0.25);
+      border: 1px solid rgba(255,255,255,0.12);
+      color: rgba(255,255,255,0.90);
+      padding: 10px 12px;
+      border-radius: 14px;
+      font-size: 12px;
+      line-height: 1.35;
+      outline: none;
+      white-space: pre;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+    .modal-actions{ display:flex; gap:10px; flex-wrap:wrap; }
+
     .gp-gauge{
       width: 100%;
       min-height: 168px;
@@ -445,6 +484,7 @@
         </div>
 
         <button class="btn" id="refreshBtn">Refresh</button>
+        <button class="btn btn-secondary" id="exportBtn">Export Snapshot</button>
       </div>
     </div>
 
@@ -648,6 +688,26 @@
     </div>
   </div>
 
+
+  <!-- Export Snapshot modal -->
+  <div class="modal" id="exportModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="mh-title">Monthly Snapshot • <span id="exportMetaPill" class="pill">—</span></div>
+        <button class="close" id="closeExportModalBtn">Close</button>
+      </div>
+      <div class="modal-body">
+        <textarea id="exportText" class="textarea" readonly></textarea>
+        <div class="modal-actions">
+          <button class="btn" id="copyExportBtn">Copy</button>
+          <button class="btn btn-secondary" id="downloadExportBtn">Download .txt</button>
+        </div>
+        <div class="metric-sub" id="exportHint" style="margin-top:2px;"></div>
+      </div>
+    </div>
+  </div>
+
+
   <script type="module">
     import { supabase } from './supabase-config.js';
 
@@ -657,6 +717,15 @@
     const nextMonthBtn = document.getElementById('nextMonthBtn');
     const latestMonthBtn = document.getElementById('latestMonthBtn');
     const refreshBtn = document.getElementById('refreshBtn');
+    const exportBtn = document.getElementById('exportBtn');
+
+    const exportModalEl = document.getElementById('exportModal');
+    const closeExportModalBtn = document.getElementById('closeExportModalBtn');
+    const exportTextEl = document.getElementById('exportText');
+    const exportMetaPillEl = document.getElementById('exportMetaPill');
+    const copyExportBtn = document.getElementById('copyExportBtn');
+    const downloadExportBtn = document.getElementById('downloadExportBtn');
+    const exportHintEl = document.getElementById('exportHint');
 
     const monthLabelEl = document.getElementById('monthLabel');
     const monthPickerEl = document.getElementById('monthPicker');
@@ -727,6 +796,18 @@ const finYtdEl = document.getElementById('finYtd');
 
     let currentMonthOffset = 0;
 
+    // Snapshot export state (kept up to date as data loads)
+    const snapshotState = {
+      monthLabel: '',
+      monthStartStr: '',
+      monthRange: '',
+      site: '',
+      totalLogs: 0,
+      staffing: { sick: 0, holiday: 0, agency: 0 },
+      incidents: { maintenance: 0, hs: 0 },
+      finance: null
+    };
+
     function safeNum(v) {
       const n = Number(v);
       return Number.isFinite(n) ? n : 0;
@@ -740,6 +821,35 @@ const finYtdEl = document.getElementById('finYtd');
 
     function clamp01(x){ return Math.max(0, Math.min(1, x)); }
 
+    function metricHigherIsBetter(label, isPercent=false){
+      const s = String(label || '').toLowerCase();
+      if (isPercent) return true;
+      if (s.includes('sales') || s.includes('revenue')) return true;
+      if (s.includes('wage') || s.includes('labour') || s.includes('free issue') || s.includes('cost to client') || s.includes('agency')) return false;
+      return true;
+    }
+
+    function varianceClassFor(label, variance, budget, opts={}){
+      const isPercent = !!opts.isPercent;
+      const higherIsBetter = metricHigherIsBetter(label, isPercent);
+      const b = safeNum(budget);
+      const v = safeNum(variance);
+
+      let neutral = false;
+      if (isPercent){
+        neutral = Math.abs(v) <= 0.2;
+      } else if (b > 0){
+        neutral = Math.abs(v / b) <= 0.02;
+      } else {
+        neutral = Math.abs(v) <= 50;
+      }
+
+      if (neutral) return 'var-neutral';
+
+      const favourable = higherIsBetter ? (v > 0) : (v < 0);
+      return favourable ? 'var-good' : 'var-bad';
+    }
+
     function barRowHTML(label, actual, budget) {
       const a = safeNum(actual);
       const b = safeNum(budget);
@@ -752,8 +862,10 @@ const finYtdEl = document.getElementById('finYtd');
       const sign = variance > 0 ? '+' : (variance < 0 ? '-' : '');
       const varLabel = `${sign}${abs}`;
 
+      const cls = varianceClassFor(label, variance, b);
+
       return `
-        <div class="fin-bar">
+        <div class="fin-bar ${cls}">
           <div class="fin-bar-top">
             <div class="fin-bar-title">${label}</div>
             <div class="fin-bar-nums">Act ${money(a)} • Bgt ${money(b)}</div>
@@ -766,7 +878,7 @@ const finYtdEl = document.getElementById('finYtd');
 
           <div class="fin-bar-foot">
             <span>Variance</span>
-            <span class="var-pill">${varLabel}</span>
+            <span class="var-pill ${cls}">${varLabel}</span>
           </div>
         </div>
       `;
@@ -782,9 +894,10 @@ function gpRowHTML(label, actualPctVal, budgetPctVal) {
   const variance = a - b;
   const sign = variance > 0 ? '+' : (variance < 0 ? '' : '');
   const varLabel = `${sign}${variance.toFixed(1)} pp`;
+  const cls = varianceClassFor(label, variance, 100, {isPercent:true});
 
   return `
-    <div class="fin-bar">
+    <div class="fin-bar ${cls}">
       <div class="fin-bar-top">
         <div class="fin-bar-title">${label}</div>
         <div class="fin-bar-nums">Act ${pct(a)} • Bgt ${pct(b)}</div>
@@ -797,7 +910,7 @@ function gpRowHTML(label, actualPctVal, budgetPctVal) {
 
       <div class="fin-bar-foot">
         <span>Variance</span>
-        <span class="var-pill">${varLabel}</span>
+        <span class="var-pill ${cls}">${varLabel}</span>
       </div>
     </div>
   `;
@@ -913,6 +1026,7 @@ function setGpGauge(actualGpPct, budgetGpPct){
     }
 
     async function loadMonthlyFinance(monthStartStr, site) {
+  snapshotState.finance = null;
   try {
     // All Sites: show per-site finance cards
     if (site === 'All') {
@@ -931,6 +1045,32 @@ function setGpGauge(actualGpPct, budgetGpPct){
 
       financeAllSitesListEl.style.display = (data && data.length) ? 'grid' : 'none';
       financeAllSitesListEl.innerHTML = '';
+
+      snapshotState.finance = {
+        mode: 'all',
+        monthStartStr,
+        rows: (data || []).map(r => ({
+          site: r.site,
+          budget: {
+            retail: safeNum(r.budget_retail_sales),
+            hospitality: safeNum(r.budget_hospitality_sales),
+            free_issue: safeNum(r.budget_free_issue),
+            core_wages: safeNum(r.budget_core_wages),
+            cost_to_client: safeNum(r.budget_agency_spend),
+            gp_pct: safeNum(r.budget_gp_pct),
+          },
+          actual: {
+            retail: safeNum(r.actual_retail_sales),
+            hospitality: safeNum(r.actual_hospitality_sales),
+            free_issue: safeNum(r.actual_free_issue),
+            core_wages: safeNum(r.actual_core_wages),
+            cost_to_client: safeNum(r.actual_agency_spend),
+            gp_pct: safeNum(r.actual_gp_pct),
+          },
+          notes: safeText(r.notes || '')
+        })),
+        ytd: []
+      };
 
       if (data && data.length) {
         financeAllSitesListEl.innerHTML = data.map(r => {
@@ -990,6 +1130,34 @@ function setGpGauge(actualGpPct, budgetGpPct){
         .in('site', ['London','Newcastle'])
         .gte('month_start', yearStartStr)
         .lte('month_start', monthStartStr);
+
+      if (!ytdAllErr && ytdAllRows && ytdAllRows.length) {
+        // store YTD totals for export
+        const sumFor = (rows, field) => rows.reduce((acc, r) => acc + safeNum(r[field]), 0);
+        const sites = ['London','Newcastle'];
+        if (snapshotState.finance && snapshotState.finance.mode === 'all') {
+          snapshotState.finance.ytd = sites.map(s => {
+            const rows = ytdAllRows.filter(r => r.site === s);
+            const ytdBRetail = sumFor(rows, 'budget_retail_sales');
+            const ytdARetail = sumFor(rows, 'actual_retail_sales');
+            const ytdBHosp   = sumFor(rows, 'budget_hospitality_sales');
+            const ytdAHosp   = sumFor(rows, 'actual_hospitality_sales');
+            const ytdBCore   = sumFor(rows, 'budget_core_wages');
+            const ytdACore   = sumFor(rows, 'actual_core_wages');
+            const ytdBCtc    = sumFor(rows, 'budget_agency_spend');
+            const ytdACtc    = sumFor(rows, 'actual_agency_spend');
+            return {
+              site: s,
+              budget_total_sales: ytdBRetail + ytdBHosp,
+              actual_total_sales: ytdARetail + ytdAHosp,
+              budget_labour: ytdBCore + ytdBCtc,
+              actual_labour: ytdACore + ytdACtc,
+              yearStartStr,
+              monthStartStr
+            };
+          });
+        }
+      }
 
       if (!ytdAllErr && ytdAllRows && ytdAllRows.length && financeAllSitesYtdEl) {
         const sumFor = (rows, field) => rows.reduce((acc, r) => acc + safeNum(r[field]), 0);
@@ -1070,6 +1238,18 @@ function setGpGauge(actualGpPct, budgetGpPct){
     const bGp     = safeNum(row.budget_gp_pct);
     const aGp     = safeNum(row.actual_gp_pct);
 
+    snapshotState.finance = {
+      mode: 'single',
+      monthStartStr,
+      rows: [{
+        site,
+        budget: { retail: bRetail, hospitality: bHosp, free_issue: bFree, core_wages: bCore, cost_to_client: bCtc, gp_pct: bGp },
+        actual: { retail: aRetail, hospitality: aHosp, free_issue: aFree, core_wages: aCore, cost_to_client: aCtc, gp_pct: aGp },
+        notes: safeText(row.notes || '')
+      }],
+      ytd: []
+    };
+
     const budgetSales = bRetail + bHosp;
     const actualSales = aRetail + aHosp;
 
@@ -1141,6 +1321,19 @@ function setGpGauge(actualGpPct, budgetGpPct){
 
       const ytdBudgetLab   = ytdBCore + ytdBCtc;
       const ytdActualLab   = ytdACore + ytdACtc;
+
+      // Update export state
+      if (snapshotState.finance && snapshotState.finance.mode === 'single') {
+        snapshotState.finance.ytd = [{
+          site: siteLabel,
+          budget_total_sales: ytdBudgetSales,
+          actual_total_sales: ytdActualSales,
+          budget_labour: ytdBudgetLab,
+          actual_labour: ytdActualLab,
+          yearStartStr,
+          monthStartStr
+        }];
+      }
 
       return `
         <div class="fin-ytd-card">
@@ -1350,6 +1543,11 @@ async function loadMonthlyRetailSales(startStr, endStr, site) {
       monthLabelEl.textContent = monthLabelFromDate(target);
       monthRangePillEl.textContent = `${startStr} → ${endStr}`;
 
+      snapshotState.monthLabel = monthLabelFromDate(target);
+      snapshotState.monthStartStr = monthStartStr;
+      snapshotState.monthRange = `${startStr} → ${endStr}`;
+      snapshotState.site = site;
+
       try {
         const [opsRows, retailTotals] = await Promise.all([
           loadMonthlyOpsLogs(startStr, endStr, site),
@@ -1369,6 +1567,9 @@ async function loadMonthlyRetailSales(startStr, endStr, site) {
         kpiStaffingSumEl.textContent = String(sick + hol + ag);
         kpiStaffingSubEl.textContent = `Sick: ${sick} • Holiday: ${hol} • Agency: ${ag}`;
 
+        snapshotState.totalLogs = opsRows.length;
+        snapshotState.staffing = { sick, holiday: hol, agency: ag };
+
         const maintItems = [];
         const hsItems = [];
 
@@ -1386,6 +1587,8 @@ async function loadMonthlyRetailSales(startStr, endStr, site) {
 
         renderList(maintListEl, maintEmptyEl, maintItems);
         renderList(hsListEl, hsEmptyEl, hsItems);
+
+        snapshotState.incidents = { maintenance: maintItems.length, hs: hsItems.length };
 
         renderRetailSales(retailTotals);
         renderPhotos(opsRows);
@@ -1437,6 +1640,119 @@ async function loadMonthlyRetailSales(startStr, endStr, site) {
 
     refreshBtn.addEventListener('click', loadMonth);
     siteFilterEl.addEventListener('change', loadMonth);
+
+
+    function buildSnapshotText() {
+      const lines = [];
+      const site = snapshotState.site || 'All Sites';
+      const monthLabel = snapshotState.monthLabel || snapshotState.monthStartStr || '—';
+      lines.push(`OPS LOG • MONTHLY SNAPSHOT`);
+      lines.push(`${monthLabel} • ${site}`);
+      if (snapshotState.monthRange) lines.push(`Range: ${snapshotState.monthRange}`);
+      lines.push('');
+
+      // Staffing + incidents headline
+      lines.push(`Operations headline`);
+      lines.push(`- Logs submitted: ${snapshotState.totalLogs ?? 0}`);
+      lines.push(`- Staffing impact: Sick ${snapshotState.staffing?.sick ?? 0} • Holiday ${snapshotState.staffing?.holiday ?? 0}`);
+      lines.push(`- Incidents: Maintenance ${snapshotState.incidents?.maintenance ?? 0} • H&S ${snapshotState.incidents?.hs ?? 0}`);
+      lines.push('');
+
+      // Finance snapshot
+      const fin = snapshotState.finance;
+      if (!fin || !fin.rows || fin.rows.length === 0) {
+        lines.push('Finance Snapshot: No finance row found for this month/site.');
+      } else {
+        lines.push('Finance Snapshot (Budget vs Actual)');
+        const fmt = (n) => money(safeNum(n));
+        const fmtVar = (a,b) => {
+          const v = safeNum(a) - safeNum(b);
+          const sign = v > 0 ? '+' : (v < 0 ? '-' : '');
+          return `${sign}${fmt(Math.abs(v))}`;
+        };
+        const fmtPp = (a,b) => {
+          const v = safeNum(a) - safeNum(b);
+          const sign = v > 0 ? '+' : '';
+          return `${sign}${v.toFixed(1)} pp`;
+        };
+
+        fin.rows.forEach(r => {
+          const s = r.site || site;
+          if (fin.mode === 'all') lines.push(`
+${s}`);
+          lines.push(`- Retail Sales: Act ${fmt(r.actual.retail)} • Bgt ${fmt(r.budget.retail)} • Var ${fmtVar(r.actual.retail, r.budget.retail)}`);
+          lines.push(`- Hospitality Sales: Act ${fmt(r.actual.hospitality)} • Bgt ${fmt(r.budget.hospitality)} • Var ${fmtVar(r.actual.hospitality, r.budget.hospitality)}`);
+          lines.push(`- Free Issue: Act ${fmt(r.actual.free_issue)} • Bgt ${fmt(r.budget.free_issue)} • Var ${fmtVar(r.actual.free_issue, r.budget.free_issue)}`);
+          lines.push(`- Core Wages: Act ${fmt(r.actual.core_wages)} • Bgt ${fmt(r.budget.core_wages)} • Var ${fmtVar(r.actual.core_wages, r.budget.core_wages)}`);
+          lines.push(`- Cost to Client: Act ${fmt(r.actual.cost_to_client)} • Bgt ${fmt(r.budget.cost_to_client)} • Var ${fmtVar(r.actual.cost_to_client, r.budget.cost_to_client)}`);
+          lines.push(`- Gross Profit %: Act ${pct(r.actual.gp_pct)} • Bgt ${pct(r.budget.gp_pct)} • Var ${fmtPp(r.actual.gp_pct, r.budget.gp_pct)}`);
+          if (r.notes) lines.push(`  Notes: ${String(r.notes).replace(/\s+/g,' ').trim()}`);
+        });
+      }
+
+      // YTD
+      if (fin && fin.ytd && fin.ytd.length) {
+        lines.push('');
+        lines.push('Year-to-date (YTD) vs Budget');
+        fin.ytd.forEach(y => {
+          const s = y.site || site;
+          const fmt = (n) => money(safeNum(n));
+          const varFmt = (a,b) => {
+            const v = safeNum(a) - safeNum(b);
+            const sign = v > 0 ? '+' : (v < 0 ? '-' : '');
+            return `${sign}${fmt(Math.abs(v))}`;
+          };
+          lines.push(`- ${s}: YTD Total Sales Act ${fmt(y.actual_total_sales)} • Bgt ${fmt(y.budget_total_sales)} • Var ${varFmt(y.actual_total_sales, y.budget_total_sales)}`);
+          lines.push(`       YTD Labour Act ${fmt(y.actual_labour)} • Bgt ${fmt(y.budget_labour)} • Var ${varFmt(y.actual_labour, y.budget_labour)}`);
+        });
+      }
+
+      return lines.join('\n');
+    }
+
+    function openExportModal() {
+      const meta = `${snapshotState.monthLabel || snapshotState.monthStartStr || '—'} • ${snapshotState.site || 'All Sites'}`;
+      if (exportMetaPillEl) exportMetaPillEl.textContent = meta;
+      if (exportTextEl) exportTextEl.value = buildSnapshotText();
+      if (exportHintEl) exportHintEl.textContent = 'Tip: You can copy this straight into an email or client report.';
+      exportModalEl.classList.add('open');
+    }
+
+    exportBtn.addEventListener('click', () => openExportModal());
+
+    closeExportModalBtn.addEventListener('click', () => exportModalEl.classList.remove('open'));
+    exportModalEl.addEventListener('click', (e) => {
+      if (e.target === exportModalEl) exportModalEl.classList.remove('open');
+    });
+
+    copyExportBtn.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(exportTextEl.value || '');
+        if (exportHintEl) exportHintEl.textContent = 'Copied to clipboard.';
+      } catch (e) {
+        // Fallback
+        exportTextEl.focus();
+        exportTextEl.select();
+        document.execCommand('copy');
+        if (exportHintEl) exportHintEl.textContent = 'Copied to clipboard.';
+      }
+    });
+
+    downloadExportBtn.addEventListener('click', () => {
+      const text = exportTextEl.value || '';
+      const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+      const a = document.createElement('a');
+      const fileSafe = (snapshotState.monthLabel || snapshotState.monthStartStr || 'snapshot').replace(/[^a-z0-9]+/gi,'-').toLowerCase();
+      a.href = URL.createObjectURL(blob);
+      a.download = `ops-log-monthly-snapshot-${fileSafe}.txt`;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => {
+        URL.revokeObjectURL(a.href);
+        a.remove();
+      }, 0);
+    });
+
 
     closePhotoModalBtn.addEventListener('click', () => photoModalEl.classList.remove('open'));
     photoModalEl.addEventListener('click', (e) => {
