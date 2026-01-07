@@ -965,14 +965,12 @@ function setGpGauge(actualGpPct, budgetGpPct){
               </div>
 
               <div class="fin-bars">
-                ${barRowHTML('Total Sales', actualSales, budgetSales)}
-                ${barRowHTML('Retail Sales', aRetail, bRetail)}
+                                ${barRowHTML('Retail Sales', aRetail, bRetail)}
                 ${barRowHTML('Hospitality Sales', aHosp, bHosp)}
                 ${barRowHTML('Free Issue', aFree, bFree)}
                 ${barRowHTML('Core Wages', aCore, bCore)}
                 ${barRowHTML('Cost to Client', aCtc, bCtc)}
-                ${barRowHTML('Labour (Core + Cost to Client)', actualLab, budgetLab)}
-              </div>
+                              </div>
 
               ${notes ? `<div class="fin-notes" style="display:block; margin-top:12px;">${notes.replace(/</g,'&lt;')}</div>` : ``}
             </div>
@@ -1108,49 +1106,88 @@ function setGpGauge(actualGpPct, budgetGpPct){
     const year = parseInt(String(monthStartStr).slice(0,4), 10);
     const yearStartStr = `${year}-01-01`;
 
-    const { data: ytdRows, error: ytdErr } = await supabase
-      .from('monthly_finance_summary')
-      .select('*')
-      .eq('site', site)
-      .gte('month_start', yearStartStr)
-      .lte('month_start', monthStartStr)
-      .order('month_start', { ascending: true });
+    async function fetchYtdRows(siteName){
+      const { data: rows, error } = await supabase
+        .from('monthly_finance_summary')
+        .select('*')
+        .eq('site', siteName)
+        .gte('month_start', yearStartStr)
+        .lte('month_start', monthStartStr)
+        .order('month_start', { ascending: true });
 
-    if (ytdErr) throw ytdErr;
+      if (error) throw error;
+      return rows || [];
+    }
 
-    if (finYtdEl) {
-      if (ytdRows && ytdRows.length) {
-        const sum = (arr, key) => arr.reduce((acc, r) => acc + safeNum(r[key]), 0);
+    function renderYtd(siteLabel, ytdRows){
+      if (!ytdRows || !ytdRows.length) return '';
 
-        const ytdBRetail = sum(ytdRows, 'budget_retail_sales');
-        const ytdARetail = sum(ytdRows, 'actual_retail_sales');
+      const sum = (rows, col) => rows.reduce((acc, r) => acc + safeNum(r[col]), 0);
 
-        const ytdBHosp   = sum(ytdRows, 'budget_hospitality_sales');
-        const ytdAHosp   = sum(ytdRows, 'actual_hospitality_sales');
+      const ytdBRetail = sum(ytdRows, 'budget_retail_sales');
+      const ytdARetail = sum(ytdRows, 'actual_retail_sales');
 
-        const ytdBCore   = sum(ytdRows, 'budget_core_wages');
-        const ytdACore   = sum(ytdRows, 'actual_core_wages');
+      const ytdBHosp   = sum(ytdRows, 'budget_hospitality_sales');
+      const ytdAHosp   = sum(ytdRows, 'actual_hospitality_sales');
 
-        const ytdBCtc    = sum(ytdRows, 'budget_agency_spend');
-        const ytdACtc    = sum(ytdRows, 'actual_agency_spend');
+      const ytdBCore   = sum(ytdRows, 'budget_core_wages');
+      const ytdACore   = sum(ytdRows, 'actual_core_wages');
 
-        const ytdBudgetSales = ytdBRetail + ytdBHosp;
-        const ytdActualSales = ytdARetail + ytdAHosp;
+      const ytdBCtc    = sum(ytdRows, 'budget_agency_spend');
+      const ytdACtc    = sum(ytdRows, 'actual_agency_spend');
 
-        const ytdBudgetLab   = ytdBCore + ytdBCtc;
-        const ytdActualLab   = ytdACore + ytdACtc;
+      const ytdBudgetSales = ytdBRetail + ytdBHosp;
+      const ytdActualSales = ytdARetail + ytdAHosp;
 
-        finYtdEl.style.display = 'block';
-        finYtdEl.innerHTML = `
-          <div class="fin-ytd-title">Year-to-date (YTD)</div>
+      const ytdBudgetLab   = ytdBCore + ytdBCtc;
+      const ytdActualLab   = ytdACore + ytdACtc;
+
+      return `
+        <div class="fin-ytd-card">
+          <div class="fin-ytd-card-title">${safeText(siteLabel)}</div>
           <div class="fin-bars">
             ${barRowHTML('YTD Total Sales', ytdActualSales, ytdBudgetSales)}
             ${barRowHTML('YTD Labour (Core + Cost to Client)', ytdActualLab, ytdBudgetLab)}
           </div>
-        `;
+        </div>
+      `;
+    }
+
+    if (finYtdEl) {
+      // Always hide by default; show only when we have rows to present
+      finYtdEl.style.display = 'none';
+      finYtdEl.innerHTML = '';
+
+      if (site === 'All Sites') {
+        const [lonRows, newRows] = await Promise.all([
+          fetchYtdRows('London'),
+          fetchYtdRows('Newcastle')
+        ]);
+
+        const lonHTML = renderYtd('London', lonRows);
+        const newHTML = renderYtd('Newcastle', newRows);
+
+        if (lonHTML || newHTML) {
+          finYtdEl.style.display = 'block';
+          finYtdEl.innerHTML = `
+            <div class="fin-ytd-title">Year-to-date (YTD)</div>
+            <div class="fin-ytd-grid">
+              ${lonHTML || ''}
+              ${newHTML || ''}
+            </div>
+          `;
+        }
       } else {
-        finYtdEl.style.display = 'none';
-        finYtdEl.innerHTML = '';
+        const ytdRows = await fetchYtdRows(site);
+        const html = renderYtd(site, ytdRows);
+
+        if (html) {
+          finYtdEl.style.display = 'block';
+          finYtdEl.innerHTML = `
+            <div class="fin-ytd-title">Year-to-date (YTD)</div>
+            ${html}
+          `;
+        }
       }
     }
 
