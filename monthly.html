@@ -492,6 +492,57 @@
     @media (max-width: 980px){
       .rank-grid{ grid-template-columns: 1fr; }
     }
+
+    /* Charts (Monthly) */
+    .chart-block{
+      margin-top: 10px;
+      background: rgba(0,0,0,0.18);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 14px;
+      padding: 10px;
+    }
+    .chart-head{
+      display:flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 8px;
+      flex-wrap: wrap;
+    }
+    .chart-title{ font-size: 12px; font-weight: 800; }
+    .chart-sub{ font-size: 11px; color: rgba(255,255,255,0.70); }
+    .legend{
+      display:flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 6px;
+    }
+    .legend-item{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      font-size:11px;
+      color: rgba(255,255,255,0.72);
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.04);
+    }
+    .swatch{
+      width: 10px;
+      height: 10px;
+      border-radius: 3px;
+      border: 1px solid rgba(255,255,255,0.22);
+      background: rgba(255,255,255,0.20);
+    }
+    #incidentsChart{
+      width: 100%;
+      height: 190px;
+      display: block;
+      border-radius: 12px;
+      background: rgba(0,0,0,0.18);
+      border: 1px solid rgba(255,255,255,0.06);
+    }
 </style>
 </head>
 
@@ -673,6 +724,23 @@
     </div>
     <div id="holRankEmpty" class="empty-text">No holiday names recorded.</div>
     <div id="holRankList" class="rank-list"></div>
+
+<!-- Incidents Trend -->
+<div class="chart-block" style="margin-top:14px;">
+  <div class="chart-head">
+    <div class="chart-title">Incidents Trend (by week)</div>
+    <div class="chart-sub" id="incChartLabel">Weeks within the selected month</div>
+  </div>
+  <canvas id="incidentsChart" width="900" height="260"></canvas>
+  <div class="legend" id="incidentsLegend" style="margin-top:10px;">
+    <span class="legend-item"><span class="swatch" data-k="hs"></span>H&amp;S</span>
+    <span class="legend-item"><span class="swatch" data-k="maint"></span>Maintenance</span>
+  </div>
+</div>
+
+<div class="spacer" style="height:6px;"></div>
+
+</div>
   </div>
 </div>
         </div>
@@ -812,6 +880,11 @@ const maintEmptyEl = document.getElementById('maintEmpty');
     const hsEmptyEl = document.getElementById('hsEmpty');
     const hsListEl = document.getElementById('hsList');
 
+    // Incidents trend chart
+    const incidentsChartEl = document.getElementById('incidentsChart');
+    const incChartLabelEl = document.getElementById('incChartLabel');
+    const incidentsLegendEl = document.getElementById('incidentsLegend');
+
     const retailTotalEl = document.getElementById('retailTotal');
     const retailSubEl = document.getElementById('retailSub');
     const retailBreakdownEl = document.getElementById('retailBreakdown');
@@ -830,7 +903,6 @@ const maintEmptyEl = document.getElementById('maintEmpty');
     const financeEmptyEl = document.getElementById('financeEmpty');
     const financeGridEl = document.getElementById('financeGrid');
     const financeAllSitesListEl = document.getElementById('financeAllSitesList');
-  const financeAllSitesYtdEl  = document.getElementById('financeAllSitesYtd');
     const financeVizEl = document.getElementById('financeViz');
     const finBarsEl = document.getElementById('finBars');
     const gpDonutEl = document.getElementById('gpDonut');
@@ -1119,6 +1191,90 @@ function setGpGauge(actualGpPct, budgetGpPct){
       return t > 0 ? s / t : 0;
     }
 
+    // --- Chart helpers (simple stacked bar, canvas) ---
+    function scaleCanvasToDisplaySize(canvas) {
+      const rect = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      const w = Math.max(1, Math.floor(rect.width * dpr));
+      const h = Math.max(1, Math.floor(rect.height * dpr));
+      if (canvas.width !== w || canvas.height !== h) {
+        canvas.width = w;
+        canvas.height = h;
+      }
+    }
+
+    function drawStackedBarChart(canvas, labels, series, opts = {}) {
+      if (!canvas) return;
+      scaleCanvasToDisplaySize(canvas);
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width;
+      const h = canvas.height;
+
+      ctx.clearRect(0, 0, w, h);
+
+      const padL = 44;
+      const padR = 16;
+      const padT = 16;
+      const padB = 34;
+
+      const plotW = w - padL - padR;
+      const plotH = h - padT - padB;
+
+      const maxVal = Math.max(1, ...labels.map((_, i) => series.reduce((acc, s) => acc + (safeNum(s.values[i]) || 0), 0)));
+      const gridLines = 4;
+      const step = maxVal / gridLines;
+
+      // Grid + axis labels
+      ctx.save();
+      ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+      ctx.fillStyle = 'rgba(255,255,255,0.62)';
+      ctx.font = `${Math.round(10 * (window.devicePixelRatio||1))}px system-ui, -apple-system, Segoe UI, sans-serif`;
+
+      for (let g = 0; g <= gridLines; g++) {
+        const yVal = step * g;
+        const y = padT + plotH - (yVal / maxVal) * plotH;
+        ctx.beginPath();
+        ctx.moveTo(padL, y);
+        ctx.lineTo(padL + plotW, y);
+        ctx.stroke();
+
+        const label = opts.yFormat ? opts.yFormat(yVal) : String(Math.round(yVal));
+        ctx.fillText(label, 6, y + 3);
+      }
+      ctx.restore();
+
+      // Bars
+      const n = labels.length;
+      const gap = 10;
+      const barW = Math.max(14, Math.floor((plotW - gap * (n - 1)) / n));
+
+      for (let i = 0; i < n; i++) {
+        const x0 = padL + i * (barW + gap);
+        let yStack = padT + plotH;
+
+        for (const s of series) {
+          const v = safeNum(s.values[i]);
+          if (!(v > 0)) continue;
+          const bh = (v / maxVal) * plotH;
+          const y1 = yStack - bh;
+
+          ctx.fillStyle = s.color || 'rgba(255,255,255,0.25)';
+          ctx.fillRect(x0, y1, barW, bh);
+
+          yStack = y1;
+        }
+
+        // X labels
+        ctx.save();
+        ctx.fillStyle = 'rgba(255,255,255,0.70)';
+        ctx.font = `${Math.round(11 * (window.devicePixelRatio||1))}px system-ui, -apple-system, Segoe UI, sans-serif`;
+        const txt = labels[i];
+        const tw = ctx.measureText(txt).width;
+        ctx.fillText(txt, x0 + (barW - tw)/2, padT + plotH + 20);
+        ctx.restore();
+      }
+    }
+
     function renderList(containerEl, emptyEl, items) {
       containerEl.innerHTML = '';
       if (!items || items.length === 0) {
@@ -1272,171 +1428,7 @@ maintListEl.innerHTML = '';
         }).join('');
       }
 
-      // All-sites YTD (calendar year-to-date) – per site summary (Total Sales + Labour)
-      const year = parseInt(String(monthStartStr).slice(0,4), 10);
-      const yearStartStr = `${year}-01-01`;
-
-      if (financeAllSitesYtdEl) { financeAllSitesYtdEl.style.display = 'none'; financeAllSitesYtdEl.innerHTML = ''; }
-
-      const { data: ytdAllRows, error: ytdAllErr } = await supabase
-        .from('monthly_finance_summary')
-        .select('*')
-        .in('site', ['London','Newcastle'])
-        .gte('month_start', yearStartStr)
-        .lte('month_start', monthStartStr);
-
-      if (!ytdAllErr && ytdAllRows && ytdAllRows.length) {
-        // store YTD totals for export
-        const sumFor = (rows, field) => rows.reduce((acc, r) => acc + safeNum(r[field]), 0);
-        const sites = ['London','Newcastle'];
-        if (snapshotState.finance && snapshotState.finance.mode === 'all') {
-          snapshotState.finance.ytd = sites.map(s => {
-            const rows = ytdAllRows.filter(r => r.site === s);
-            const ytdBRetail = sumFor(rows, 'budget_retail_sales');
-            const ytdARetail = sumFor(rows, 'actual_retail_sales');
-            const ytdBHosp   = sumFor(rows, 'budget_hospitality_sales');
-            const ytdAHosp   = sumFor(rows, 'actual_hospitality_sales');
-            const ytdBCore   = sumFor(rows, 'budget_core_wages');
-            const ytdACore   = sumFor(rows, 'actual_core_wages');
-            const ytdBCtc    = sumFor(rows, 'budget_agency_spend');
-            const ytdACtc    = sumFor(rows, 'actual_agency_spend');
-            return {
-              site: s,
-              budget_total_sales: ytdBRetail + ytdBHosp,
-              actual_total_sales: ytdARetail + ytdAHosp,
-              budget_labour: ytdBCore + ytdBCtc,
-              actual_labour: ytdACore + ytdACtc,
-              yearStartStr,
-              monthStartStr
-            };
-          });
-        }
-      }
-
-      if (!ytdAllErr && ytdAllRows && ytdAllRows.length && financeAllSitesYtdEl) {
-        const sumFor = (rows, field) => rows.reduce((acc, r) => acc + safeNum(r[field]), 0);
-
-        const sites = ['London','Newcastle'];
-        financeAllSitesYtdEl.style.display = 'grid';
-        financeAllSitesYtdEl.innerHTML = sites.map(s => {
-          const rows = ytdAllRows.filter(r => r.site === s);
-
-          const ytdBRetail = sumFor(rows, 'budget_retail_sales');
-          const ytdARetail = sumFor(rows, 'actual_retail_sales');
-          const ytdBHosp   = sumFor(rows, 'budget_hospitality_sales');
-          const ytdAHosp   = sumFor(rows, 'actual_hospitality_sales');
-          const ytdBCore   = sumFor(rows, 'budget_core_wages');
-          const ytdACore   = sumFor(rows, 'actual_core_wages');
-          const ytdBCtc    = sumFor(rows, 'budget_agency_spend');
-          const ytdACtc    = sumFor(rows, 'actual_agency_spend');
-
-          const ytdBudgetSales = ytdBRetail + ytdBHosp;
-          const ytdActualSales = ytdARetail + ytdAHosp;
-          const ytdBudgetLab   = ytdBCore + ytdBCtc;
-          const ytdActualLab   = ytdACore + ytdACtc;
-
-          return `
-            <div class="fin-bar" style="padding:14px;">
-              <div class="fin-bar-top" style="margin-bottom:10px;">
-                <div class="fin-bar-title">${s} • YTD</div>
-                <div class="fin-bar-nums">${yearStartStr} → ${monthStartStr}</div>
-              </div>
-              <div class="fin-bars">
-                ${barRowHTML('YTD Total Sales', ytdActualSales, ytdBudgetSales)}
-                ${barRowHTML('YTD Labour (Core + Cost to Client)', ytdActualLab, ytdBudgetLab)}
-              </div>
-            </div>
-          `;
-        }).join('');
-      }
-
-      return;
-    }
-
-    // Single site: fetch correct row explicitly (prevents "wrong site" bleed-through)
-    const { data: row, error } = await supabase
-      .from('monthly_finance_summary')
-      .select('*')
-      .eq('month_start', monthStartStr)
-      .eq('site', site)
-      .maybeSingle();
-
-    if (error) throw error;
-
-    financePillEl.textContent = `Finance • ${site} • ${monthStartStr}`;
-    financeEmptyEl.style.display = row ? 'none' : 'block';
-    financeAllSitesListEl.style.display = 'none';
-
-    if (!row) {
-      if (financeVizEl) financeVizEl.style.display = 'none';
-      if (finYtdEl) { finYtdEl.style.display = 'none'; finYtdEl.innerHTML = ''; }
-      return;
-    }
-
-    // Values (headline fields)
-    const bRetail = safeNum(row.budget_retail_sales);
-    const aRetail = safeNum(row.actual_retail_sales);
-
-    const bHosp   = safeNum(row.budget_hospitality_sales);
-    const aHosp   = safeNum(row.actual_hospitality_sales);
-
-    const bFree   = safeNum(row.budget_free_issue);
-    const aFree   = safeNum(row.actual_free_issue);
-
-    const bCore   = safeNum(row.budget_core_wages);
-    const aCore   = safeNum(row.actual_core_wages);
-
-    const bCtc    = safeNum(row.budget_agency_spend); // Cost to Client (budget)
-    const aCtc    = safeNum(row.actual_agency_spend); // Cost to Client (actual)
-
-    const bGp     = safeNum(row.budget_gp_pct);
-    const aGp     = safeNum(row.actual_gp_pct);
-
-    snapshotState.finance = {
-      mode: 'single',
-      monthStartStr,
-      rows: [{
-        site,
-        budget: { retail: bRetail, hospitality: bHosp, free_issue: bFree, core_wages: bCore, cost_to_client: bCtc, gp_pct: bGp },
-        actual: { retail: aRetail, hospitality: aHosp, free_issue: aFree, core_wages: aCore, cost_to_client: aCtc, gp_pct: aGp },
-        notes: safeText(row.notes || '')
-      }],
-      ytd: []
-    };
-
-    const budgetSales = bRetail + bHosp;
-    const actualSales = aRetail + aHosp;
-
-    const budgetLab   = bCore + bCtc;
-    const actualLab   = aCore + aCtc;
-
-    // Visual summary (bars + GP gauge + notes)
-    if (financeVizEl) financeVizEl.style.display = 'grid';
-
-    if (finBarsEl) {
-      finBarsEl.innerHTML =
-        barRowHTML('Retail Sales', aRetail, bRetail) +
-        barRowHTML('Hospitality Sales', aHosp, bHosp) +
-        barRowHTML('Free Issue', aFree, bFree) +
-        barRowHTML('Core Wages', aCore, bCore) +
-        barRowHTML('Cost to Client', aCtc, bCtc) +
-        gpRowHTML('Gross Profit %', aGp, bGp);
-    }
-
-    setGpGauge(safeNum(row.actual_gp_pct), safeNum(row.budget_gp_pct));
-
-    const notes = safeText(row.notes || '');
-    if (finNotesEl) {
-      if (notes) {
-        finNotesEl.style.display = 'block';
-        finNotesEl.textContent = notes;
-      } else {
-        finNotesEl.style.display = 'none';
-        finNotesEl.textContent = '';
-      }
-    }
-
-    // YTD (calendar year-to-date) – totals vs budget
+      // YTD (calendar year-to-date) – totals vs budget
     const year = parseInt(String(monthStartStr).slice(0,4), 10);
     const yearStartStr = `${year}-01-01`;
 
@@ -1464,29 +1456,37 @@ maintListEl.innerHTML = '';
       const ytdBHosp   = sum(ytdRows, 'budget_hospitality_sales');
       const ytdAHosp   = sum(ytdRows, 'actual_hospitality_sales');
 
-      const ytdBCore   = sum(ytdRows, 'budget_core_wages');
-      const ytdACore   = sum(ytdRows, 'actual_core_wages');
+      const ytdBFree   = sum(ytdRows, 'budget_free_issue');
+      const ytdAFree   = sum(ytdRows, 'actual_free_issue');
 
-      const ytdBCtc    = sum(ytdRows, 'budget_agency_spend');
-      const ytdACtc    = sum(ytdRows, 'actual_agency_spend');
+      const ytdBWages  = sum(ytdRows, 'budget_core_wages');
+      const ytdAWages  = sum(ytdRows, 'actual_core_wages');
+
+      const ytdBCtc    = sum(ytdRows, 'budget_agency_spend'); // Cost to Client (budget)
+      const ytdACtc    = sum(ytdRows, 'actual_agency_spend'); // Cost to Client (actual)
 
       const ytdBudgetSales = ytdBRetail + ytdBHosp;
       const ytdActualSales = ytdARetail + ytdAHosp;
 
-      const ytdBudgetLab   = ytdBCore + ytdBCtc;
-      const ytdActualLab   = ytdACore + ytdACtc;
-
       // Update export state
-      if (snapshotState.finance && snapshotState.finance.mode === 'single') {
-        snapshotState.finance.ytd = [{
+      if (snapshotState.finance) {
+        if (!Array.isArray(snapshotState.finance.ytd)) snapshotState.finance.ytd = [];
+        const entry = {
           site: siteLabel,
           budget_total_sales: ytdBudgetSales,
           actual_total_sales: ytdActualSales,
-          budget_labour: ytdBudgetLab,
-          actual_labour: ytdActualLab,
+          budget_wages: ytdBWages,
+          actual_wages: ytdAWages,
+          budget_cost_to_client: ytdBCtc,
+          actual_cost_to_client: ytdACtc,
+          budget_free_issue: ytdBFree,
+          actual_free_issue: ytdAFree,
           yearStartStr,
           monthStartStr
-        }];
+        };
+        const i = snapshotState.finance.ytd.findIndex(e => e.site === siteLabel);
+        if (i >= 0) snapshotState.finance.ytd[i] = entry;
+        else snapshotState.finance.ytd.push(entry);
       }
 
       return `
@@ -1494,7 +1494,9 @@ maintListEl.innerHTML = '';
           <div class="fin-ytd-card-title">${safeText(siteLabel)}</div>
           <div class="fin-bars">
             ${barRowHTML('YTD Total Sales', ytdActualSales, ytdBudgetSales)}
-            ${barRowHTML('YTD Labour (Core + Cost to Client)', ytdActualLab, ytdBudgetLab)}
+            ${barRowHTML('YTD Wages', ytdAWages, ytdBWages)}
+            ${barRowHTML('YTD Cost to Client', ytdACtc, ytdBCtc)}
+            ${barRowHTML('YTD Free Issue', ytdAFree, ytdBFree)}
           </div>
         </div>
       `;
@@ -1586,24 +1588,49 @@ async function loadMonthlyRetailSales(startStr, endStr, site) {
       return totals;
     }
 
-    function renderRetailSales(totals) {
+    function renderRetailSales(totals, site) {
       const sph = calcSPH(totals.allSales, totals.allTrans);
 
       retailTotalEl.textContent = money(totals.allSales);
-      retailSubEl.textContent = `${Math.round(totals.allTrans)} tx • SPH ${money(sph)}`;
-      retailBreakdownEl.textContent =
-        `L7 ${money(totals.L7.sales)} • L5 ${money(totals.L5.sales)} • L4 ${money(totals.L4.sales)} • L3 ${money(totals.L3.sales)}`;
+
+      // Newcastle does not capture level-by-level retail_sales in the current model.
+      const isNewcastle = (site === 'Newcastle');
+
+      retailSubEl.textContent = isNewcastle
+        ? `From finance snapshot • SPH n/a`
+        : `${Math.round(totals.allTrans)} tx • SPH ${money(sph)}`;
+
+      retailBreakdownEl.textContent = isNewcastle
+        ? `Level breakdown not captured for Newcastle.`
+        : `L7 ${money(totals.L7.sales)} • L5 ${money(totals.L5.sales)} • L4 ${money(totals.L4.sales)} • L3 ${money(totals.L3.sales)}`;
 
       kpiRetailSalesEl.textContent = money(totals.allSales);
-      kpiRetailSubEl.textContent = `${Math.round(totals.allTrans)} tx • SPH ${money(sph)}`;
+      kpiRetailSubEl.textContent = isNewcastle
+        ? `From finance snapshot`
+        : `${Math.round(totals.allTrans)} tx • SPH ${money(sph)}`;
 
       retailLevelsListEl.innerHTML = '';
       const levels = [
-        { name: 'Level 7', s: totals.L7.sales, t: totals.L7.trans },
-        { name: 'Level 5', s: totals.L5.sales, t: totals.L5.trans },
-        { name: 'Level 4', s: totals.L4.sales, t: totals.L4.trans },
-        { name: 'Level 3', s: totals.L3.sales, t: totals.L3.trans },
+        { name: 'Level 7', s: totals.L7?.sales || 0, t: totals.L7?.trans || 0 },
+        { name: 'Level 5', s: totals.L5?.sales || 0, t: totals.L5?.trans || 0 },
+        { name: 'Level 4', s: totals.L4?.sales || 0, t: totals.L4?.trans || 0 },
+        { name: 'Level 3', s: totals.L3?.sales || 0, t: totals.L3?.trans || 0 },
       ];
+
+      if (isNewcastle) {
+        // Keep list minimal and client-safe
+        const div = document.createElement('div');
+        div.className = 'list-item';
+        div.innerHTML = `
+          <div class="list-title">
+            <span>Retail (Newcastle)</span>
+            <span class="badge">Finance headline</span>
+          </div>
+          <div class="list-notes">Monthly retail sales are displayed from the Finance Admin entry for Newcastle.</div>
+        `;
+        retailLevelsListEl.appendChild(div);
+        return;
+      }
 
       levels.forEach(l => {
         const div = document.createElement('div');
@@ -1749,10 +1776,79 @@ async function loadMonthlyRetailSales(startStr, endStr, site) {
 
         snapshotState.incidents = { maintenance: maintItems.length, hs: hsItems.length };
 
-        renderRetailSales(retailTotals);
-        renderPhotos(opsRows);
+        // Incidents Trend chart (weeks within month)
+        try {
+          const base = new Date(startStr + 'T00:00:00');
+          const weekLabels = ['Wk1','Wk2','Wk3','Wk4','Wk5'];
+          const hsCounts = [0,0,0,0,0];
+          const maintCounts = [0,0,0,0,0];
+
+          (opsRows || []).forEach(r => {
+            const dStr = (r.log_date || (r.created_at ? String(r.created_at).slice(0,10) : ''))?.slice(0,10);
+            if (!dStr) return;
+            const d = new Date(dStr + 'T00:00:00');
+            const diffDays = Math.floor((d - base) / (1000*60*60*24));
+            if (diffDays < 0) return;
+            const wi = Math.min(4, Math.floor(diffDays / 7));
+            const hasMaint = truthyTrue(r.maintenance_issue) || hasText(r.maintenance_notes);
+            const hasHs = truthyTrue(r.hs_issue) || hasText(r.hs_notes);
+            if (hasMaint) maintCounts[wi] += 1;
+            if (hasHs) hsCounts[wi] += 1;
+          });
+
+          if (incidentsLegendEl) {
+            const hsSw = incidentsLegendEl.querySelector('.swatch[data-k="hs"]');
+            const mSw = incidentsLegendEl.querySelector('.swatch[data-k="maint"]');
+            if (hsSw) hsSw.style.background = 'rgba(59,130,246,0.85)';     // blue
+            if (mSw) mSw.style.background = 'rgba(245,158,11,0.85)';      // amber
+          }
+
+          if (incChartLabelEl) incChartLabelEl.textContent = `${startStr} → ${endStr}`;
+
+          drawStackedBarChart(
+            incidentsChartEl,
+            weekLabels,
+            [
+              { name: 'Maintenance', values: maintCounts, color: 'rgba(245,158,11,0.80)' },
+              { name: 'H&S', values: hsCounts, color: 'rgba(59,130,246,0.80)' },
+            ],
+            { yFormat: (v) => String(Math.round(v)) }
+          );
+        } catch (e) {
+          console.warn('Incidents chart error', e);
+        }
 
         await loadMonthlyFinance(monthStartStr, site);
+
+        // Newcastle retail sales: retail_sales table is London-level based. For Newcastle, use the finance snapshot headline value.
+        let retailTotalsAdj = retailTotals;
+        try {
+          if (site === 'Newcastle' && snapshotState.finance) {
+            // supports both single-site and all-sites shapes
+            let aRetail = 0;
+            if (snapshotState.finance.actual && (snapshotState.finance.actual.retail != null)) {
+              aRetail = safeNum(snapshotState.finance.actual.retail);
+            } else if (snapshotState.finance.actual && (snapshotState.finance.actual.retail_sales != null)) {
+              aRetail = safeNum(snapshotState.finance.actual.retail_sales);
+            } else if (Array.isArray(snapshotState.finance.rows)) {
+              const row = snapshotState.finance.rows.find(r => r.site === 'Newcastle') || snapshotState.finance.rows[0];
+              aRetail = safeNum(row?.actual?.retail);
+            }
+            if (aRetail > 0) {
+              retailTotalsAdj = JSON.parse(JSON.stringify(retailTotalsAdj || {}));
+              retailTotalsAdj.allSales = aRetail;
+              retailTotalsAdj.allTrans = 0;
+              retailTotalsAdj.L7 = { sales: 0, trans: 0 };
+              retailTotalsAdj.L5 = { sales: 0, trans: 0 };
+              retailTotalsAdj.L4 = { sales: 0, trans: 0 };
+              retailTotalsAdj.L3 = { sales: 0, trans: 0 };
+            }
+          }
+        } catch(_) {}
+
+        renderRetailSales(retailTotalsAdj, site);
+        renderPhotos(opsRows);
+
 
       } catch (err) {
         errorMessageEl.style.display = 'block';
@@ -1861,8 +1957,11 @@ ${s}`);
             const sign = v > 0 ? '+' : (v < 0 ? '-' : '');
             return `${sign}${fmt(Math.abs(v))}`;
           };
+
           lines.push(`- ${s}: YTD Total Sales Act ${fmt(y.actual_total_sales)} • Bgt ${fmt(y.budget_total_sales)} • Var ${varFmt(y.actual_total_sales, y.budget_total_sales)}`);
-          lines.push(`       YTD Labour Act ${fmt(y.actual_labour)} • Bgt ${fmt(y.budget_labour)} • Var ${varFmt(y.actual_labour, y.budget_labour)}`);
+          lines.push(`       YTD Wages Act ${fmt(y.actual_wages)} • Bgt ${fmt(y.budget_wages)} • Var ${varFmt(y.actual_wages, y.budget_wages)}`);
+          lines.push(`       YTD Cost to Client Act ${fmt(y.actual_cost_to_client)} • Bgt ${fmt(y.budget_cost_to_client)} • Var ${varFmt(y.actual_cost_to_client, y.budget_cost_to_client)}`);
+          lines.push(`       YTD Free Issue Act ${fmt(y.actual_free_issue)} • Bgt ${fmt(y.budget_free_issue)} • Var ${varFmt(y.actual_free_issue, y.budget_free_issue)}`);
         });
       }
 
