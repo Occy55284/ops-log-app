@@ -282,6 +282,20 @@
     .modal-body { padding: 12px; display: grid; gap: 12px; }
     .modal-body img { width: 100%; border-radius: 14px; border: 1px solid rgba(255,255,255,0.10); }
     /* Finance visualisation */
+.fin-ytd{
+  margin-top: 10px;
+  padding: 10px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.03);
+}
+.fin-ytd-title{
+  font-size: 12px;
+  font-weight: 800;
+  margin-bottom: 8px;
+  color: rgba(255,255,255,0.85);
+}
+
     .fin-viz{
       display:grid;
       grid-template-columns: 2fr 1fr;
@@ -487,6 +501,7 @@
 
           <div class="fin-viz" id="financeViz" style="display:none;">
             <div class="fin-bars" id="finBars"></div>
+            <div class="fin-ytd" id="finYtd" style="display:none;"></div>
 
             <div>
               <div class="gp-gauge">
@@ -687,6 +702,7 @@
     const gpGaugeValEl = document.getElementById('gpGaugeVal');
     const gpGaugeSubEl = document.getElementById('gpGaugeSub');
     const finNotesEl = document.getElementById('finNotes');
+const finYtdEl = document.getElementById('finYtd');
 
     const finSalesActualEl = document.getElementById('finSalesActual');
     const finSalesBudgetEl = document.getElementById('finSalesBudget');
@@ -865,60 +881,201 @@
     }
 
     async function loadMonthlyFinance(monthStartStr, site) {
-      if (site === 'All') {
-        const { data, error } = await supabase
-          .from('monthly_finance_summary')
-          .select('*')
-          .eq('month_start', monthStartStr)
-          .order('site', { ascending: true });
+  try {
+    // All Sites: show per-site finance cards
+    if (site === 'All') {
+      const { data, error } = await supabase
+        .from('monthly_finance_summary')
+        .select('*')
+        .eq('month_start', monthStartStr)
+        .order('site', { ascending: true });
 
-        if (error) throw error;
+      if (error) throw error;
 
-        financePillEl.textContent = `Finance • ${monthStartStr}`;
-        financeEmptyEl.style.display = (data && data.length) ? 'none' : 'block';
-        financeGridEl.style.display = 'none';
-        if (financeVizEl) financeVizEl.style.display = 'none';
+      financePillEl.textContent = `Finance • ${monthStartStr}`;
+      financeEmptyEl.style.display = (data && data.length) ? 'none' : 'block';
+      if (financeVizEl) financeVizEl.style.display = 'none';
+      if (finYtdEl) { finYtdEl.style.display = 'none'; finYtdEl.innerHTML = ''; }
 
-        financeAllSitesListEl.style.display = (data && data.length) ? 'grid' : 'none';
-        financeAllSitesListEl.innerHTML = '';
+      financeAllSitesListEl.style.display = (data && data.length) ? 'grid' : 'none';
+      financeAllSitesListEl.innerHTML = '';
 
-        if (data && data.length) {
-          financeAllSitesListEl.innerHTML = data.map(r => {
-            const bRetail = safeNum(r.budget_retail_sales);
-            const aRetail = safeNum(r.actual_retail_sales);
-            const bHosp   = safeNum(r.budget_hospitality_sales);
-            const aHosp   = safeNum(r.actual_hospitality_sales);
-            const bFree   = safeNum(r.budget_free_issue);
-            const aFree   = safeNum(r.actual_free_issue);
+      if (data && data.length) {
+        financeAllSitesListEl.innerHTML = data.map(r => {
+          const bRetail = safeNum(r.budget_retail_sales);
+          const aRetail = safeNum(r.actual_retail_sales);
+          const bHosp   = safeNum(r.budget_hospitality_sales);
+          const aHosp   = safeNum(r.actual_hospitality_sales);
+          const bFree   = safeNum(r.budget_free_issue);
+          const aFree   = safeNum(r.actual_free_issue);
 
-            const budgetSales = bRetail + bHosp;
-            const actualSales = aRetail + aHosp;
+          const bCore   = safeNum(r.budget_core_wages);
+          const aCore   = safeNum(r.actual_core_wages);
+          const bCtc    = safeNum(r.budget_agency_spend);   // Cost to Client (budget)
+          const aCtc    = safeNum(r.actual_agency_spend);   // Cost to Client (actual)
 
-            const bLab = safeNum(r.budget_core_wages) + safeNum(r.budget_agency_spend);
-            const aLab = safeNum(r.actual_core_wages) + safeNum(r.actual_agency_spend);
+          const budgetSales = bRetail + bHosp;
+          const actualSales = aRetail + aHosp;
 
-            const notes = safeText(r.notes || '');
+          const budgetLab = bCore + bCtc;
+          const actualLab = aCore + aCtc;
 
-            return `
-              <div class="fin-bar" style="padding:14px;">
-                <div class="fin-bar-top" style="margin-bottom:10px;">
-                  <div class="fin-bar-title">${safeText(r.site)} • ${monthStartStr}</div>
-                  <div class="fin-bar-nums">GP ${pct(r.actual_gp_pct)} • Bgt ${pct(r.budget_gp_pct)}</div>
-                </div>
+          const notes = safeText(r.notes || '');
 
-                <div class="fin-bars">
-                  ${barRowHTML('Total Sales', actualSales, budgetSales)}
-                  ${barRowHTML('Labour (Core + Cost to Client)', aLab, bLab)}
-                  ${barRowHTML('Retail Sales', aRetail, bRetail)}
-                  ${barRowHTML('Hospitality Sales', aHosp, bHosp)}
-                  ${barRowHTML('Free Issue', aFree, bFree)}
-                </div>
-
-                ${notes ? `<div class="fin-notes" style="display:block; margin-top:12px;">${notes.replace(/</g,'&lt;')}</div>` : ``}
+          return `
+            <div class="fin-bar" style="padding:14px;">
+              <div class="fin-bar-top" style="margin-bottom:10px;">
+                <div class="fin-bar-title">${safeText(r.site)} • ${monthStartStr}</div>
+                <div class="fin-bar-nums">GP ${pct(r.actual_gp_pct)} • Bgt ${pct(r.budget_gp_pct)}</div>
               </div>
-            `;
-          }).join('');
-        }
+
+              <div class="fin-bars">
+                ${barRowHTML('Total Sales', actualSales, budgetSales)}
+                ${barRowHTML('Retail Sales', aRetail, bRetail)}
+                ${barRowHTML('Hospitality Sales', aHosp, bHosp)}
+                ${barRowHTML('Free Issue', aFree, bFree)}
+                ${barRowHTML('Core Wages', aCore, bCore)}
+                ${barRowHTML('Cost to Client', aCtc, bCtc)}
+                ${barRowHTML('Labour (Core + Cost to Client)', actualLab, budgetLab)}
+              </div>
+
+              ${notes ? `<div class="fin-notes" style="display:block; margin-top:12px;">${notes.replace(/</g,'&lt;')}</div>` : ``}
+            </div>
+          `;
+        }).join('');
+      }
+
+      return;
+    }
+
+    // Single site: fetch correct row explicitly (prevents "wrong site" bleed-through)
+    const { data: row, error } = await supabase
+      .from('monthly_finance_summary')
+      .select('*')
+      .eq('month_start', monthStartStr)
+      .eq('site', site)
+      .maybeSingle();
+
+    if (error) throw error;
+
+    financePillEl.textContent = `Finance • ${site} • ${monthStartStr}`;
+    financeEmptyEl.style.display = row ? 'none' : 'block';
+    financeAllSitesListEl.style.display = 'none';
+
+    if (!row) {
+      if (financeVizEl) financeVizEl.style.display = 'none';
+      if (finYtdEl) { finYtdEl.style.display = 'none'; finYtdEl.innerHTML = ''; }
+      return;
+    }
+
+    // Values (headline fields)
+    const bRetail = safeNum(row.budget_retail_sales);
+    const aRetail = safeNum(row.actual_retail_sales);
+
+    const bHosp   = safeNum(row.budget_hospitality_sales);
+    const aHosp   = safeNum(row.actual_hospitality_sales);
+
+    const bFree   = safeNum(row.budget_free_issue);
+    const aFree   = safeNum(row.actual_free_issue);
+
+    const bCore   = safeNum(row.budget_core_wages);
+    const aCore   = safeNum(row.actual_core_wages);
+
+    const bCtc    = safeNum(row.budget_agency_spend); // Cost to Client (budget)
+    const aCtc    = safeNum(row.actual_agency_spend); // Cost to Client (actual)
+
+    const budgetSales = bRetail + bHosp;
+    const actualSales = aRetail + aHosp;
+
+    const budgetLab   = bCore + bCtc;
+    const actualLab   = aCore + aCtc;
+
+    // Visual summary (bars + GP gauge + notes)
+    if (financeVizEl) financeVizEl.style.display = 'grid';
+
+    if (finBarsEl) {
+      finBarsEl.innerHTML =
+        barRowHTML('Total Sales', actualSales, budgetSales) +
+        barRowHTML('Retail Sales', aRetail, bRetail) +
+        barRowHTML('Hospitality Sales', aHosp, bHosp) +
+        barRowHTML('Free Issue', aFree, bFree) +
+        barRowHTML('Core Wages', aCore, bCore) +
+        barRowHTML('Cost to Client', aCtc, bCtc) +
+        barRowHTML('Labour (Core + Cost to Client)', actualLab, budgetLab);
+    }
+
+    setGpGauge(safeNum(row.actual_gp_pct), safeNum(row.budget_gp_pct));
+
+    const notes = safeText(row.notes || '');
+    if (finNotesEl) {
+      if (notes) {
+        finNotesEl.style.display = 'block';
+        finNotesEl.textContent = notes;
+      } else {
+        finNotesEl.style.display = 'none';
+        finNotesEl.textContent = '';
+      }
+    }
+
+    // YTD (calendar year-to-date) – totals vs budget
+    const year = parseInt(String(monthStartStr).slice(0,4), 10);
+    const yearStartStr = `${year}-01-01`;
+
+    const { data: ytdRows, error: ytdErr } = await supabase
+      .from('monthly_finance_summary')
+      .select('*')
+      .eq('site', site)
+      .gte('month_start', yearStartStr)
+      .lte('month_start', monthStartStr)
+      .order('month_start', { ascending: true });
+
+    if (ytdErr) throw ytdErr;
+
+    if (finYtdEl) {
+      if (ytdRows && ytdRows.length) {
+        const sum = (arr, key) => arr.reduce((acc, r) => acc + safeNum(r[key]), 0);
+
+        const ytdBRetail = sum(ytdRows, 'budget_retail_sales');
+        const ytdARetail = sum(ytdRows, 'actual_retail_sales');
+
+        const ytdBHosp   = sum(ytdRows, 'budget_hospitality_sales');
+        const ytdAHosp   = sum(ytdRows, 'actual_hospitality_sales');
+
+        const ytdBCore   = sum(ytdRows, 'budget_core_wages');
+        const ytdACore   = sum(ytdRows, 'actual_core_wages');
+
+        const ytdBCtc    = sum(ytdRows, 'budget_agency_spend');
+        const ytdACtc    = sum(ytdRows, 'actual_agency_spend');
+
+        const ytdBudgetSales = ytdBRetail + ytdBHosp;
+        const ytdActualSales = ytdARetail + ytdAHosp;
+
+        const ytdBudgetLab   = ytdBCore + ytdBCtc;
+        const ytdActualLab   = ytdACore + ytdACtc;
+
+        finYtdEl.style.display = 'block';
+        finYtdEl.innerHTML = `
+          <div class="fin-ytd-title">Year-to-date (YTD)</div>
+          <div class="fin-bars">
+            ${barRowHTML('YTD Total Sales', ytdActualSales, ytdBudgetSales)}
+            ${barRowHTML('YTD Labour (Core + Cost to Client)', ytdActualLab, ytdBudgetLab)}
+          </div>
+        `;
+      } else {
+        finYtdEl.style.display = 'none';
+        finYtdEl.innerHTML = '';
+      }
+    }
+
+  } catch (err) {
+    console.error(err);
+    financeEmptyEl.style.display = 'block';
+    financeEmptyEl.textContent = 'Finance error: ' + (err?.message || err);
+    if (financeVizEl) financeVizEl.style.display = 'none';
+    if (finYtdEl) { finYtdEl.style.display = 'none'; finYtdEl.innerHTML = ''; }
+    financeAllSitesListEl.style.display = 'none';
+  }
+}
 return;
       }
 
