@@ -696,6 +696,7 @@
     const financeEmptyEl = document.getElementById('financeEmpty');
     const financeGridEl = document.getElementById('financeGrid');
     const financeAllSitesListEl = document.getElementById('financeAllSitesList');
+  const financeAllSitesYtdEl  = document.getElementById('financeAllSitesYtd');
     const financeVizEl = document.getElementById('financeViz');
     const finBarsEl = document.getElementById('finBars');
     const gpDonutEl = document.getElementById('gpDonut');
@@ -771,7 +772,38 @@ const finYtdEl = document.getElementById('finYtd');
       `;
     }
 
-    function setGpGauge(actualGpPct, budgetGpPct){
+    
+function gpRowHTML(label, actualPctVal, budgetPctVal) {
+  const a = safeNum(actualPctVal);
+  const b = safeNum(budgetPctVal);
+  const maxV = 100;
+  const budgetPct = clamp01(b / maxV) * 100;
+  const actualPct = clamp01(a / maxV) * 100;
+  const variance = a - b;
+  const sign = variance > 0 ? '+' : (variance < 0 ? '' : '');
+  const varLabel = `${sign}${variance.toFixed(1)} pp`;
+
+  return `
+    <div class="fin-bar">
+      <div class="fin-bar-top">
+        <div class="fin-bar-title">${label}</div>
+        <div class="fin-bar-nums">Act ${pct(a)} • Bgt ${pct(b)}</div>
+      </div>
+
+      <div class="bar-track" aria-label="${label} budget vs actual">
+        <div class="bar-budget" style="width:${budgetPct}%;"></div>
+        <div class="bar-actual" style="width:${actualPct}%;"></div>
+      </div>
+
+      <div class="fin-bar-foot">
+        <span>Variance</span>
+        <span class="var-pill">${varLabel}</span>
+      </div>
+    </div>
+  `;
+}
+
+function setGpGauge(actualGpPct, budgetGpPct){
       const a = safeNum(actualGpPct);
       const b = safeNum(budgetGpPct);
       const aDeg = clamp01(a / 100) * 360;
@@ -914,6 +946,9 @@ const finYtdEl = document.getElementById('finYtd');
           const bCtc    = safeNum(r.budget_agency_spend);   // Cost to Client (budget)
           const aCtc    = safeNum(r.actual_agency_spend);   // Cost to Client (actual)
 
+          const bGp     = safeNum(r.budget_gp_pct);
+          const aGp     = safeNum(r.actual_gp_pct);
+
           const budgetSales = bRetail + bHosp;
           const actualSales = aRetail + aHosp;
 
@@ -940,6 +975,56 @@ const finYtdEl = document.getElementById('finYtd');
               </div>
 
               ${notes ? `<div class="fin-notes" style="display:block; margin-top:12px;">${notes.replace(/</g,'&lt;')}</div>` : ``}
+            </div>
+          `;
+        }).join('');
+      }
+
+      // All-sites YTD (calendar year-to-date) – per site summary (Total Sales + Labour)
+      const year = parseInt(String(monthStartStr).slice(0,4), 10);
+      const yearStartStr = `${year}-01-01`;
+
+      if (financeAllSitesYtdEl) { financeAllSitesYtdEl.style.display = 'none'; financeAllSitesYtdEl.innerHTML = ''; }
+
+      const { data: ytdAllRows, error: ytdAllErr } = await supabase
+        .from('monthly_finance_summary')
+        .select('*')
+        .in('site', ['London','Newcastle'])
+        .gte('month_start', yearStartStr)
+        .lte('month_start', monthStartStr);
+
+      if (!ytdAllErr && ytdAllRows && ytdAllRows.length && financeAllSitesYtdEl) {
+        const sumFor = (rows, field) => rows.reduce((acc, r) => acc + safeNum(r[field]), 0);
+
+        const sites = ['London','Newcastle'];
+        financeAllSitesYtdEl.style.display = 'grid';
+        financeAllSitesYtdEl.innerHTML = sites.map(s => {
+          const rows = ytdAllRows.filter(r => r.site === s);
+
+          const ytdBRetail = sumFor(rows, 'budget_retail_sales');
+          const ytdARetail = sumFor(rows, 'actual_retail_sales');
+          const ytdBHosp   = sumFor(rows, 'budget_hospitality_sales');
+          const ytdAHosp   = sumFor(rows, 'actual_hospitality_sales');
+          const ytdBCore   = sumFor(rows, 'budget_core_wages');
+          const ytdACore   = sumFor(rows, 'actual_core_wages');
+          const ytdBCtc    = sumFor(rows, 'budget_agency_spend');
+          const ytdACtc    = sumFor(rows, 'actual_agency_spend');
+
+          const ytdBudgetSales = ytdBRetail + ytdBHosp;
+          const ytdActualSales = ytdARetail + ytdAHosp;
+          const ytdBudgetLab   = ytdBCore + ytdBCtc;
+          const ytdActualLab   = ytdACore + ytdACtc;
+
+          return `
+            <div class="fin-bar" style="padding:14px;">
+              <div class="fin-bar-top" style="margin-bottom:10px;">
+                <div class="fin-bar-title">${s} • YTD</div>
+                <div class="fin-bar-nums">${yearStartStr} → ${monthStartStr}</div>
+              </div>
+              <div class="fin-bars">
+                ${barRowHTML('YTD Total Sales', ytdActualSales, ytdBudgetSales)}
+                ${barRowHTML('YTD Labour (Core + Cost to Client)', ytdActualLab, ytdBudgetLab)}
+              </div>
             </div>
           `;
         }).join('');
@@ -984,6 +1069,9 @@ const finYtdEl = document.getElementById('finYtd');
     const bCtc    = safeNum(row.budget_agency_spend); // Cost to Client (budget)
     const aCtc    = safeNum(row.actual_agency_spend); // Cost to Client (actual)
 
+    const bGp     = safeNum(row.budget_gp_pct);
+    const aGp     = safeNum(row.actual_gp_pct);
+
     const budgetSales = bRetail + bHosp;
     const actualSales = aRetail + aHosp;
 
@@ -995,13 +1083,12 @@ const finYtdEl = document.getElementById('finYtd');
 
     if (finBarsEl) {
       finBarsEl.innerHTML =
-        barRowHTML('Total Sales', actualSales, budgetSales) +
         barRowHTML('Retail Sales', aRetail, bRetail) +
         barRowHTML('Hospitality Sales', aHosp, bHosp) +
         barRowHTML('Free Issue', aFree, bFree) +
         barRowHTML('Core Wages', aCore, bCore) +
         barRowHTML('Cost to Client', aCtc, bCtc) +
-        barRowHTML('Labour (Core + Cost to Client)', actualLab, budgetLab);
+        gpRowHTML('Gross Profit %', aGp, bGp);
     }
 
     setGpGauge(safeNum(row.actual_gp_pct), safeNum(row.budget_gp_pct));
