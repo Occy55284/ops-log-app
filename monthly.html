@@ -1076,85 +1076,9 @@ const finYtdEl = document.getElementById('finYtd');
     financeAllSitesListEl.style.display = 'none';
   }
 }
-return;
-      }
 
-      const { data, error } = await supabase
-        .from('monthly_finance_summary')
-        .select('*')
-        .eq('month_start', monthStartStr)
-        .eq('site', site)
-        .limit(1)
-        .maybeSingle();
 
-      if (error) throw error;
-
-      financePillEl.textContent = `Finance • ${site} • ${monthStartStr}`;
-
-      if (!data) {
-        financeEmptyEl.style.display = 'block';
-        financeGridEl.style.display = 'none';
-        if (financeVizEl) financeVizEl.style.display = 'none';
-        financeAllSitesListEl.style.display = 'none';
-        return;
-      }
-
-      financeEmptyEl.style.display = 'none';
-      financeAllSitesListEl.style.display = 'none';
-      financeGridEl.style.display = 'grid';
-      if (financeVizEl) financeVizEl.style.display = 'grid';
-
-      const budgetSales = safeNum(data.budget_retail_sales) + safeNum(data.budget_hospitality_sales);
-      const actualSales = safeNum(data.actual_retail_sales) + safeNum(data.actual_hospitality_sales);
-
-      const budgetLab  = safeNum(data.budget_core_wages) + safeNum(data.budget_agency_spend);
-      const actualLab  = safeNum(data.actual_core_wages) + safeNum(data.actual_agency_spend);
-
-      // Visual summary (bars + GP gauge + notes)
-      if (finBarsEl) {
-        finBarsEl.innerHTML =
-          barRowHTML('Total Sales', actualSales, budgetSales) +
-          barRowHTML('Labour (Core + Cost to Client)', actualLab, budgetLab) +
-          barRowHTML('Retail Sales', safeNum(data.actual_retail_sales), safeNum(data.budget_retail_sales)) +
-          barRowHTML('Hospitality Sales', safeNum(data.actual_hospitality_sales), safeNum(data.budget_hospitality_sales)) +
-          barRowHTML('Free Issue', safeNum(data.actual_free_issue), safeNum(data.budget_free_issue));
-      }
-
-      setGpGauge(safeNum(data.actual_gp_pct), safeNum(data.budget_gp_pct));
-
-      const notes = safeText(data.notes || '');
-      if (finNotesEl) {
-        if (notes) {
-          finNotesEl.style.display = 'block';
-          finNotesEl.textContent = notes;
-        } else {
-          finNotesEl.style.display = 'none';
-          finNotesEl.textContent = '';
-        }
-      }
-
-      finSalesActualEl.textContent = money(actualSales);
-      finSalesBudgetEl.textContent = money(budgetSales);
-      finSalesVarEl.textContent = money(actualSales - budgetSales);
-
-      finLabourActualEl.textContent = money(actualLab);
-      finLabourBudgetEl.textContent = money(budgetLab);
-      finLabourVarEl.textContent = money(actualLab - budgetLab);
-
-      finGpActualEl.textContent = pct(data.actual_gp_pct);
-      finGpBudgetEl.textContent = pct(data.budget_gp_pct);
-
-      finRetailActualEl.textContent = money(data.actual_retail_sales);
-      finRetailBudgetEl.textContent = money(data.budget_retail_sales);
-
-      finHospActualEl.textContent = money(data.actual_hospitality_sales);
-      finHospBudgetEl.textContent = money(data.budget_hospitality_sales);
-
-      finFreeActualEl.textContent = money(data.actual_free_issue);
-      finFreeBudgetEl.textContent = money(data.budget_free_issue);
-    }
-
-    async function loadMonthlyRetailSales(startStr, endStr, site) {
+async function loadMonthlyRetailSales(startStr, endStr, site) {
       let q = supabase
         .from('retail_sales')
         .select('*')
