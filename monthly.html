@@ -716,7 +716,38 @@
         </div>
       </div>
 
-      <!-- Retail + Photos -->
+      
+      <!-- Newcastle – Hot Lunches + Free Breakfast -->
+      <div class="row-2" id="newcastleMonthlyRow">
+        <div class="card" style="grid-column: 1 / span 2;" id="newcastleMonthlyCard">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Newcastle • Monthly Production</div>
+              <div class="card-subtitle">Hot lunches and free breakfasts recorded in daily logs for the selected month.</div>
+            </div>
+            <div class="pill" id="newcastlePill">Newcastle</div>
+          </div>
+
+          <div id="newcastleMonthlyEmpty" class="empty-text">Select <strong>Newcastle</strong> (or <strong>All Sites</strong>) to view Newcastle monthly totals.</div>
+
+          <div id="newcastleMonthlyMetrics">
+            <div class="metric-row" style="grid-template-columns: repeat(2, 1fr);">
+              <div class="metric">
+                <div class="metric-label">Total Hot Lunch Dishes</div>
+                <div class="metric-value" id="ncHotLunchTotal">0</div>
+                <div class="metric-sub" id="ncHotLunchSub">0 day(s) • Avg 0/day</div>
+              </div>
+              <div class="metric">
+                <div class="metric-label">Total Free Breakfast</div>
+                <div class="metric-value" id="ncFreeBreakfastTotal">0</div>
+                <div class="metric-sub" id="ncFreeBreakfastSub">0 day(s)</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+<!-- Retail + Photos -->
       <div class="row-2">
         <div class="card">
           <div class="card-header">
@@ -830,6 +861,16 @@ const maintEmptyEl = document.getElementById('maintEmpty');
 
     const specialsMonthlyEmptyEl = document.getElementById('specialsMonthlyEmpty');
     const specialsMonthlyListEl = document.getElementById('specialsMonthlyList');
+
+    // Newcastle monthly (hot lunches + free breakfast)
+    const newcastleMonthlyRowEl = document.getElementById('newcastleMonthlyRow');
+    const newcastleMonthlyEmptyEl = document.getElementById('newcastleMonthlyEmpty');
+    const newcastleMonthlyMetricsEl = document.getElementById('newcastleMonthlyMetrics');
+    const ncHotLunchTotalEl = document.getElementById('ncHotLunchTotal');
+    const ncHotLunchSubEl = document.getElementById('ncHotLunchSub');
+    const ncFreeBreakfastTotalEl = document.getElementById('ncFreeBreakfastTotal');
+    const ncFreeBreakfastSubEl = document.getElementById('ncFreeBreakfastSub');
+
 
     const retailTotalEl = document.getElementById('retailTotal');
     const retailSubEl = document.getElementById('retailSub');
@@ -1854,6 +1895,47 @@ async function loadMonthlyRetailSales(startStr, endStr, site) {
           }
         }
 
+        // Newcastle monthly: hot lunches + free breakfast
+        if (newcastleMonthlyRowEl && newcastleMonthlyEmptyEl && newcastleMonthlyMetricsEl) {
+          const showNc = (site === 'Newcastle' || site === 'All');
+          newcastleMonthlyRowEl.style.display = showNc ? 'grid' : 'none';
+
+          if (!showNc) {
+            // nothing else to do
+          } else {
+            const ncRows = (site === 'Newcastle') ? opsRows : opsRows.filter(r => (r.site || '') === 'Newcastle');
+
+            const hlRows = ncRows.filter(r => safeNum(r.hot_lunch_dishes) > 0);
+            const hlTotal = hlRows.reduce((s,r) => s + safeNum(r.hot_lunch_dishes), 0);
+            const hlDays = new Set(hlRows.map(r => (r.log_date || (r.created_at ? String(r.created_at).slice(0,10) : '')).slice(0,10)).slice(0,10)));
+
+            const fbRows = ncRows.filter(r => safeNum(r.free_breakfast_count) > 0);
+            const fbTotal = fbRows.reduce((s,r) => s + safeNum(r.free_breakfast_count), 0);
+            const fbDays = new Set(fbRows.map(r => (r.log_date || (r.created_at ? String(r.created_at).slice(0,10) : '')).slice(0,10)).slice(0,10)));
+
+            const anyData = (hlTotal > 0) || (fbTotal > 0);
+            newcastleMonthlyEmptyEl.style.display = anyData ? 'none' : 'block';
+            newcastleMonthlyMetricsEl.style.display = anyData ? 'block' : 'none';
+
+            const hlDayCount = hlDays.size;
+            const hlAvg = hlDayCount ? (hlTotal / hlDayCount) : 0;
+
+            if (ncHotLunchTotalEl) ncHotLunchTotalEl.textContent = String(Math.round(hlTotal));
+            if (ncHotLunchSubEl) ncHotLunchSubEl.textContent = `${hlDayCount} day(s) • Avg ${Math.round(hlAvg)}/day`;
+
+            if (ncFreeBreakfastTotalEl) ncFreeBreakfastTotalEl.textContent = String(Math.round(fbTotal));
+            if (ncFreeBreakfastSubEl) ncFreeBreakfastSubEl.textContent = `${fbDays.size} day(s)`;
+
+            snapshotState.newcastleMonthly = {
+              hotLunchTotal: Math.round(hlTotal),
+              hotLunchDays: hlDayCount,
+              hotLunchAvg: hlDayCount ? Math.round(hlAvg) : 0,
+              freeBreakfastTotal: Math.round(fbTotal),
+              freeBreakfastDays: fbDays.size
+            };
+          }
+        }
+
         renderRetailSales(retailTotals);
         renderPhotos(opsRows);
 
@@ -1923,6 +2005,16 @@ async function loadMonthlyRetailSales(startStr, endStr, site) {
       if ((snapshotState.site || 'All') !== 'Newcastle') {
         lines.push(`- Lunch specials (London Retail): ${snapshotState.specials?.days ?? 0} day(s)`);
       }
+
+      // Newcastle monthly production (hot lunches + free breakfast)
+      if ((snapshotState.site || 'All') !== 'London') {
+        const nc = snapshotState.newcastleMonthly;
+        if (nc) {
+          lines.push(`- Newcastle hot lunches: ${nc.hotLunchTotal ?? 0} over ${nc.hotLunchDays ?? 0} day(s) (avg ${nc.hotLunchAvg ?? 0}/day)`);
+          lines.push(`- Newcastle free breakfasts: ${nc.freeBreakfastTotal ?? 0} over ${nc.freeBreakfastDays ?? 0} day(s)`);
+        }
+      }
+
       lines.push('');
 
       // Finance snapshot
