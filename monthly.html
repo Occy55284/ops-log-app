@@ -1292,20 +1292,39 @@ maintListEl.innerHTML = '';
         if (snapshotState.finance && snapshotState.finance.mode === 'all') {
           snapshotState.finance.ytd = sites.map(s => {
             const rows = ytdAllRows.filter(r => r.site === s);
+
             const ytdBRetail = sumFor(rows, 'budget_retail_sales');
             const ytdARetail = sumFor(rows, 'actual_retail_sales');
+
             const ytdBHosp   = sumFor(rows, 'budget_hospitality_sales');
             const ytdAHosp   = sumFor(rows, 'actual_hospitality_sales');
+
+            const ytdBFree   = sumFor(rows, 'budget_free_issue');
+            const ytdAFree   = sumFor(rows, 'actual_free_issue');
+
             const ytdBCore   = sumFor(rows, 'budget_core_wages');
             const ytdACore   = sumFor(rows, 'actual_core_wages');
+
             const ytdBCtc    = sumFor(rows, 'budget_agency_spend');
             const ytdACtc    = sumFor(rows, 'actual_agency_spend');
+
+            // GP% is stored as a percentage per month; for YTD we use a simple average of months with a value.
+            const avgFor = (rows, field) => {
+              const vals = (rows || [])
+                .map(r => r?.[field])
+                .filter(v => v !== null && v !== undefined && v !== '' && Number.isFinite(Number(v)))
+                .map(v => Number(v));
+              if (!vals.length) return 0;
+              return vals.reduce((a,b)=>a+b,0) / vals.length;
+            };
+
+            const ytdBGp = avgFor(rows, 'budget_gp_pct');
+            const ytdAGp = avgFor(rows, 'actual_gp_pct');
+
             return {
               site: s,
-              budget_total_sales: ytdBRetail + ytdBHosp,
-              actual_total_sales: ytdARetail + ytdAHosp,
-              budget_labour: ytdBCore + ytdBCtc,
-              actual_labour: ytdACore + ytdACtc,
+              budget: { retail: ytdBRetail, hospitality: ytdBHosp, free_issue: ytdBFree, core_wages: ytdBCore, cost_to_client: ytdBCtc, gp_pct: ytdBGp },
+              actual: { retail: ytdARetail, hospitality: ytdAHosp, free_issue: ytdAFree, core_wages: ytdACore, cost_to_client: ytdACtc, gp_pct: ytdAGp },
               yearStartStr,
               monthStartStr
             };
@@ -1325,15 +1344,26 @@ maintListEl.innerHTML = '';
           const ytdARetail = sumFor(rows, 'actual_retail_sales');
           const ytdBHosp   = sumFor(rows, 'budget_hospitality_sales');
           const ytdAHosp   = sumFor(rows, 'actual_hospitality_sales');
+
+          const ytdBFree   = sumFor(rows, 'budget_free_issue');
+          const ytdAFree   = sumFor(rows, 'actual_free_issue');
+
           const ytdBCore   = sumFor(rows, 'budget_core_wages');
           const ytdACore   = sumFor(rows, 'actual_core_wages');
           const ytdBCtc    = sumFor(rows, 'budget_agency_spend');
           const ytdACtc    = sumFor(rows, 'actual_agency_spend');
 
-          const ytdBudgetSales = ytdBRetail + ytdBHosp;
-          const ytdActualSales = ytdARetail + ytdAHosp;
-          const ytdBudgetLab   = ytdBCore + ytdBCtc;
-          const ytdActualLab   = ytdACore + ytdACtc;
+          const avgFor = (rows, field) => {
+            const vals = (rows || [])
+              .map(r => r?.[field])
+              .filter(v => v !== null && v !== undefined && v !== '' && Number.isFinite(Number(v)))
+              .map(v => Number(v));
+            if (!vals.length) return 0;
+            return vals.reduce((a,b)=>a+b,0) / vals.length;
+          };
+
+          const ytdBGp = avgFor(rows, 'budget_gp_pct');
+          const ytdAGp = avgFor(rows, 'actual_gp_pct');
 
           return `
             <div class="fin-bar" style="padding:14px;">
@@ -1342,8 +1372,12 @@ maintListEl.innerHTML = '';
                 <div class="fin-bar-nums">${yearStartStr} → ${monthStartStr}</div>
               </div>
               <div class="fin-bars">
-                ${barRowHTML('YTD Total Sales', ytdActualSales, ytdBudgetSales)}
-                ${barRowHTML('YTD Labour (Core + Cost to Client)', ytdActualLab, ytdBudgetLab)}
+                ${barRowHTML('Retail Sales', ytdARetail, ytdBRetail)}
+                ${barRowHTML('Hospitality Sales', ytdAHosp, ytdBHosp)}
+                ${barRowHTML('Free Issue', ytdAFree, ytdBFree)}
+                ${barRowHTML('Core Wages', ytdACore, ytdBCore)}
+                ${barRowHTML('Cost to Client', ytdACtc, ytdBCtc)}
+                ${gpRowHTML('Gross Profit %', ytdAGp, ytdBGp)}
               </div>
             </div>
           `;
@@ -1470,20 +1504,28 @@ maintListEl.innerHTML = '';
       const ytdBCtc    = sum(ytdRows, 'budget_agency_spend');
       const ytdACtc    = sum(ytdRows, 'actual_agency_spend');
 
-      const ytdBudgetSales = ytdBRetail + ytdBHosp;
-      const ytdActualSales = ytdARetail + ytdAHosp;
+      const ytdBFree   = sum(ytdRows, 'budget_free_issue');
+      const ytdAFree   = sum(ytdRows, 'actual_free_issue');
 
-      const ytdBudgetLab   = ytdBCore + ytdBCtc;
-      const ytdActualLab   = ytdACore + ytdACtc;
+      // GP% is stored as a percentage per month; for YTD we use a simple average of months with a value.
+      const avgFor = (rows, field) => {
+        const vals = (rows || [])
+          .map(r => r?.[field])
+          .filter(v => v !== null && v !== undefined && v !== '' && Number.isFinite(Number(v)))
+          .map(v => Number(v));
+        if (!vals.length) return 0;
+        return vals.reduce((a,b)=>a+b,0) / vals.length;
+      };
+
+      const ytdBGp = avgFor(ytdRows, 'budget_gp_pct');
+      const ytdAGp = avgFor(ytdRows, 'actual_gp_pct');
 
       // Update export state
       if (snapshotState.finance && snapshotState.finance.mode === 'single') {
         snapshotState.finance.ytd = [{
           site: siteLabel,
-          budget_total_sales: ytdBudgetSales,
-          actual_total_sales: ytdActualSales,
-          budget_labour: ytdBudgetLab,
-          actual_labour: ytdActualLab,
+          budget: { retail: ytdBRetail, hospitality: ytdBHosp, free_issue: ytdBFree, core_wages: ytdBCore, cost_to_client: ytdBCtc, gp_pct: ytdBGp },
+          actual: { retail: ytdARetail, hospitality: ytdAHosp, free_issue: ytdAFree, core_wages: ytdACore, cost_to_client: ytdACtc, gp_pct: ytdAGp },
           yearStartStr,
           monthStartStr
         }];
@@ -1493,8 +1535,12 @@ maintListEl.innerHTML = '';
         <div class="fin-ytd-card">
           <div class="fin-ytd-card-title">${safeText(siteLabel)}</div>
           <div class="fin-bars">
-            ${barRowHTML('YTD Total Sales', ytdActualSales, ytdBudgetSales)}
-            ${barRowHTML('YTD Labour (Core + Cost to Client)', ytdActualLab, ytdBudgetLab)}
+            ${barRowHTML('Retail Sales', ytdARetail, ytdBRetail)}
+            ${barRowHTML('Hospitality Sales', ytdAHosp, ytdBHosp)}
+            ${barRowHTML('Free Issue', ytdAFree, ytdBFree)}
+            ${barRowHTML('Core Wages', ytdACore, ytdBCore)}
+            ${barRowHTML('Cost to Client', ytdACtc, ytdBCtc)}
+            ${gpRowHTML('Gross Profit %', ytdAGp, ytdBGp)}
           </div>
         </div>
       `;
@@ -1853,16 +1899,29 @@ ${s}`);
       if (fin && fin.ytd && fin.ytd.length) {
         lines.push('');
         lines.push('Year-to-date (YTD) vs Budget');
+        const fmt = (n) => money(safeNum(n));
+        const fmtVar = (a,b) => {
+          const v = safeNum(a) - safeNum(b);
+          const sign = v > 0 ? '+' : (v < 0 ? '-' : '');
+          return `${sign}${fmt(Math.abs(v))}`;
+        };
+        const fmtPp = (a,b) => {
+          const v = safeNum(a) - safeNum(b);
+          const sign = v > 0 ? '+' : '';
+          return `${sign}${v.toFixed(1)} pp`;
+        };
+
+
+
         fin.ytd.forEach(y => {
           const s = y.site || site;
-          const fmt = (n) => money(safeNum(n));
-          const varFmt = (a,b) => {
-            const v = safeNum(a) - safeNum(b);
-            const sign = v > 0 ? '+' : (v < 0 ? '-' : '');
-            return `${sign}${fmt(Math.abs(v))}`;
-          };
-          lines.push(`- ${s}: YTD Total Sales Act ${fmt(y.actual_total_sales)} • Bgt ${fmt(y.budget_total_sales)} • Var ${varFmt(y.actual_total_sales, y.budget_total_sales)}`);
-          lines.push(`       YTD Labour Act ${fmt(y.actual_labour)} • Bgt ${fmt(y.budget_labour)} • Var ${varFmt(y.actual_labour, y.budget_labour)}`);
+          lines.push(`\n${s} (YTD)`);
+          lines.push(`- Retail Sales: Act ${fmt(y.actual?.retail)} • Bgt ${fmt(y.budget?.retail)} • Var ${fmtVar(y.actual?.retail, y.budget?.retail)}`);
+          lines.push(`- Hospitality Sales: Act ${fmt(y.actual?.hospitality)} • Bgt ${fmt(y.budget?.hospitality)} • Var ${fmtVar(y.actual?.hospitality, y.budget?.hospitality)}`);
+          lines.push(`- Free Issue: Act ${fmt(y.actual?.free_issue)} • Bgt ${fmt(y.budget?.free_issue)} • Var ${fmtVar(y.actual?.free_issue, y.budget?.free_issue)}`);
+          lines.push(`- Core Wages: Act ${fmt(y.actual?.core_wages)} • Bgt ${fmt(y.budget?.core_wages)} • Var ${fmtVar(y.actual?.core_wages, y.budget?.core_wages)}`);
+          lines.push(`- Cost to Client: Act ${fmt(y.actual?.cost_to_client)} • Bgt ${fmt(y.budget?.cost_to_client)} • Var ${fmtVar(y.actual?.cost_to_client, y.budget?.cost_to_client)}`);
+          lines.push(`- Gross Profit %: Act ${pct(y.actual?.gp_pct)} • Bgt ${pct(y.budget?.gp_pct)} • Var ${fmtPp(y.actual?.gp_pct, y.budget?.gp_pct)}`);
         });
       }
 
