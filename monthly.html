@@ -1153,6 +1153,14 @@ function setGpGauge(actualGpPct, budgetGpPct){
       return `${yyyy}-${mm}-${dd}`;
     }
 
+    function dateKeyFromRow(r){
+      const ld = r?.log_date;
+      if (ld) return String(ld).slice(0,10);
+      const ca = r?.created_at;
+      return ca ? String(ca).slice(0,10) : '';
+    }
+
+
     function startOfMonth(d) {
       const x = new Date(d);
       x.setDate(1);
@@ -1907,11 +1915,11 @@ async function loadMonthlyRetailSales(startStr, endStr, site) {
 
             const hlRows = ncRows.filter(r => safeNum(r.hot_lunch_dishes) > 0);
             const hlTotal = hlRows.reduce((s,r) => s + safeNum(r.hot_lunch_dishes), 0);
-            const hlDays = new Set(hlRows.map(r => (r.log_date || (r.created_at ? String(r.created_at).slice(0,10) : '')).slice(0,10)).slice(0,10)));
+            const hlDays = new Set(hlRows.map(r => dateKeyFromRow(r)).filter(Boolean));
 
             const fbRows = ncRows.filter(r => safeNum(r.free_breakfast_count) > 0);
             const fbTotal = fbRows.reduce((s,r) => s + safeNum(r.free_breakfast_count), 0);
-            const fbDays = new Set(fbRows.map(r => (r.log_date || (r.created_at ? String(r.created_at).slice(0,10) : '')).slice(0,10)).slice(0,10)));
+            const fbDays = new Set(fbRows.map(r => dateKeyFromRow(r)).filter(Boolean));
 
             const anyData = (hlTotal > 0) || (fbTotal > 0);
             newcastleMonthlyEmptyEl.style.display = anyData ? 'none' : 'block';
@@ -1980,7 +1988,7 @@ async function loadMonthlyRetailSales(startStr, endStr, site) {
     if (monthPickerEl) {
       monthPickerEl.addEventListener('change', async () => {
         currentMonthOffset = offsetFromMonthInput(monthPickerEl.value);
-        await loadAll();
+        await loadMonth();
       });
     }
 
