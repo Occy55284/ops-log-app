@@ -700,6 +700,22 @@
         </div>
       </div>
 
+      <!-- London Retail – Lunch Specials -->
+      <div class="row-2">
+        <div class="card" style="grid-column: 1 / span 2;">
+          <div class="card-header">
+            <div>
+              <div class="card-title">London Retail • Lunch Specials</div>
+              <div class="card-subtitle">All lunch specials recorded for the selected month (from daily ops logs).</div>
+            </div>
+            <div class="pill" id="specialsPill">Specials</div>
+          </div>
+
+          <div id="specialsMonthlyEmpty" class="empty-text">No lunch specials recorded.</div>
+          <div id="specialsMonthlyList" class="list"></div>
+        </div>
+      </div>
+
       <!-- Retail + Photos -->
       <div class="row-2">
         <div class="card">
@@ -811,6 +827,9 @@ const maintEmptyEl = document.getElementById('maintEmpty');
     const maintListEl = document.getElementById('maintList');
     const hsEmptyEl = document.getElementById('hsEmpty');
     const hsListEl = document.getElementById('hsList');
+
+    const specialsMonthlyEmptyEl = document.getElementById('specialsMonthlyEmpty');
+    const specialsMonthlyListEl = document.getElementById('specialsMonthlyList');
 
     const retailTotalEl = document.getElementById('retailTotal');
     const retailSubEl = document.getElementById('retailSub');
@@ -1162,6 +1181,12 @@ maintListEl.innerHTML = '';
       hsListEl.innerHTML = '';
       maintEmptyEl.style.display = 'block';
       hsEmptyEl.style.display = 'block';
+
+      if (specialsMonthlyListEl) specialsMonthlyListEl.innerHTML = '';
+      if (specialsMonthlyEmptyEl) {
+        specialsMonthlyEmptyEl.style.display = 'block';
+        specialsMonthlyEmptyEl.textContent = 'No lunch specials recorded.';
+      }
 
       retailTotalEl.textContent = '£0.00';
       retailSubEl.textContent = '0 tx • SPH £0.00';
@@ -1795,6 +1820,40 @@ async function loadMonthlyRetailSales(startStr, endStr, site) {
 
         snapshotState.incidents = { maintenance: maintItems.length, hs: hsItems.length };
 
+        // London Retail lunch specials (from daily ops logs)
+        if (specialsMonthlyListEl && specialsMonthlyEmptyEl) {
+          let specials = [];
+          if (site === 'Newcastle') {
+            specialsMonthlyListEl.innerHTML = '';
+            specialsMonthlyEmptyEl.style.display = 'block';
+            specialsMonthlyEmptyEl.textContent = 'Not applicable for Newcastle (London Retail only).';
+            snapshotState.specials = { count: 0, days: 0 };
+          } else {
+            specials = opsRows
+              .filter(r => (r.site || '') === 'London')
+              .filter(r => (r.area || '') === 'Retail')
+              .filter(r => safeText(r.retail_lunch_special).toLowerCase() === 'yes')
+              .map(r => {
+                const date = (r.log_date || (r.created_at ? String(r.created_at).slice(0,10) : '')).slice(0,10);
+                return {
+                  title: `London • ${date || '—'}`,
+                  badge: '',
+                  notes: safeText(r.retail_lunch_desc) || '(Special recorded – no details entered)'
+                };
+              });
+
+            // sort oldest → newest
+            specials.sort((a,b) => (a.title < b.title ? -1 : 1));
+            renderList(specialsMonthlyListEl, specialsMonthlyEmptyEl, specials);
+
+            const specialDays = new Set(specials.map(s => (s.title.split(' • ')[1] || '').trim()).filter(Boolean));
+            snapshotState.specials = {
+              count: specials.length,
+              days: specialDays.size
+            };
+          }
+        }
+
         renderRetailSales(retailTotals);
         renderPhotos(opsRows);
 
@@ -1861,6 +1920,9 @@ async function loadMonthlyRetailSales(startStr, endStr, site) {
       lines.push(`- Logs submitted: ${snapshotState.totalLogs ?? 0}`);
       lines.push(`- Staffing impact: Sick ${snapshotState.staffing?.sick ?? 0} • Holiday ${snapshotState.staffing?.holiday ?? 0}`);
       lines.push(`- Incidents: Maintenance ${snapshotState.incidents?.maintenance ?? 0} • H&S ${snapshotState.incidents?.hs ?? 0}`);
+      if ((snapshotState.site || 'All') !== 'Newcastle') {
+        lines.push(`- Lunch specials (London Retail): ${snapshotState.specials?.days ?? 0} day(s)`);
+      }
       lines.push('');
 
       // Finance snapshot
