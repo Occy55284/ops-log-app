@@ -1348,7 +1348,9 @@ maintListEl.innerHTML = '';
 
       // All-sites YTD (calendar year-to-date) – per site summary (Total Sales + Labour)
       const year = parseInt(String(monthStartStr).slice(0,4), 10);
-      const yearStartStr = `${year}-01-01`;
+      const monthNum = parseInt(String(monthStartStr).slice(5,7), 10);
+      const fyYear = (monthNum >= 9) ? year : (year - 1);
+      const fyStartStr = `${fyYear}-09-01`;
 
       if (financeAllSitesYtdEl) { financeAllSitesYtdEl.style.display = 'none'; financeAllSitesYtdEl.innerHTML = ''; }
 
@@ -1356,7 +1358,7 @@ maintListEl.innerHTML = '';
         .from('monthly_finance_summary')
         .select('*')
         .in('site', ['London','Newcastle'])
-        .gte('month_start', yearStartStr)
+        .gte('month_start', fyStartStr)
         .lte('month_start', monthStartStr);
 
       if (!ytdAllErr && ytdAllRows && ytdAllRows.length) {
@@ -1399,7 +1401,7 @@ maintListEl.innerHTML = '';
               site: s,
               budget: { retail: ytdBRetail, hospitality: ytdBHosp, free_issue: ytdBFree, core_wages: ytdBCore, cost_to_client: ytdBCtc, gp_pct: ytdBGp },
               actual: { retail: ytdARetail, hospitality: ytdAHosp, free_issue: ytdAFree, core_wages: ytdACore, cost_to_client: ytdACtc, gp_pct: ytdAGp },
-              yearStartStr,
+              fyStartStr,
               monthStartStr
             };
           });
@@ -1443,7 +1445,7 @@ maintListEl.innerHTML = '';
             <div class="fin-bar" style="padding:14px;">
               <div class="fin-bar-top" style="margin-bottom:10px;">
                 <div class="fin-bar-title">${s} • YTD</div>
-                <div class="fin-bar-nums">${yearStartStr} → ${monthStartStr}</div>
+                <div class="fin-bar-nums">${fyStartStr} → ${monthStartStr}</div>
               </div>
               <div class="fin-bars">
                 ${barRowHTML('Retail Sales', ytdARetail, ytdBRetail)}
@@ -1546,14 +1548,16 @@ maintListEl.innerHTML = '';
 
     // YTD (calendar year-to-date) – totals vs budget
     const year = parseInt(String(monthStartStr).slice(0,4), 10);
-    const yearStartStr = `${year}-01-01`;
+    const monthNum = parseInt(String(monthStartStr).slice(5,7), 10);
+    const fyYear = (monthNum >= 9) ? year : (year - 1);
+    const fyStartStr = `${fyYear}-09-01`;
 
     async function fetchYtdRows(siteName){
       const { data: rows, error } = await supabase
         .from('monthly_finance_summary')
         .select('*')
         .eq('site', siteName)
-        .gte('month_start', yearStartStr)
+        .gte('month_start', fyStartStr)
         .lte('month_start', monthStartStr)
         .order('month_start', { ascending: true });
 
@@ -1600,7 +1604,7 @@ maintListEl.innerHTML = '';
           site: siteLabel,
           budget: { retail: ytdBRetail, hospitality: ytdBHosp, free_issue: ytdBFree, core_wages: ytdBCore, cost_to_client: ytdBCtc, gp_pct: ytdBGp },
           actual: { retail: ytdARetail, hospitality: ytdAHosp, free_issue: ytdAFree, core_wages: ytdACore, cost_to_client: ytdACtc, gp_pct: ytdAGp },
-          yearStartStr,
+          fyStartStr,
           monthStartStr
         }];
       }
