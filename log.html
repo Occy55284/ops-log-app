@@ -436,6 +436,14 @@
           min="0"
           placeholder="Number of evening events"
         />
+
+        <label for="hospPlacesEvents" style="margin-top: 6px;">Places events:</label>
+        <input
+          id="hospPlacesEvents"
+          type="number"
+          min="0"
+          placeholder="Number of places events"
+        />
       </div>
     </div>
 
@@ -503,6 +511,7 @@
     const hospitalitySection = document.getElementById('hospitalitySection');
     const hospDayEventsEl = document.getElementById('hospDayEvents');
     const hospNightEventsEl = document.getElementById('hospNightEvents');
+    const hospPlacesEventsEl = document.getElementById('hospPlacesEvents');
 
     // Show site/area at the top and site-specific blocks if applicable
     if (site) {
@@ -695,26 +704,32 @@
       // London Hospitality-specific values
       let hospDayEvents = null;
       let hospNightEvents = null;
+      let hospPlacesEvents = null;
 
       if (site === 'London' && area === 'Hospitality') {
         const dayVal = hospDayEventsEl.value.trim();
         const nightVal = hospNightEventsEl.value.trim();
+        const placesVal = hospPlacesEventsEl.value.trim();
 
         if (
           dayVal === '' ||
           nightVal === '' ||
+          placesVal === '' ||
           isNaN(dayVal) ||
           isNaN(nightVal) ||
+          isNaN(placesVal) ||
           Number(dayVal) < 0 ||
-          Number(nightVal) < 0
+          Number(nightVal) < 0 ||
+          Number(placesVal) < 0
         ) {
           saveMessage.textContent =
-            'For London Hospitality, please enter both day and night event numbers.';
+            'For London Hospitality, please enter day, evening, and places event numbers.';
           return;
         }
 
         hospDayEvents = Number(dayVal);
         hospNightEvents = Number(nightVal);
+        hospPlacesEvents = Number(placesVal);
       }
 
       // Basic validation for non-Newcastle:
@@ -731,7 +746,7 @@
       const hospHasEvents =
         site === 'London' &&
         area === 'Hospitality' &&
-        (hospDayEvents !== null || hospNightEvents !== null);
+        (hospDayEvents !== null || hospNightEvents !== null || hospPlacesEvents !== null);
 
       if (
         site !== 'Newcastle' &&
@@ -822,7 +837,8 @@
             retail_lunch_special_details: retailLunchDesc,
 
             hosp_day_events: hospDayEvents,
-            hosp_night_events: hospNightEvents
+            hosp_night_events: hospNightEvents,
+            hosp_places_events: hospPlacesEvents
           }
         ]);
 
@@ -845,6 +861,7 @@
       retailLunchDescEl.value = '';
       hospDayEventsEl.value = '';
       hospNightEventsEl.value = '';
+      hospPlacesEventsEl.value = '';
 
       sicknessCountEl.value = '0';
       holidayCountEl.value = '0';

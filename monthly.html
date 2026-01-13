@@ -700,6 +700,38 @@
         </div>
       </div>
 
+      <div class="card" id="hospEventsCard" style="display:none;">
+        <div class="card-header">
+          <div>
+            <div class="card-title">London Hospitality • Events</div>
+            <div class="card-subtitle">Totals for the month (day / evening / places).</div>
+          </div>
+          <div class="pill">London</div>
+        </div>
+        <div id="hospEventsEmpty" class="empty-text" style="display:none;">No hospitality event entries for this month.</div>
+        <div id="hospEventsMetrics">
+          <div class="metric-row" style="grid-template-columns: repeat(4, 1fr);">
+            <div class="metric">
+              <div class="metric-label">Day Events</div>
+              <div class="metric-value" id="mHospDay">0</div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">Evening Events</div>
+              <div class="metric-value" id="mHospNight">0</div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">Places Events</div>
+              <div class="metric-value" id="mHospPlaces">0</div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">Total</div>
+              <div class="metric-value" id="mHospTotal">0</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
       <!-- London Retail – Lunch Specials -->
       <div class="row-2">
         <div class="card" style="grid-column: 1 / span 2;">
@@ -858,6 +890,14 @@ const maintEmptyEl = document.getElementById('maintEmpty');
     const maintListEl = document.getElementById('maintList');
     const hsEmptyEl = document.getElementById('hsEmpty');
     const hsListEl = document.getElementById('hsList');
+
+    const hospEventsCardEl = document.getElementById('hospEventsCard');
+    const hospEventsEmptyEl = document.getElementById('hospEventsEmpty');
+    const hospEventsMetricsEl = document.getElementById('hospEventsMetrics');
+    const mHospDayEl = document.getElementById('mHospDay');
+    const mHospNightEl = document.getElementById('mHospNight');
+    const mHospPlacesEl = document.getElementById('mHospPlaces');
+    const mHospTotalEl = document.getElementById('mHospTotal');
 
     const specialsMonthlyEmptyEl = document.getElementById('specialsMonthlyEmpty');
     const specialsMonthlyListEl = document.getElementById('specialsMonthlyList');
@@ -1853,6 +1893,33 @@ async function loadMonthlyRetailSales(startStr, endStr, site) {
         snapshotState.totalLogs = opsRows.length;
         snapshotState.staffing = { sick, holiday: hol, sickCounts, holidayCounts: holCounts };
 
+        // London Hospitality events (Day / Evening / Places)
+        const includeLondon = site === 'London' || site === 'All';
+        hospEventsCardEl.style.display = includeLondon ? '' : 'none';
+
+        if (includeLondon) {
+          const hospRows = (opsRows || []).filter(r => r.site === 'London' && r.area === 'Hospitality');
+
+          const hospDay = hospRows.reduce((s,r) => s + safeNum(r.hosp_day_events), 0);
+          const hospNight = hospRows.reduce((s,r) => s + safeNum(r.hosp_night_events), 0);
+          const hospPlaces = hospRows.reduce((s,r) => s + safeNum(r.hosp_places_events), 0);
+          const hospTotal = hospDay + hospNight + hospPlaces;
+
+          mHospDayEl.textContent = String(hospDay);
+          mHospNightEl.textContent = String(hospNight);
+          mHospPlacesEl.textContent = String(hospPlaces);
+          mHospTotalEl.textContent = String(hospTotal);
+
+          const hasAny = hospRows.length > 0 && hospTotal > 0;
+          hospEventsEmptyEl.style.display = hasAny ? 'none' : '';
+          hospEventsMetricsEl.style.display = hasAny ? '' : 'none';
+
+          snapshotState.hospEvents = { day: hospDay, night: hospNight, places: hospPlaces, total: hospTotal };
+        } else {
+          snapshotState.hospEvents = null;
+        }
+
+
         const maintItems = [];
         const hsItems = [];
 
@@ -2016,6 +2083,9 @@ async function loadMonthlyRetailSales(startStr, endStr, site) {
       lines.push(`- Incidents: Maintenance ${snapshotState.incidents?.maintenance ?? 0} • H&S ${snapshotState.incidents?.hs ?? 0}`);
       if ((snapshotState.site || 'All') !== 'Newcastle') {
         lines.push(`- Lunch specials (London Retail): ${snapshotState.specials?.days ?? 0} day(s)`);
+        if (snapshotState.hospEvents) {
+          lines.push(`- Hospitality events (London): Day ${snapshotState.hospEvents.day ?? 0} • Evening ${snapshotState.hospEvents.night ?? 0} • Places ${snapshotState.hospEvents.places ?? 0} (Total ${snapshotState.hospEvents.total ?? 0})`);
+        }
       }
 
       // Newcastle monthly production (hot lunches + free breakfast)

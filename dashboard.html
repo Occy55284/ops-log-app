@@ -743,7 +743,7 @@
             </div>
           </div>
 
-          <div class="metric-row" style="grid-template-columns: repeat(3, 1fr);">
+          <div class="metric-row" style="grid-template-columns: repeat(4, 1fr);">
             <div class="metric">
               <div class="metric-label">Sickness</div>
               <div class="metric-value" id="staffSickness">0</div>
@@ -770,7 +770,7 @@
               <div class="card-subtitle">Day vs night events for the week.</div>
             </div>
           </div>
-          <div class="metric-row" style="grid-template-columns: repeat(3, 1fr);">
+          <div class="metric-row" style="grid-template-columns: repeat(4, 1fr);">
             <div class="metric">
               <div class="metric-label">Day Events</div>
               <div class="metric-value" id="hospDay">0</div>
@@ -778,6 +778,10 @@
             <div class="metric">
               <div class="metric-label">Night Events</div>
               <div class="metric-value" id="hospNight">0</div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">Places Events</div>
+              <div class="metric-value" id="hospPlaces">0</div>
             </div>
             <div class="metric">
               <div class="metric-label">Total</div>
@@ -977,7 +981,7 @@
           <canvas id="staffingChart" width="900" height="340"></canvas>
         </div>
 
-        <div class="metric-row" style="grid-template-columns: repeat(3, 1fr);">
+        <div class="metric-row" style="grid-template-columns: repeat(4, 1fr);">
           <div class="metric">
             <div class="metric-label">Week Total (Sickness)</div>
             <div class="metric-value" id="staffingTotalSick">0</div>
@@ -1045,6 +1049,7 @@
 
     const hospDayEl = document.getElementById('hospDay');
     const hospNightEl = document.getElementById('hospNight');
+    const hospPlacesEl = document.getElementById('hospPlaces');
     const hospTotalEl = document.getElementById('hospTotal');
 
     const freeBreakfastTotalEl = document.getElementById('freeBreakfastTotal');
@@ -2144,9 +2149,11 @@
         // Hospitality day/night
         const hospDay = opsRows.reduce((s,r) => s + safeNum(r.hosp_day_events), 0);
         const hospNight = opsRows.reduce((s,r) => s + safeNum(r.hosp_night_events), 0);
+        const hospPlaces = opsRows.reduce((s,r) => s + safeNum(r.hosp_places_events), 0);
         hospDayEl.textContent = String(hospDay);
         hospNightEl.textContent = String(hospNight);
-        hospTotalEl.textContent = String(hospDay + hospNight);
+        hospPlacesEl.textContent = String(hospPlaces);
+        hospTotalEl.textContent = String(hospDay + hospNight + hospPlaces);
 
         // Free breakfast
         const fbRows = opsRows.filter(r => safeNum(r.free_breakfast_count) > 0);
