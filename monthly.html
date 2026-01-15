@@ -714,18 +714,22 @@
             <div class="metric">
               <div class="metric-label">Day Events</div>
               <div class="metric-value" id="mHospDay">0</div>
+              <div class="metric-sub" id="mHospDayPct">0%</div>
             </div>
             <div class="metric">
               <div class="metric-label">Evening Events</div>
               <div class="metric-value" id="mHospNight">0</div>
+              <div class="metric-sub" id="mHospNightPct">0%</div>
             </div>
             <div class="metric">
               <div class="metric-label">Places Events</div>
               <div class="metric-value" id="mHospPlaces">0</div>
+              <div class="metric-sub" id="mHospPlacesPct">0%</div>
             </div>
             <div class="metric">
               <div class="metric-label">Total</div>
               <div class="metric-value" id="mHospTotal">0</div>
+              <div class="metric-sub" id="mHospTotalPct">0%</div>
             </div>
           </div>
         </div>
@@ -898,6 +902,10 @@ const maintEmptyEl = document.getElementById('maintEmpty');
     const mHospNightEl = document.getElementById('mHospNight');
     const mHospPlacesEl = document.getElementById('mHospPlaces');
     const mHospTotalEl = document.getElementById('mHospTotal');
+    const mHospDayPctEl = document.getElementById('mHospDayPct');
+    const mHospNightPctEl = document.getElementById('mHospNightPct');
+    const mHospPlacesPctEl = document.getElementById('mHospPlacesPct');
+    const mHospTotalPctEl = document.getElementById('mHospTotalPct');
 
     const specialsMonthlyEmptyEl = document.getElementById('specialsMonthlyEmpty');
     const specialsMonthlyListEl = document.getElementById('specialsMonthlyList');
@@ -1909,6 +1917,12 @@ async function loadMonthlyRetailSales(startStr, endStr, site) {
           mHospNightEl.textContent = String(hospNight);
           mHospPlacesEl.textContent = String(hospPlaces);
           mHospTotalEl.textContent = String(hospTotal);
+
+          const pct = (part, total) => (total > 0 ? ((part / total) * 100).toFixed(1) : '0.0') + '%';
+          if (mHospDayPctEl) mHospDayPctEl.textContent = pct(hospDay, hospTotal);
+          if (mHospNightPctEl) mHospNightPctEl.textContent = pct(hospNight, hospTotal);
+          if (mHospPlacesPctEl) mHospPlacesPctEl.textContent = pct(hospPlaces, hospTotal);
+          if (mHospTotalPctEl) mHospTotalPctEl.textContent = hospTotal > 0 ? '100%' : '0%';
 
           const hasAny = hospRows.length > 0 && hospTotal > 0;
           hospEventsEmptyEl.style.display = hasAny ? 'none' : '';
