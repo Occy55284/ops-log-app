@@ -232,6 +232,50 @@
     .list-notes { font-size: 12px; color: rgba(255,255,255,0.75); margin-top: 6px; white-space: pre-wrap; line-height: 1.25; }
     .empty-text { padding: 8px 2px; font-size: 12px; color: rgba(255,255,255,0.65); }
 
+
+
+
+    /* Retail sales bar chart */
+    .bar-chart { display: grid; gap: 10px; margin-top: 12px; }
+    .bar-row {
+      display: grid;
+      grid-template-columns: 170px 1fr 120px;
+      gap: 12px;
+      align-items: center;
+      padding: 10px;
+      border-radius: 16px;
+      background: rgba(0,0,0,0.18);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    .bar-left { min-width: 0; }
+    .bar-label { font-weight: 800; font-size: 12px; color: rgba(255,255,255,0.92); }
+    .bar-meta { margin-top: 4px; font-size: 11px; color: rgba(255,255,255,0.62); }
+    .bar-track {
+      height: 14px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.10);
+      overflow: hidden;
+    }
+    .bar-fill { height: 100%; border-radius: 999px; }
+    .bar-fill.l7 { background: rgba(59,130,246,0.75); }
+    .bar-fill.l5 { background: rgba(16,185,129,0.70); }
+    .bar-fill.l4 { background: rgba(236,72,153,0.65); }
+    .bar-fill.l3 { background: rgba(245,158,11,0.70); }
+    .bar-right {
+      font-weight: 900;
+      font-size: 12px;
+      color: rgba(255,255,255,0.92);
+      text-align: right;
+      white-space: nowrap;
+    }
+    @media (max-width: 900px) {
+      .bar-row { grid-template-columns: 140px 1fr 96px; }
+    }
+    @media (max-width: 640px) {
+      .bar-row { grid-template-columns: 1fr; }
+      .bar-right { text-align: left; }
+    }
     /* Photos */
     .photos-grid {
       display: grid;
@@ -844,7 +888,7 @@
             </div>
           </div>
 
-          <div id="retailLevelsList" class="list"></div>
+          <div id="retailBarChart" class="bar-chart"></div>
         </div>
 
         <div class="card">
@@ -971,7 +1015,7 @@ const maintEmptyEl = document.getElementById('maintEmpty');
     const retailTotalEl = document.getElementById('retailTotal');
     const retailSubEl = document.getElementById('retailSub');
     const retailBreakdownEl = document.getElementById('retailBreakdown');
-    const retailLevelsListEl = document.getElementById('retailLevelsList');
+    const retailBarChartEl = document.getElementById('retailBarChart');
 
     const photosEmptyEl = document.getElementById('photosEmpty');
     const photosGridEl = document.getElementById('photosGrid');
@@ -1341,7 +1385,7 @@ maintListEl.innerHTML = '';
       retailTotalEl.textContent = '£0.00';
       retailSubEl.textContent = '0 tx • SPH £0.00';
       retailBreakdownEl.textContent = 'L7 £0 • L5 £0 • L4 £0 • L3 £0';
-      retailLevelsListEl.innerHTML = '';
+      retailBarChartEl.innerHTML = '';
 
       photosGridEl.innerHTML = '';
       photosEmptyEl.style.display = 'block';
@@ -1811,6 +1855,7 @@ async function loadMonthlyRetailSales(startStr, endStr, site) {
       return totals;
     }
 
+    
     function renderRetailSales(totals) {
       const sph = calcSPH(totals.allSales, totals.allTrans);
 
@@ -1822,25 +1867,33 @@ async function loadMonthlyRetailSales(startStr, endStr, site) {
       kpiRetailSalesEl.textContent = money(totals.allSales);
       kpiRetailSubEl.textContent = `${Math.round(totals.allTrans)} tx • SPH ${money(sph)}`;
 
-      retailLevelsListEl.innerHTML = '';
+      // Bar chart by level (monthly totals)
+      retailBarChartEl.innerHTML = '';
       const levels = [
-        { name: 'Level 7', s: totals.L7.sales, t: totals.L7.trans },
-        { name: 'Level 5', s: totals.L5.sales, t: totals.L5.trans },
-        { name: 'Level 4', s: totals.L4.sales, t: totals.L4.trans },
-        { name: 'Level 3', s: totals.L3.sales, t: totals.L3.trans },
+        { key: 'L7', name: 'Level 7', s: totals.L7.sales, t: totals.L7.trans, cls: 'l7' },
+        { key: 'L5', name: 'Level 5', s: totals.L5.sales, t: totals.L5.trans, cls: 'l5' },
+        { key: 'L4', name: 'Level 4', s: totals.L4.sales, t: totals.L4.trans, cls: 'l4' },
+        { key: 'L3', name: 'Level 3', s: totals.L3.sales, t: totals.L3.trans, cls: 'l3' },
       ];
 
+      const maxSales = Math.max(1, ...levels.map(l => safeNum(l.s)));
+
       levels.forEach(l => {
-        const div = document.createElement('div');
-        div.className = 'list-item';
-        div.innerHTML = `
-          <div class="list-title">
-            <span>${l.name}</span>
-            <span class="badge">SPH ${money(calcSPH(l.s, l.t))}</span>
+        const pct = Math.max(0, Math.min(100, (safeNum(l.s) / maxSales) * 100));
+        const row = document.createElement('div');
+        row.className = 'bar-row';
+        row.title = `${l.name} • Sales ${money(l.s)} • Tx ${Math.round(l.t)} • SPH ${money(calcSPH(l.s, l.t))}`;
+        row.innerHTML = `
+          <div class="bar-left">
+            <div class="bar-label">${l.name}</div>
+            <div class="bar-meta">${Math.round(l.t)} tx • SPH ${money(calcSPH(l.s, l.t))}</div>
           </div>
-          <div class="list-notes">Sales: ${money(l.s)} • Transactions: ${Math.round(l.t)}</div>
+          <div class="bar-track">
+            <div class="bar-fill ${l.cls}" style="width:${pct}%;"></div>
+          </div>
+          <div class="bar-right">${money(l.s)}</div>
         `;
-        retailLevelsListEl.appendChild(div);
+        retailBarChartEl.appendChild(row);
       });
     }
 
