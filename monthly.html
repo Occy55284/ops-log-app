@@ -262,6 +262,69 @@
     .bar-fill.l5 { background: rgba(16,185,129,0.70); }
     .bar-fill.l4 { background: rgba(236,72,153,0.65); }
     .bar-fill.l3 { background: rgba(245,158,11,0.70); }
+
+    /* Newcastle monthly production chart */
+    .nc-mixbar {
+      height: 12px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.10);
+      display: flex;
+      margin-top: 10px;
+    }
+    .nc-mixseg { height: 100%; }
+    .nc-mixseg.hot { background: rgba(59,130,246,0.75); }
+    .nc-mixseg.free { background: rgba(16,185,129,0.70); }
+
+    .nc-legend {
+      margin-top: 8px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      color: rgba(255,255,255,0.62);
+      font-size: 11px;
+    }
+    .nc-key { display: inline-flex; align-items: center; gap: 6px; }
+    .nc-dot { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+    .nc-dot.hot { background: rgba(59,130,246,0.75); }
+    .nc-dot.free { background: rgba(16,185,129,0.70); }
+
+    .nc-chart { display: grid; gap: 8px; margin-top: 12px; }
+    .nc-row {
+      display: grid;
+      grid-template-columns: 86px 1fr 70px;
+      gap: 12px;
+      align-items: center;
+      padding: 10px;
+      border-radius: 16px;
+      background: rgba(0,0,0,0.18);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    .nc-date { font-weight: 800; font-size: 12px; color: rgba(255,255,255,0.90); }
+    .nc-track {
+      height: 14px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.10);
+      overflow: hidden;
+      display: flex;
+    }
+    .nc-seg { height: 100%; }
+    .nc-seg.hot { background: rgba(59,130,246,0.75); }
+    .nc-seg.free { background: rgba(16,185,129,0.70); }
+    .nc-total {
+      font-weight: 900;
+      font-size: 12px;
+      color: rgba(255,255,255,0.92);
+      text-align: right;
+      white-space: nowrap;
+    }
+    @media (max-width: 640px) {
+      .nc-row { grid-template-columns: 1fr; }
+      .nc-total { text-align: left; }
+    }
+
     .bar-right {
       font-weight: 900;
       font-size: 12px;
@@ -853,18 +916,42 @@
           <div id="newcastleMonthlyEmpty" class="empty-text">Select <strong>Newcastle</strong> (or <strong>All Sites</strong>) to view Newcastle monthly totals.</div>
 
           <div id="newcastleMonthlyMetrics">
-            <div class="metric-row" style="grid-template-columns: repeat(2, 1fr);">
+            <div class="metric-row" style="grid-template-columns: repeat(4, 1fr);">
               <div class="metric">
                 <div class="metric-label">Total Hot Lunch Dishes</div>
                 <div class="metric-value" id="ncHotLunchTotal">0</div>
                 <div class="metric-sub" id="ncHotLunchSub">0 day(s) • Avg 0/day</div>
+                <div class="metric-sub" id="ncHotLunchPct">0%</div>
               </div>
               <div class="metric">
                 <div class="metric-label">Total Free Breakfast</div>
                 <div class="metric-value" id="ncFreeBreakfastTotal">0</div>
                 <div class="metric-sub" id="ncFreeBreakfastSub">0 day(s)</div>
+                <div class="metric-sub" id="ncFreeBreakfastPct">0%</div>
+              </div>
+              <div class="metric">
+                <div class="metric-label">Total Production</div>
+                <div class="metric-value" id="ncTotalProduction">0</div>
+                <div class="metric-sub" id="ncTotalProductionSub">0 active day(s) • Avg 0/day</div>
+              </div>
+              <div class="metric">
+                <div class="metric-label">Peak Day</div>
+                <div class="metric-value" id="ncPeakTotal">0</div>
+                <div class="metric-sub" id="ncPeakTotalSub">—</div>
               </div>
             </div>
+
+            <div id="ncMixBar" class="nc-mixbar" style="display:none;">
+              <div class="nc-mixseg hot" id="ncMixHot" style="width:0%"></div>
+              <div class="nc-mixseg free" id="ncMixFree" style="width:0%"></div>
+            </div>
+            <div id="ncLegend" class="nc-legend" style="display:none;">
+              <div class="nc-key"><span class="nc-dot hot"></span>Hot lunches</div>
+              <div class="nc-key"><span class="nc-dot free"></span>Free breakfasts</div>
+            </div>
+
+            <div id="ncMonthlyChart" class="nc-chart"></div>
+            <div class="metric-sub" id="ncMonthlyChartHint" style="margin-top:6px; display:none;"></div>
           </div>
         </div>
       </div>
@@ -1007,6 +1094,18 @@ const maintEmptyEl = document.getElementById('maintEmpty');
     const newcastleMonthlyEmptyEl = document.getElementById('newcastleMonthlyEmpty');
     const newcastleMonthlyMetricsEl = document.getElementById('newcastleMonthlyMetrics');
     const ncHotLunchTotalEl = document.getElementById('ncHotLunchTotal');
+    const ncHotLunchPctEl = document.getElementById('ncHotLunchPct');
+    const ncFreeBreakfastPctEl = document.getElementById('ncFreeBreakfastPct');
+    const ncMixBarEl = document.getElementById('ncMixBar');
+    const ncMixHotEl = document.getElementById('ncMixHot');
+    const ncMixFreeEl = document.getElementById('ncMixFree');
+    const ncLegendEl = document.getElementById('ncLegend');
+    const ncTotalProductionEl = document.getElementById('ncTotalProduction');
+    const ncTotalProductionSubEl = document.getElementById('ncTotalProductionSub');
+    const ncPeakTotalEl = document.getElementById('ncPeakTotal');
+    const ncPeakTotalSubEl = document.getElementById('ncPeakTotalSub');
+    const ncMonthlyChartEl = document.getElementById('ncMonthlyChart');
+    const ncMonthlyChartHintEl = document.getElementById('ncMonthlyChartHint');
     const ncHotLunchSubEl = document.getElementById('ncHotLunchSub');
     const ncFreeBreakfastTotalEl = document.getElementById('ncFreeBreakfastTotal');
     const ncFreeBreakfastSubEl = document.getElementById('ncFreeBreakfastSub');
@@ -1076,6 +1175,16 @@ const finYtdEl = document.getElementById('finYtd');
     function fmtPct1(n) {
       if (!isFinite(n) || n <= 0) return '0%';
       return `${n.toFixed(1)}%`;
+    }
+
+    function fmtShortDate(iso){
+      // iso: YYYY-MM-DD
+      if(!iso) return '—';
+      const d = new Date(iso + 'T00:00:00');
+      const wd = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()] || '';
+      const dd = String(d.getDate()).padStart(2,'0');
+      const mm = String(d.getMonth()+1).padStart(2,'0');
+      return `${wd} ${dd}/${mm}`;
     }
 
 function safeNum(v) {
@@ -2116,33 +2225,133 @@ async function loadMonthlyRetailSales(startStr, endStr, site) {
           } else {
             const ncRows = (site === 'Newcastle') ? opsRows : opsRows.filter(r => (r.site || '') === 'Newcastle');
 
-            const hlRows = ncRows.filter(r => safeNum(r.hot_lunch_dishes) > 0);
-            const hlTotal = hlRows.reduce((s,r) => s + safeNum(r.hot_lunch_dishes), 0);
-            const hlDays = new Set(hlRows.map(r => dateKeyFromRow(r)).filter(Boolean));
+            // Build daily totals map for chart + peak day calculations
+            const daily = new Map(); // dateKey -> { hl, fb }
+            (ncRows || []).forEach(r => {
+              const k = dateKeyFromRow(r);
+              if (!k) return;
+              const hl = safeNum(r.hot_lunch_dishes);
+              const fb = safeNum(r.free_breakfast_count);
+              if (!daily.has(k)) daily.set(k, { hl: 0, fb: 0 });
+              const v = daily.get(k);
+              v.hl += hl;
+              v.fb += fb;
+            });
 
-            const fbRows = ncRows.filter(r => safeNum(r.free_breakfast_count) > 0);
-            const fbTotal = fbRows.reduce((s,r) => s + safeNum(r.free_breakfast_count), 0);
-            const fbDays = new Set(fbRows.map(r => dateKeyFromRow(r)).filter(Boolean));
+            const datesWithEntries = [...daily.entries()]
+              .map(([k,v]) => ({ date: k, hl: v.hl, fb: v.fb, total: (v.hl + v.fb) }))
+              .filter(d => d.total > 0)
+              .sort((a,b) => (a.date < b.date ? -1 : 1));
 
-            const anyData = (hlTotal > 0) || (fbTotal > 0);
+            const hlTotal = datesWithEntries.reduce((s,d) => s + d.hl, 0);
+            const fbTotal = datesWithEntries.reduce((s,d) => s + d.fb, 0);
+            const totalProd = hlTotal + fbTotal;
+
+            const hlDays = new Set(datesWithEntries.filter(d => d.hl > 0).map(d => d.date));
+            const fbDays = new Set(datesWithEntries.filter(d => d.fb > 0).map(d => d.date));
+            const activeDays = datesWithEntries.length;
+
+            const anyData = totalProd > 0;
             newcastleMonthlyEmptyEl.style.display = anyData ? 'none' : 'block';
             newcastleMonthlyMetricsEl.style.display = anyData ? 'block' : 'none';
 
-            const hlDayCount = hlDays.size;
-            const hlAvg = hlDayCount ? (hlTotal / hlDayCount) : 0;
+            const hlAvg = hlDays.size ? (hlTotal / hlDays.size) : 0;
 
             if (ncHotLunchTotalEl) ncHotLunchTotalEl.textContent = String(Math.round(hlTotal));
-            if (ncHotLunchSubEl) ncHotLunchSubEl.textContent = `${hlDayCount} day(s) • Avg ${Math.round(hlAvg)}/day`;
+            if (ncHotLunchSubEl) ncHotLunchSubEl.textContent = `${hlDays.size} day(s) • Avg ${Math.round(hlAvg)}/day`;
 
             if (ncFreeBreakfastTotalEl) ncFreeBreakfastTotalEl.textContent = String(Math.round(fbTotal));
             if (ncFreeBreakfastSubEl) ncFreeBreakfastSubEl.textContent = `${fbDays.size} day(s)`;
 
+            const pctHot = totalProd > 0 ? (hlTotal / totalProd) * 100 : 0;
+            const pctFree = totalProd > 0 ? (fbTotal / totalProd) * 100 : 0;
+
+            if (ncHotLunchPctEl) ncHotLunchPctEl.textContent = fmtPct1(pctHot);
+            if (ncFreeBreakfastPctEl) ncFreeBreakfastPctEl.textContent = fmtPct1(pctFree);
+
+            if (ncMixBarEl) ncMixBarEl.style.display = anyData ? '' : 'none';
+            if (ncLegendEl) ncLegendEl.style.display = anyData ? '' : 'none';
+            if (ncMixHotEl) ncMixHotEl.style.width = `${pctHot}%`;
+            if (ncMixFreeEl) ncMixFreeEl.style.width = `${pctFree}%`;
+            if (ncMixBarEl) ncMixBarEl.title = `Hot lunches ${fmtPct1(pctHot)} • Free breakfasts ${fmtPct1(pctFree)}`;
+
+            const avgActive = activeDays ? (totalProd / activeDays) : 0;
+            if (ncTotalProductionEl) ncTotalProductionEl.textContent = String(Math.round(totalProd));
+            if (ncTotalProductionSubEl) ncTotalProductionSubEl.textContent = `${activeDays} active day(s) • Avg ${Math.round(avgActive)}/day`;
+
+            // Peak day (total production)
+            let peak = { date: '', total: 0 };
+            datesWithEntries.forEach(d => {
+              if (d.total > peak.total) peak = { date: d.date, total: d.total };
+            });
+            if (ncPeakTotalEl) ncPeakTotalEl.textContent = String(Math.round(peak.total || 0));
+            if (ncPeakTotalSubEl) ncPeakTotalSubEl.textContent = peak.date ? fmtShortDate(peak.date) : '—';
+
+            // Render stacked daily bar chart
+            if (ncMonthlyChartEl) {
+              ncMonthlyChartEl.innerHTML = '';
+              const maxTotal = Math.max(0, ...datesWithEntries.map(d => d.total));
+              datesWithEntries.forEach(d => {
+                const row = document.createElement('div');
+                row.className = 'nc-row';
+
+                const left = document.createElement('div');
+                left.className = 'nc-date';
+                left.textContent = fmtShortDate(d.date);
+
+                const track = document.createElement('div');
+                track.className = 'nc-track';
+
+                const wrap = document.createElement('div');
+                wrap.style.display = 'flex';
+                wrap.style.height = '100%';
+                const w = (maxTotal > 0) ? (d.total / maxTotal) * 100 : 0;
+                wrap.style.width = `${w}%`;
+
+                const hotSeg = document.createElement('div');
+                hotSeg.className = 'nc-seg hot';
+                hotSeg.style.width = d.total ? `${(d.hl / d.total) * 100}%` : '0%';
+
+                const freeSeg = document.createElement('div');
+                freeSeg.className = 'nc-seg free';
+                freeSeg.style.width = d.total ? `${(d.fb / d.total) * 100}%` : '0%';
+
+                wrap.appendChild(hotSeg);
+                wrap.appendChild(freeSeg);
+                track.appendChild(wrap);
+
+                const right = document.createElement('div');
+                right.className = 'nc-total';
+                right.textContent = String(Math.round(d.total));
+
+                row.appendChild(left);
+                row.appendChild(track);
+                row.appendChild(right);
+
+                row.title = `Hot lunches ${Math.round(d.hl)} • Free breakfasts ${Math.round(d.fb)} • Total ${Math.round(d.total)}`;
+
+                ncMonthlyChartEl.appendChild(row);
+              });
+
+              if (ncMonthlyChartHintEl) {
+                ncMonthlyChartHintEl.style.display = anyData ? '' : 'none';
+                ncMonthlyChartHintEl.textContent = anyData
+                  ? `Daily total production for ${activeDays} day(s) with entries (stacked: hot lunches + free breakfasts).`
+                  : '';
+              }
+            }
+
             snapshotState.newcastleMonthly = {
               hotLunchTotal: Math.round(hlTotal),
-              hotLunchDays: hlDayCount,
-              hotLunchAvg: hlDayCount ? Math.round(hlAvg) : 0,
+              hotLunchDays: hlDays.size,
+              hotLunchAvg: hlDays.size ? Math.round(hlAvg) : 0,
               freeBreakfastTotal: Math.round(fbTotal),
-              freeBreakfastDays: fbDays.size
+              freeBreakfastDays: fbDays.size,
+              totalProduction: Math.round(totalProd),
+              activeDays: activeDays,
+              avgPerActiveDay: activeDays ? Math.round(avgActive) : 0,
+              peakDay: peak.date || null,
+              peakTotal: Math.round(peak.total || 0)
             };
           }
         }
