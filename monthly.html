@@ -180,6 +180,35 @@
     .metric-value { font-size: 18px; font-weight: 800; margin-top: 2px; }
     .metric-sub { font-size: 11px; color: rgba(255,255,255,0.62); margin-top: 2px; line-height: 1.25; }
 
+    /* Hospitality events mix bar */
+    .hosp-mixbar {
+      margin-top: 12px;
+      height: 12px;
+      border-radius: 999px;
+      overflow: hidden;
+      display: flex;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.10);
+    }
+    .hosp-mixseg { height: 100%; }
+    .hosp-mixseg.day { background: rgba(59,130,246,0.75); }
+    .hosp-mixseg.eve { background: rgba(16,185,129,0.70); }
+    .hosp-mixseg.plc { background: rgba(236,72,153,0.65); }
+    .hosp-mixlegend {
+      margin-top: 8px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      color: rgba(255,255,255,0.62);
+      font-size: 11px;
+    }
+    .hosp-mixkey { display: inline-flex; align-items: center; gap: 6px; }
+    .hosp-mixdot { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+    .hosp-mixdot.day { background: rgba(59,130,246,0.75); }
+    .hosp-mixdot.eve { background: rgba(16,185,129,0.70); }
+    .hosp-mixdot.plc { background: rgba(236,72,153,0.65); }
+
+
     .list { display: grid; gap: 8px; margin-top: 10px; }
     .list-item { background: rgba(0,0,0,0.22); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 10px; }
     .list-title {
@@ -564,6 +593,7 @@
               </div>
             </div>
           </div>
+
         </div>
       </div>
 
@@ -731,6 +761,18 @@
               <div class="metric-value" id="mHospTotal">0</div>
               <div class="metric-sub" id="mHospTotalPct">0%</div>
             </div>
+          </div>
+
+          <div class="hosp-mixbar" id="hospMixBar" title="Event mix (share of total)">
+            <div class="hosp-mixseg day" id="hospMixDay" style="width:0%"></div>
+            <div class="hosp-mixseg eve" id="hospMixEve" style="width:0%"></div>
+            <div class="hosp-mixseg plc" id="hospMixPlc" style="width:0%"></div>
+          </div>
+
+          <div class="hosp-mixlegend" id="hospMixLegend">
+            <span class="hosp-mixkey"><span class="hosp-mixdot day"></span>Day</span>
+            <span class="hosp-mixkey"><span class="hosp-mixdot eve"></span>Evening</span>
+            <span class="hosp-mixkey"><span class="hosp-mixdot plc"></span>Places</span>
           </div>
         </div>
       </div>
@@ -902,10 +944,16 @@ const maintEmptyEl = document.getElementById('maintEmpty');
     const mHospNightEl = document.getElementById('mHospNight');
     const mHospPlacesEl = document.getElementById('mHospPlaces');
     const mHospTotalEl = document.getElementById('mHospTotal');
+
     const mHospDayPctEl = document.getElementById('mHospDayPct');
     const mHospNightPctEl = document.getElementById('mHospNightPct');
     const mHospPlacesPctEl = document.getElementById('mHospPlacesPct');
     const mHospTotalPctEl = document.getElementById('mHospTotalPct');
+
+    const hospMixBarEl = document.getElementById('hospMixBar');
+    const hospMixDayEl = document.getElementById('hospMixDay');
+    const hospMixEveEl = document.getElementById('hospMixEve');
+    const hospMixPlcEl = document.getElementById('hospMixPlc');
 
     const specialsMonthlyEmptyEl = document.getElementById('specialsMonthlyEmpty');
     const specialsMonthlyListEl = document.getElementById('specialsMonthlyList');
@@ -981,7 +1029,12 @@ const finYtdEl = document.getElementById('finYtd');
       finance: null
     };
 
-    function safeNum(v) {
+    function fmtPct1(n) {
+      if (!isFinite(n) || n <= 0) return '0%';
+      return `${n.toFixed(1)}%`;
+    }
+
+function safeNum(v) {
       const n = Number(v);
       return Number.isFinite(n) ? n : 0;
     }
@@ -1918,15 +1971,27 @@ async function loadMonthlyRetailSales(startStr, endStr, site) {
           mHospPlacesEl.textContent = String(hospPlaces);
           mHospTotalEl.textContent = String(hospTotal);
 
-          const pct = (part, total) => (total > 0 ? ((part / total) * 100).toFixed(1) : '0.0') + '%';
-          if (mHospDayPctEl) mHospDayPctEl.textContent = pct(hospDay, hospTotal);
-          if (mHospNightPctEl) mHospNightPctEl.textContent = pct(hospNight, hospTotal);
-          if (mHospPlacesPctEl) mHospPlacesPctEl.textContent = pct(hospPlaces, hospTotal);
+          const pctDay = hospTotal > 0 ? (hospDay / hospTotal) * 100 : 0;
+          const pctEve = hospTotal > 0 ? (hospNight / hospTotal) * 100 : 0;
+          const pctPlc = hospTotal > 0 ? (hospPlaces / hospTotal) * 100 : 0;
+
+          if (mHospDayPctEl) mHospDayPctEl.textContent = fmtPct1(pctDay);
+          if (mHospNightPctEl) mHospNightPctEl.textContent = fmtPct1(pctEve);
+          if (mHospPlacesPctEl) mHospPlacesPctEl.textContent = fmtPct1(pctPlc);
           if (mHospTotalPctEl) mHospTotalPctEl.textContent = hospTotal > 0 ? '100%' : '0%';
+
+          if (hospMixDayEl) hospMixDayEl.style.width = `${pctDay}%`;
+          if (hospMixEveEl) hospMixEveEl.style.width = `${pctEve}%`;
+          if (hospMixPlcEl) hospMixPlcEl.style.width = `${pctPlc}%`;
+          if (hospMixBarEl) hospMixBarEl.title = `Day ${fmtPct1(pctDay)} • Evening ${fmtPct1(pctEve)} • Places ${fmtPct1(pctPlc)}`;
 
           const hasAny = hospRows.length > 0 && hospTotal > 0;
           hospEventsEmptyEl.style.display = hasAny ? 'none' : '';
           hospEventsMetricsEl.style.display = hasAny ? '' : 'none';
+
+          if (hospMixBarEl) hospMixBarEl.style.display = hasAny ? '' : 'none';
+          const hospMixLegendEl = document.getElementById('hospMixLegend');
+          if (hospMixLegendEl) hospMixLegendEl.style.display = hasAny ? '' : 'none';
 
           snapshotState.hospEvents = { day: hospDay, night: hospNight, places: hospPlaces, total: hospTotal };
         } else {
