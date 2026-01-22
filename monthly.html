@@ -882,6 +882,46 @@
             <span class="hosp-mixkey"><span class="hosp-mixdot plc"></span>Places</span>
           </div>
         </div>
+
+        <!-- Staff Meals + Wastage -->
+        <div class="card" id="staffMealsCard" style="display:none;">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Staff Meals (Monthly)</div>
+              <div class="card-subtitle">Estimated meal cost based on trading days and fixed assumptions.</div>
+            </div>
+            <div class="pill" id="staffMealsPill">London</div>
+          </div>
+
+          <div class="metric-row" style="grid-template-columns: 1fr;">
+            <div class="metric">
+              <div class="metric-label">Total Staff Meal Cost</div>
+              <div class="metric-value" id="staffMealsTotal">£0.00</div>
+              <div class="metric-sub" id="staffMealsMeta">0 staff/day • 0 trading day(s) • £0.00 cost/person/day</div>
+              <div class="metric-sub" id="staffMealsMeta2">Meal value £0.00 pp/day • Cost rate 0% • Total meal value £0.00</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" id="wastageCard" style="display:none;">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Wastage (Monthly)</div>
+              <div class="card-subtitle">Fixed wastage % applied to London retail sales.</div>
+            </div>
+            <div class="pill" id="wastagePill">London</div>
+          </div>
+
+          <div class="metric-row" style="grid-template-columns: 1fr;">
+            <div class="metric">
+              <div class="metric-label">Wastage Cost</div>
+              <div class="metric-value" id="wastageTotal">£0.00</div>
+              <div class="metric-sub" id="wastageMeta">Wastage 0% • Retail sales £0.00</div>
+            </div>
+          </div>
+        </div>
+
+
       </div>
 
 
@@ -1029,6 +1069,15 @@
   <script type="module">
     import { supabase } from './supabase-config.js';
 
+    // --- Monthly Finance Controls (fixed assumptions) ---
+    // Staff meals: value per person per day (£) and cost rate (food cost % of value)
+    const STAFF_PER_DAY = 33;
+    const STAFF_MEAL_VALUE_PP_DAY = 14.00;
+    const STAFF_MEAL_COST_RATE = 0.44; // 44%
+
+    // Wastage: fixed % of London retail sales (update as agreed)
+    const WASTAGE_PCT_LONDON = 0.03; // 3.0%
+
     const errorMessageEl = document.getElementById('errorMessage');
 
     const prevMonthBtn = document.getElementById('prevMonthBtn');
@@ -1075,6 +1124,15 @@ const maintEmptyEl = document.getElementById('maintEmpty');
     const mHospNightEl = document.getElementById('mHospNight');
     const mHospPlacesEl = document.getElementById('mHospPlaces');
     const mHospTotalEl = document.getElementById('mHospTotal');
+    const staffMealsCardEl = document.getElementById('staffMealsCard');
+    const staffMealsTotalEl = document.getElementById('staffMealsTotal');
+    const staffMealsMetaEl = document.getElementById('staffMealsMeta');
+    const staffMealsMeta2El = document.getElementById('staffMealsMeta2');
+
+    const wastageCardEl = document.getElementById('wastageCard');
+    const wastageTotalEl = document.getElementById('wastageTotal');
+    const wastageMetaEl = document.getElementById('wastageMeta');
+
 
     const mHospDayPctEl = document.getElementById('mHospDayPct');
     const mHospNightPctEl = document.getElementById('mHospNightPct');
@@ -1170,13 +1228,24 @@ const finYtdEl = document.getElementById('finYtd');
       staffing: { sick: 0, holiday: 0 },
       incidents: { maintenance: 0, hs: 0 },
       finance: null
-    };
+    ,
+      staffMeals: null,
+      wastage: null
+};
 
     function fmtPct1(n) {
       if (!isFinite(n) || n <= 0) return '0%';
       return `${n.toFixed(1)}%`;
     }
 
+
+    function fmtGBP(n) {
+      const v = Number(n);
+      const safe = Number.isFinite(v) ? v : 0;
+      const sign = safe < 0 ? '-' : '';
+      const abs = Math.abs(safe);
+      return `${sign}£${abs.toFixed(2)}`;
+    }
     function fmtShortDate(iso){
       // iso: YYYY-MM-DD
       if(!iso) return '—';
@@ -1964,6 +2033,31 @@ async function loadMonthlyRetailSales(startStr, endStr, site) {
       return totals;
     }
 
+
+
+    async function loadLondonRetailSalesAndTradingDays(startStr, endStr) {
+      let q = supabase
+        .from('retail_sales')
+        .select('sales_date, sales')
+        .gte('sales_date', startStr)
+        .lte('sales_date', endStr)
+        .eq('site', 'London');
+
+      const { data, error } = await q;
+      if (error) throw error;
+
+      let totalSales = 0;
+      const days = new Set();
+
+      (data || []).forEach(r => {
+        const d = (r.sales_date || '').toString().slice(0,10);
+        if (d) days.add(d);
+        totalSales += safeNum(r.sales);
+      });
+
+      return { totalSales, tradingDays: days.size };
+    }
+
     
     function renderRetailSales(totals) {
       const sph = calcSPH(totals.allSales, totals.allTrans);
@@ -2158,6 +2252,36 @@ async function loadMonthlyRetailSales(startStr, endStr, site) {
           snapshotState.hospEvents = { day: hospDay, night: hospNight, places: hospPlaces, total: hospTotal };
         } else {
           snapshotState.hospEvents = null;
+        }
+
+
+        // Staff Meals + Wastage (London only; shown for London / All Sites)
+        const showLondonRollups = site === 'London' || site === 'All';
+        if (staffMealsCardEl) staffMealsCardEl.style.display = showLondonRollups ? '' : 'none';
+        if (wastageCardEl) wastageCardEl.style.display = showLondonRollups ? '' : 'none';
+
+        if (showLondonRollups) {
+          const { totalSales: londonRetailSales, tradingDays } = await loadLondonRetailSalesAndTradingDays(startStr, endStr);
+
+          // Staff meals
+          const costPerPersonPerDay = STAFF_MEAL_VALUE_PP_DAY * STAFF_MEAL_COST_RATE;
+          const totalMealValue = STAFF_PER_DAY * tradingDays * STAFF_MEAL_VALUE_PP_DAY;
+          const totalMealCost = STAFF_PER_DAY * tradingDays * costPerPersonPerDay;
+
+          if (staffMealsTotalEl) staffMealsTotalEl.textContent = fmtGBP(totalMealCost);
+          if (staffMealsMetaEl) staffMealsMetaEl.textContent = `${STAFF_PER_DAY} staff/day • ${tradingDays} trading day(s) • ${fmtGBP(costPerPersonPerDay)} cost/person/day`;
+          if (staffMealsMeta2El) staffMealsMeta2El.textContent = `Meal value ${fmtGBP(STAFF_MEAL_VALUE_PP_DAY)} pp/day • Cost rate ${(STAFF_MEAL_COST_RATE*100).toFixed(0)}% • Total meal value ${fmtGBP(totalMealValue)}`;
+
+          // Wastage
+          const wastageCost = londonRetailSales * WASTAGE_PCT_LONDON;
+          if (wastageTotalEl) wastageTotalEl.textContent = fmtGBP(wastageCost);
+          if (wastageMetaEl) wastageMetaEl.textContent = `Wastage ${(WASTAGE_PCT_LONDON*100).toFixed(1)}% • Retail sales ${fmtGBP(londonRetailSales)}`;
+
+          snapshotState.staffMeals = { staffPerDay: STAFF_PER_DAY, tradingDays, valuePerPersonPerDay: STAFF_MEAL_VALUE_PP_DAY, costRate: STAFF_MEAL_COST_RATE, totalValue: totalMealValue, totalCost: totalMealCost };
+          snapshotState.wastage = { pct: WASTAGE_PCT_LONDON, retailSales: londonRetailSales, cost: wastageCost };
+        } else {
+          snapshotState.staffMeals = null;
+          snapshotState.wastage = null;
         }
 
 
