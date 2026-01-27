@@ -498,6 +498,39 @@
       });
     }
 
+
+    async function compressImageFile(file, maxDim = 1600, quality = 0.75) {
+      try {
+        if (!file || !file.type || !file.type.startsWith('image/')) return file;
+        // Avoid re-encoding GIFs (animation)
+        if (file.type === 'image/gif') return file;
+
+        const bmp = await createImageBitmap(file);
+        const w = bmp.width;
+        const h = bmp.height;
+
+        const scale = Math.min(1, maxDim / Math.max(w, h));
+        const nw = Math.max(1, Math.round(w * scale));
+        const nh = Math.max(1, Math.round(h * scale));
+
+        const canvas = document.createElement('canvas');
+        canvas.width = nw;
+        canvas.height = nh;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(bmp, 0, 0, nw, nh);
+
+        const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', quality));
+        if (!blob) return file;
+
+        const baseName = (file.name || 'photo').replace(/\.[^.]+$/, '');
+        return new File([blob], `${baseName}.jpg`, { type: 'image/jpeg' });
+      } catch (e) {
+        console.warn('Image compression failed, uploading original:', e);
+        return file;
+      }
+    }
+
+
     if (photoFileInput) {
       photoFileInput.addEventListener('change', () => {
         selectedPhotoFiles = Array.from(photoFileInput.files || []).slice(0, 10);
@@ -863,8 +896,9 @@
 
         const uploaded = [];
         for (let i = 0; i < selectedPhotoFiles.length; i++) {
-          const file = selectedPhotoFiles[i];
-          const ext = file.name.includes('.') ? file.name.split('.').pop() : 'jpg';
+          const originalFile = selectedPhotoFiles[i];
+          const file = await compressImageFile(originalFile);
+          const ext = 'jpg';
           const path = `${safeSite}/${safeArea}/${logId}/${logDateValue}_${i+1}_${timestamp}.${ext}`;
 
           const { data: uploadData, error: uploadError } = await supabase

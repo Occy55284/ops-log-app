@@ -1304,6 +1304,36 @@
       return data || [];
     }
 
+
+    async function loadPhotosByLogId(logIds) {
+      try {
+        const ids = Array.from(new Set((logIds || []).filter(v => v !== null && v !== undefined)));
+        if (!ids.length) return {};
+        const { data, error } = await supabase
+          .from('ops_log_photos')
+          .select('log_id, photo_url, created_at')
+          .in('log_id', ids)
+          .order('created_at', { ascending: true });
+
+        if (error) {
+          console.warn('Could not load ops_log_photos:', error);
+          return {};
+        }
+
+        const map = {};
+        for (const row of (data || [])) {
+          const key = row.log_id;
+          if (!map[key]) map[key] = [];
+          if (row.photo_url) map[key].push(row.photo_url);
+        }
+        return map;
+      } catch (e) {
+        console.warn('Could not load ops_log_photos:', e);
+        return {};
+      }
+    }
+
+
     async function loadWeeklyRetailSales(startDateStr, endDateStr) {
       const { data, error } = await supabase
         .from('retail_sales')
@@ -2079,6 +2109,10 @@
 
         // store full weekly rows for drilldown
         opsRowsWeekAll = opsRowsRaw || [];
+
+
+        // Load multi-photo gallery (ops_log_photos)
+        const photosByLogId = await loadPhotosByLogId((opsRowsRaw || []).map(r => r.id));
 
         const site = siteFilterEl.value;
         const area = areaFilterEl.value;
