@@ -246,9 +246,10 @@
     <div class="section-heading">Photo (optional)</div>
     <div class="photo-block">
       <label for="photoFile">Attach a photo from today (optional):</label>
-      <input id="photoFile" type="file" accept="image/*" />
+      <input id="photoFile" type="file" accept="image/*" multiple />
+      <div id="photoPreview" class="photo-preview"></div>
       <div class="small-label">
-        You can leave this blank if you don't need a photo.
+        You can select multiple photos. You can leave this blank if you don't need a photo.
       </div>
     </div>
 
@@ -473,6 +474,37 @@
     const logDayLabelEl = document.getElementById('logDayLabel');
 
     const photoFileInput = document.getElementById('photoFile');
+    const photoPreviewEl = document.getElementById('photoPreview');
+    let selectedPhotoFiles = [];
+
+    function renderPhotoPreview(){
+      if(!photoPreviewEl) return;
+      photoPreviewEl.innerHTML = '';
+      selectedPhotoFiles.forEach((f, idx) => {
+        const url = URL.createObjectURL(f);
+        const wrap = document.createElement('div');
+        wrap.className = 'p';
+        wrap.innerHTML = `<img src="${url}" alt="Photo ${idx+1}" />`;
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.textContent = '×';
+        btn.addEventListener('click', () => {
+          selectedPhotoFiles.splice(idx, 1);
+          if(photoFileInput) photoFileInput.value = '';
+          renderPhotoPreview();
+        });
+        wrap.appendChild(btn);
+        photoPreviewEl.appendChild(wrap);
+      });
+    }
+
+    if (photoFileInput) {
+      photoFileInput.addEventListener('change', () => {
+        selectedPhotoFiles = Array.from(photoFileInput.files || []).slice(0, 10);
+        renderPhotoPreview();
+      });
+    }
+
 
     const sicknessCountEl = document.getElementById('sicknessCount');
     const sicknessNotesWrapper = document.getElementById('sicknessNotesWrapper');
@@ -765,37 +797,7 @@
       saveMessage.textContent = 'Saving...';
 
       let photoUrl = null;
-
-      if (photoFileInput && photoFileInput.files && photoFileInput.files[0]) {
-        const file = photoFileInput.files[0];
-
-        const ext = file.name.includes('.') ? file.name.split('.').pop() : 'jpg';
-        const safeSite = (site || 'Unknown').replace(/\s+/g, '-');
-        const safeArea = (effectiveArea || 'All').replace(/\s+/g, '-');
-        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-        const path = `${safeSite}/${safeArea}/${logDateValue}_${timestamp}.${ext}`;
-
-        const { data: uploadData, error: uploadError } = await supabase
-          .storage
-          .from('ops-photos')
-          .upload(path, file, {
-            cacheControl: '3600',
-            upsert: false
-          });
-
-        if (uploadError) {
-          console.error('Photo upload error:', uploadError);
-          saveMessage.textContent = `Photo upload failed: ${uploadError.message}`;
-          return;
-        }
-
-        const { data: publicUrlData } = supabase
-          .storage
-          .from('ops-photos')
-          .getPublicUrl(uploadData.path);
-
-        photoUrl = publicUrlData?.publicUrl || null;
-      }
+      // Multi-photo support: we insert the log first, then upload photos against the new log_id.
 
       const { data, error } = await supabase
         .from('ops_logs')
@@ -805,7 +807,7 @@
             site: site,
             area: effectiveArea,
             notes: notes || null,
-            photo_url: photoUrl,
+            photo_url: null,
 
             sickness_count: sicknessCount,
             sickness_notes: sicknessNotes || null,
@@ -840,12 +842,79 @@
             hosp_night_events: hospNightEvents,
             hosp_places_events: hospPlacesEvents
           }
-        ]);
+        ])
+        .select('id')
+        .single();
 
       if (error) {
         console.error('Insert error:', error);
         saveMessage.textContent = `Could not save: ${error.message}`;
         return;
+      }
+
+      
+      const logId = data?.id;
+
+      // Upload photos (optional)
+      if (logId && Array.isArray(selectedPhotoFiles) && selectedPhotoFiles.length) {
+        const safeSite = (site || 'Unknown').replace(/\s+/g, '-');
+        const safeArea = (effectiveArea || 'All').replace(/\s+/g, '-');
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+
+        const uploaded = [];
+        for (let i = 0; i < selectedPhotoFiles.length; i++) {
+          const file = selectedPhotoFiles[i];
+          const ext = file.name.includes('.') ? file.name.split('.').pop() : 'jpg';
+          const path = `${safeSite}/${safeArea}/${logId}/${logDateValue}_${i+1}_${timestamp}.${ext}`;
+
+          const { data: uploadData, error: uploadError } = await supabase
+            .storage
+            .from('ops-photos')
+            .upload(path, file, { cacheControl: '3600', upsert: false });
+
+          if (uploadError) {
+            console.error('Photo upload error:', uploadError);
+            saveMessage.textContent = `Photo upload failed: ${uploadError.message}`;
+            return;
+          }
+
+          const { data: publicUrlData } = supabase
+            .storage
+            .from('ops-photos')
+            .getPublicUrl(uploadData.path);
+
+          const publicUrl = publicUrlData?.publicUrl || null;
+          if (publicUrl) {
+            uploaded.push({ log_id: logId, photo_url: publicUrl, storage_path: uploadData.path });
+          }
+        }
+
+        if (uploaded.length) {
+          // Store all photos in ops_log_photos
+          const { error: photosErr } = await supabase
+            .from('ops_log_photos')
+            .insert(uploaded);
+
+          if (photosErr) {
+            console.error('ops_log_photos insert error:', photosErr);
+            saveMessage.textContent = `Saved log, but photo linking failed: ${photosErr.message}`;
+            return;
+          }
+
+          // Backward compatibility: set ops_logs.photo_url to the first photo
+          const firstUrl = uploaded[0]?.photo_url || null;
+          if (firstUrl) {
+            const { error: updErr } = await supabase
+              .from('ops_logs')
+              .update({ photo_url: firstUrl })
+              .eq('id', logId);
+
+            if (updErr) {
+              console.warn('Could not update ops_logs.photo_url:', updErr);
+              // Not fatal — photos still exist in ops_log_photos
+            }
+          }
+        }
       }
 
       // Clear fields after successful save (we leave log date as-is)
@@ -874,6 +943,8 @@
       if (photoFileInput) {
         photoFileInput.value = '';
       }
+      selectedPhotoFiles = [];
+      if (photoPreviewEl) photoPreviewEl.innerHTML = '';
 
       updateVisibility();
 

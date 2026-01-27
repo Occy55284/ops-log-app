@@ -925,6 +925,7 @@
       </div>
       <div class="modal-body">
         <img id="modalImg" alt="Photo" />
+        <div id="modalThumbs" class="modal-thumbs"></div>
         <div id="modalNotes" class="modal-notes"></div>
       </div>
     </div>
@@ -2088,7 +2089,7 @@
         // KPIs
         kpiTotalLogsEl.textContent = String(opsRows.length);
 
-        const withPhotos = opsRows.filter(r => !!safeText(r.photo_url));
+        const withPhotos = opsRows.filter(r => (photosByLogId[r.id] && photosByLogId[r.id].length) || !!safeText(r.photo_url));
         kpiPhotosEl.textContent = String(withPhotos.length);
 
         // Incidents
@@ -2206,12 +2207,32 @@
             const div = document.createElement('div');
             div.className = 'thumb';
             div.innerHTML = `
-              <img src="${r.photo_url}" alt="Photo" />
+              <img src="${(photosByLogId[r.id] && photosByLogId[r.id][0]) ? photosByLogId[r.id][0] : r.photo_url}" alt="Photo" />
               <div class="cap">${cap}</div>
+              ${(photosByLogId[r.id] && photosByLogId[r.id].length > 1) ? `<div class="badge">${photosByLogId[r.id].length}</div>` : ``}
             `;
             div.addEventListener('click', () => {
               modalTitleEl.textContent = cap || 'Photo';
-              modalImgEl.src = r.photo_url;
+              const urls = (photosByLogId[r.id] && photosByLogId[r.id].length) ? photosByLogId[r.id] : (r.photo_url ? [r.photo_url] : []);
+              let currentIdx = 0;
+              modalImgEl.src = urls[0] || '';
+              if (modalThumbsEl) {
+                modalThumbsEl.innerHTML = '';
+                urls.forEach((u, idx) => {
+                  const t = document.createElement('img');
+                  t.src = u;
+                  t.alt = `Photo ${idx+1}`;
+                  if (idx === 0) t.classList.add('active');
+                  t.addEventListener('click', () => {
+                    currentIdx = idx;
+                    modalImgEl.src = urls[currentIdx] || '';
+                    Array.from(modalThumbsEl.querySelectorAll('img')).forEach((imgEl, i2) => {
+                      imgEl.classList.toggle('active', i2 === currentIdx);
+                    });
+                  });
+                  modalThumbsEl.appendChild(t);
+                });
+              }
               modalNotesEl.textContent = notesTxt || '';
               photoModalEl.classList.add('open');
             });
