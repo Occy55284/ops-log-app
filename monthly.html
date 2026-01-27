@@ -2167,41 +2167,92 @@ async function loadMonthlyRetailSales(startStr, endStr, site) {
       return out;
     }
 
-    function renderPhotos(opsRows) {
-      const photos = (opsRows || [])
-        .filter(r => !!r.photo_url)
-        .map(r => {
-          const d = (r.log_date || (r.created_at ? String(r.created_at).slice(0,10) : '')).slice(0,10);
-          return {
-            url: r.photo_url,
-            date: d || '—',
-            site: r.site || '—',
-            area: r.area || '—'
-          };
-        });
+    
+    function renderPhotos(opsRows, photosByLogId = {}) {
+      // Build a flat list of photos from either legacy ops_logs.photo_url or multi-photo ops_log_photos
+      const out = [];
+      (opsRows || []).forEach(r => {
+        const d = (r.log_date || (r.created_at ? String(r.created_at).slice(0,10) : '')).slice(0,10) || '—';
+        const meta = `${d} • ${r.site || '—'}${r.area ? ' • ' + r.area : ''}`;
 
-      if (!photos.length) {
+        const urls = (photosByLogId && photosByLogId[r.id] && photosByLogId[r.id].length)
+          ? photosByLogId[r.id]
+          : (r.photo_url ? [r.photo_url] : []);
+
+        urls.forEach((u, idx) => {
+          if (!u) return;
+          out.push({
+            url: u,
+            meta,
+            date: d,
+            site: r.site || '—',
+            area: r.area || '—',
+            logId: r.id,
+            idx,
+            count: urls.length
+          });
+        });
+      });
+
+      if (!out.length) {
         photosEmptyEl.style.display = 'block';
         photosGridEl.innerHTML = '';
         return;
       }
 
       photosEmptyEl.style.display = 'none';
-      photos.sort((a,b) => (a.date < b.date ? -1 : 1));
+      out.sort((a,b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
 
-      photosGridEl.innerHTML = photos.map(p => `
-        <div class="photo-card" data-url="${p.url}" data-meta="${p.date} • ${p.site} • ${p.area}">
+      photosGridEl.innerHTML = out.map(p => `
+        <div class="photo-card" data-logid="${p.logId}" data-idx="${p.idx}" data-meta="${p.meta}">
           <img src="${p.url}" alt="Ops photo" />
-          <div class="photo-card-caption">${p.date}<br/>${p.site}${p.area ? ' • ' + p.area : ''}</div>
+          <div class="photo-card-caption">${p.date}<br/>${p.site}${p.area ? ' • ' + p.area : ''}${p.count > 1 ? ` • ${p.idx+1}/${p.count}` : ''}</div>
         </div>
       `).join('');
 
+      // Delegated click: open modal and allow browsing all photos for that log
       photosGridEl.querySelectorAll('.photo-card').forEach(el => {
-        el.addEventListener('click', () => {
-          const url = el.getAttribute('data-url');
+        el.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const logId = Number(el.getAttribute('data-logid'));
+          const startIdx = Number(el.getAttribute('data-idx') || '0');
           const meta = el.getAttribute('data-meta') || '';
-          photoModalImgEl.src = url;
+
+          const urls = (photosByLogId && photosByLogId[logId] && photosByLogId[logId].length)
+            ? photosByLogId[logId]
+            : [];
+
+          // Fallback: if multi list missing, use the clicked image src
+          const fallbackUrl = el.querySelector('img')?.getAttribute('src') || '';
+          const list = urls.length ? urls : (fallbackUrl ? [fallbackUrl] : []);
+
+          let currentIdx = Math.min(Math.max(startIdx, 0), Math.max(list.length - 1, 0));
+          photoModalImgEl.src = list[currentIdx] || '';
           photoModalMetaEl.textContent = meta;
+
+          // thumbs
+          const thumbsEl = document.getElementById('photoModalThumbs');
+          if (thumbsEl) {
+            thumbsEl.innerHTML = '';
+            list.forEach((u, i) => {
+              const t = document.createElement('img');
+              t.src = u;
+              t.alt = `Photo ${i+1}`;
+              if (i === currentIdx) t.classList.add('active');
+              t.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                currentIdx = i;
+                photoModalImgEl.src = list[currentIdx] || '';
+                Array.from(thumbsEl.querySelectorAll('img')).forEach((im, j) => {
+                  im.classList.toggle('active', j === currentIdx);
+                });
+              });
+              thumbsEl.appendChild(t);
+            });
+          }
+
           photoModalEl.classList.add('open');
         });
       });
