@@ -925,7 +925,6 @@
       </div>
       <div class="modal-body">
         <img id="modalImg" alt="Photo" />
-        <div id="modalThumbs" class="modal-thumbs"></div>
         <div id="modalNotes" class="modal-notes"></div>
       </div>
     </div>
@@ -1282,49 +1281,990 @@
         const div = document.createElement('div');
         div.className = 'list-item';
         div.innerHTML = `
-              <img src="${(photosByLogId[r.id] && photosByLogId[r.id][0]) ? photosByLogId[r.id][0] : r.photo_url}" alt="Photo" />
+          <div class="list-title">
+            <span>${it.title}</span>
+            ${it.badge ? `<span class="badge">${it.badge}</span>` : ``}
+          </div>
+          <div class="list-notes">${(it.notes || '').replace(/</g, '&lt;')}</div>
+        `;
+        containerEl.appendChild(div);
+      });
+    }
+
+    async function loadWeeklyOpsLogs(startDateStr, endDateStr) {
+      const { data, error } = await supabase
+        .from('ops_logs')
+        .select('*')
+        .or(`and(log_date.gte.${startDateStr},log_date.lte.${endDateStr}),and(log_date.is.null,created_at.gte.${startDateStr}T00:00:00Z,created_at.lte.${endDateStr}T23:59:59Z)`)
+        .order('log_date', { ascending: true })
+        .order('created_at', { ascending: true });
+
+      if (error) throw error;
+      return data || [];
+    }
+
+    async function loadWeeklyRetailSales(startDateStr, endDateStr) {
+      const { data, error } = await supabase
+        .from('retail_sales')
+        .select('*')
+        .gte('sales_date', startDateStr)
+        .lte('sales_date', endDateStr)
+        .order('sales_date', { ascending: true })
+        .order('level', { ascending: true });
+
+      if (error) throw error;
+      return data || [];
+    }
+
+    function aggregateSalesByLevel(rows) {
+      const levels = ['Level 7', 'Level 5', 'Level 4', 'Level 3'];
+      const map = new Map();
+      levels.forEach(l => map.set(l, { sales: 0, tx: 0 }));
+
+      for (const r of (rows || [])) {
+        const lvl = (r.level || '').toString();
+        if (!map.has(lvl)) continue;
+        const agg = map.get(lvl);
+        agg.sales += safeNum(r.sales);
+        agg.tx += safeNum(r.transactions);
+      }
+      return map;
+    }
+
+    function computeRetailSalesDaily(rows, weekStartStr) {
+      const start = new Date(weekStartStr + 'T00:00:00');
+      const dayKeys = [];
+      for (let i = 0; i < 5; i++) dayKeys.push(toISODate(addDays(start, i)));
+
+      const levels = ['Level 7', 'Level 5', 'Level 4', 'Level 3'];
+      const totalsByLevel = {};
+      levels.forEach(l => totalsByLevel[l] = new Map(dayKeys.map(d => [d, 0])));
+
+      for (const r of (rows || [])) {
+        const d = (r.sales_date || '').toString().slice(0, 10);
+        const lvl = (r.level || '').toString();
+        if (!dayKeys.includes(d)) continue;
+        if (!totalsByLevel[lvl]) continue;
+        totalsByLevel[lvl].set(d, (totalsByLevel[lvl].get(d) || 0) + safeNum(r.sales));
+      }
+
+      const labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+
+      const dayTotalsByLevel = {
+        'Level 7': dayKeys.map(d => totalsByLevel['Level 7'].get(d) || 0),
+        'Level 5': dayKeys.map(d => totalsByLevel['Level 5'].get(d) || 0),
+        'Level 4': dayKeys.map(d => totalsByLevel['Level 4'].get(d) || 0),
+        'Level 3': dayKeys.map(d => totalsByLevel['Level 3'].get(d) || 0),
+      };
+
+      const dailyGrand = dayKeys.map((_, i) =>
+        dayTotalsByLevel['Level 7'][i] +
+        dayTotalsByLevel['Level 5'][i] +
+        dayTotalsByLevel['Level 4'][i] +
+        dayTotalsByLevel['Level 3'][i]
+      );
+
+      const avgGrand = dailyGrand.reduce((s, v) => s + v, 0) / 5;
+
+      return { labels, dayKeys, dayTotalsByLevel, dailyGrand, avgGrand };
+    }
+
+    function scaleCanvasToDisplaySize(canvas) {
+      const rect = canvas.getBoundingClientRect();
+      const dpr = Math.max(1, window.devicePixelRatio || 1);
+      const width = Math.floor(rect.width * dpr);
+      const height = Math.floor(rect.height * dpr);
+      if (canvas.width !== width || canvas.height !== height) {
+        canvas.width = width;
+        canvas.height = height;
+        return true;
+      }
+      return false;
+    }
+
+    function drawHotLunchChart(labels, values, avg, weekRangeText) {
+      if (!hotLunchChartEl) return;
+
+      scaleCanvasToDisplaySize(hotLunchChartEl);
+      const ctx = hotLunchChartEl.getContext('2d');
+      const w = hotLunchChartEl.width;
+      const h = hotLunchChartEl.height;
+
+      ctx.clearRect(0, 0, w, h);
+
+      const padL = Math.floor(w * 0.06);
+      const padR = Math.floor(w * 0.03);
+      const padT = Math.floor(h * 0.10);
+      const padB = Math.floor(h * 0.18);
+
+      const plotW = w - padL - padR;
+      const plotH = h - padT - padB;
+
+      const maxV = Math.max(1, ...values, avg || 0);
+      const yMax = maxV * 1.15;
+
+      function yFor(v) {
+        return padT + (plotH - (v / yMax) * plotH);
+      }
+
+      ctx.strokeStyle = CHART_COLORS.grid;
+      ctx.lineWidth = 1;
+      const gridCount = 4;
+      for (let i = 0; i <= gridCount; i++) {
+        const y = padT + (plotH / gridCount) * i;
+        ctx.beginPath();
+        ctx.moveTo(padL, y);
+        ctx.lineTo(padL + plotW, y);
+        ctx.stroke();
+      }
+
+      const n = values.length;
+      const gap = Math.floor(plotW * 0.03);
+      const barW = Math.floor((plotW - gap * (n - 1)) / n);
+
+      for (let i = 0; i < n; i++) {
+        const v = values[i] || 0;
+        const x = padL + i * (barW + gap);
+        const y = yFor(v);
+        const bh = (padT + plotH) - y;
+
+        ctx.fillStyle = CHART_COLORS.lvl7Fill;
+        ctx.fillRect(x, y, barW, bh);
+
+        ctx.strokeStyle = CHART_COLORS.lvl7Stroke;
+        ctx.strokeRect(x + 0.5, y + 0.5, barW - 1, bh - 1);
+
+        ctx.fillStyle = CHART_COLORS.textMain;
+        ctx.font = `${Math.floor(h * 0.06)}px system-ui, -apple-system, Segoe UI, sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'bottom';
+        ctx.fillText(String(Math.round(v)), x + barW / 2, y - 6);
+
+        ctx.fillStyle = CHART_COLORS.textSub;
+        ctx.font = `${Math.floor(h * 0.055)}px system-ui, -apple-system, Segoe UI, sans-serif`;
+        ctx.textBaseline = 'top';
+        ctx.fillText(labels[i] || '', x + barW / 2, padT + plotH + 10);
+      }
+
+      const yAvg = yFor(avg || 0);
+      ctx.strokeStyle = CHART_COLORS.lvl4Stroke;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(padL, yAvg);
+      ctx.lineTo(padL + plotW, yAvg);
+      ctx.stroke();
+
+      ctx.fillStyle = CHART_COLORS.lvl4Stroke;
+      ctx.font = `${Math.floor(h * 0.055)}px system-ui, -apple-system, Segoe UI, sans-serif`;
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'bottom';
+      ctx.fillText(`Avg ${Math.round(avg || 0)}`, padL + 6, yAvg - 6);
+
+      if (weekRangeText) {
+        ctx.fillStyle = CHART_COLORS.labelSoft;
+        ctx.font = `${Math.floor(h * 0.05)}px system-ui, -apple-system, Segoe UI, sans-serif`;
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'top';
+        ctx.fillText(weekRangeText, padL + plotW, 8);
+      }
+    }
+
+    function drawRetailSalesChart(labels, dayTotalsByLevel, dailyGrand, avgGrand, weekRangeText) {
+      if (!retailSalesChartEl) return;
+
+      scaleCanvasToDisplaySize(retailSalesChartEl);
+      const ctx = retailSalesChartEl.getContext('2d');
+      const w = retailSalesChartEl.width;
+      const h = retailSalesChartEl.height;
+
+      ctx.clearRect(0, 0, w, h);
+
+      const padL = Math.floor(w * 0.06);
+      const padR = Math.floor(w * 0.03);
+      const padT = Math.floor(h * 0.10);
+      const padB = Math.floor(h * 0.18);
+
+      const plotW = w - padL - padR;
+      const plotH = h - padT - padB;
+
+      const maxV = Math.max(1, ...(dailyGrand || [0]), avgGrand || 0);
+      const yMax = maxV * 1.15;
+
+      function yFor(v) {
+        return padT + (plotH - (v / yMax) * plotH);
+      }
+
+      ctx.strokeStyle = CHART_COLORS.grid;
+      ctx.lineWidth = 1;
+      const gridCount = 4;
+      for (let i = 0; i <= gridCount; i++) {
+        const y = padT + (plotH / gridCount) * i;
+        ctx.beginPath();
+        ctx.moveTo(padL, y);
+        ctx.lineTo(padL + plotW, y);
+        ctx.stroke();
+      }
+
+      const n = labels.length;
+      const gap = Math.floor(plotW * 0.03);
+      const barW = Math.floor((plotW - gap * (n - 1)) / n);
+
+      const lvl7 = dayTotalsByLevel['Level 7'] || [0,0,0,0,0];
+      const lvl5 = dayTotalsByLevel['Level 5'] || [0,0,0,0,0];
+      const lvl4 = dayTotalsByLevel['Level 4'] || [0,0,0,0,0];
+      const lvl3 = dayTotalsByLevel['Level 3'] || [0,0,0,0,0];
+
+      for (let i = 0; i < n; i++) {
+        const x = padL + i * (barW + gap);
+
+        const v7 = lvl7[i] || 0;
+        const v5 = lvl5[i] || 0;
+        const v4 = lvl4[i] || 0;
+        const v3 = lvl3[i] || 0;
+        const total = v7 + v5 + v4 + v3;
+
+        let yBottom = padT + plotH;
+
+        function drawSeg(val, fill, stroke) {
+          if (val <= 0) return;
+          const segH = (val / yMax) * plotH;
+          const yTop = yBottom - segH;
+
+          ctx.fillStyle = fill;
+          ctx.fillRect(x, yTop, barW, segH);
+
+          ctx.strokeStyle = stroke;
+          ctx.strokeRect(x + 0.5, yTop + 0.5, barW - 1, Math.max(0, segH - 1));
+
+          yBottom = yTop;
+        }
+
+        drawSeg(v3, CHART_COLORS.lvl3Fill, CHART_COLORS.lvl3Stroke);
+        drawSeg(v4, CHART_COLORS.lvl4Fill, CHART_COLORS.lvl4Stroke);
+        drawSeg(v5, CHART_COLORS.lvl5Fill, CHART_COLORS.lvl5Stroke);
+        drawSeg(v7, CHART_COLORS.lvl7Fill, CHART_COLORS.lvl7Stroke);
+
+        const yTopOfBar = yFor(total);
+        ctx.fillStyle = CHART_COLORS.textMain;
+        ctx.font = `${Math.floor(h * 0.055)}px system-ui, -apple-system, Segoe UI, sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'bottom';
+        ctx.fillText(`£${Math.round(total)}`, x + barW / 2, yTopOfBar - 6);
+
+        ctx.fillStyle = CHART_COLORS.textSub;
+        ctx.font = `${Math.floor(h * 0.055)}px system-ui, -apple-system, Segoe UI, sans-serif`;
+        ctx.textBaseline = 'top';
+        ctx.fillText(labels[i] || '', x + barW / 2, padT + plotH + 10);
+      }
+
+      const yAvg = yFor(avgGrand || 0);
+      ctx.strokeStyle = CHART_COLORS.avgLine;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(padL, yAvg);
+      ctx.lineTo(padL + plotW, yAvg);
+      ctx.stroke();
+
+      ctx.fillStyle = CHART_COLORS.avgLine;
+      ctx.font = `${Math.floor(h * 0.055)}px system-ui, -apple-system, Segoe UI, sans-serif`;
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'bottom';
+      ctx.fillText(`Avg ${money(avgGrand || 0)}`, padL + 6, yAvg - 6);
+
+      if (weekRangeText) {
+        ctx.fillStyle = CHART_COLORS.labelSoft;
+        ctx.font = `${Math.floor(h * 0.05)}px system-ui, -apple-system, Segoe UI, sans-serif`;
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'top';
+        ctx.fillText(weekRangeText, padL + plotW, 8);
+      }
+    }
+
+    function computeHotLunchDaily(opsRows, weekStartStr) {
+      const start = new Date(weekStartStr + 'T00:00:00');
+      const days = [];
+      for (let i = 0; i < 5; i++) days.push(toISODate(addDays(start, i)));
+
+      const totalsByDate = new Map();
+      days.forEach(d => totalsByDate.set(d, 0));
+
+      for (const r of opsRows) {
+        if ((r.site || '') !== 'Newcastle') continue;
+        const dateKey = (r.log_date || (r.created_at ? String(r.created_at).slice(0,10) : '')).slice(0,10);
+        if (!totalsByDate.has(dateKey)) continue;
+        totalsByDate.set(dateKey, totalsByDate.get(dateKey) + safeNum(r.hot_lunch_dishes));
+      }
+
+      const labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+      const values = days.map(d => totalsByDate.get(d) || 0);
+
+      const daysWithEntries = new Set(
+        opsRows
+          .filter(r => (r.site || '') === 'Newcastle')
+          .map(r => (r.log_date || (r.created_at ? String(r.created_at).slice(0,10) : '')).slice(0,10))
+          .filter(d => totalsByDate.has(d))
+      );
+
+      const total = values.reduce((s,v) => s + v, 0);
+      const avg = daysWithEntries.size ? (total / daysWithEntries.size) : 0;
+
+      return { labels, values, total, avg, daysWithEntriesCount: daysWithEntries.size };
+    }
+
+    function clearRetailBadges() {
+      bestFloorBadgeEl.style.display = 'none';
+      worstFloorBadgeEl.style.display = 'none';
+      bestFloorBadgeEl.textContent = '';
+      worstFloorBadgeEl.textContent = '';
+    }
+
+    function applyRetailBadges(currMap) {
+      clearRetailBadges();
+
+      const floors = ['Level 7','Level 5','Level 4','Level 3'];
+      const entries = floors.map(f => ({ floor: f, sales: (currMap.get(f)?.sales || 0) }));
+
+      const any = entries.some(e => e.sales > 0);
+      if (!any) return;
+
+      entries.sort((a,b) => b.sales - a.sales);
+      const best = entries[0];
+      const worst = entries[entries.length - 1];
+
+      bestFloorBadgeEl.textContent = `Best: ${best.floor} (${money(best.sales)})`;
+      worstFloorBadgeEl.textContent = `Lowest: ${worst.floor} (${money(worst.sales)})`;
+
+      bestFloorBadgeEl.style.display = 'inline-flex';
+      worstFloorBadgeEl.style.display = 'inline-flex';
+    }
+
+    function setWoWColour(delta, pctText) {
+      salesWoWLineEl.classList.remove('wow-pos','wow-neg','wow-neutral');
+      salesWoWLineEl.classList.add(wowClassFromDelta(delta, pctText));
+    }
+
+    function renderRetail(currentRows, prevRows, prevStartStr, prevEndStr, weekStartStr, weekEndStr) {
+      salesListEl.innerHTML = '';
+
+      const currMap = aggregateSalesByLevel(currentRows);
+      const prevMap = aggregateSalesByLevel(prevRows);
+
+      salesWoWLabelEl.textContent = `${prevStartStr}→${prevEndStr}`;
+
+      let grandCurrSales = 0, grandCurrTx = 0;
+      let grandPrevSales = 0, grandPrevTx = 0;
+
+      for (const lvl of ['Level 7','Level 5','Level 4','Level 3']) {
+        const c = currMap.get(lvl) || { sales:0, tx:0 };
+        const p = prevMap.get(lvl) || { sales:0, tx:0 };
+        grandCurrSales += c.sales; grandCurrTx += c.tx;
+        grandPrevSales += p.sales; grandPrevTx += p.tx;
+      }
+
+      const anyCurr = grandCurrSales > 0 || grandCurrTx > 0;
+      salesEmptyEl.style.display = anyCurr ? 'none' : 'block';
+
+      const grandSPH = calcSPH(grandCurrSales, grandCurrTx);
+      salesTotalEl.textContent = money(grandCurrSales);
+      salesTxEl.textContent = String(Math.round(grandCurrTx));
+      salesSPHEl.textContent = money(grandSPH);
+
+      const grandDelta = grandCurrSales - grandPrevSales;
+      const grandPct = fmtSignedPctFrom(grandPrevSales, grandCurrSales);
+
+      salesWoWValueEl.innerHTML = `<strong>${fmtSignedMoney(grandDelta)}</strong>`;
+      salesWoWPctEl.innerHTML = `<strong>${grandPct}</strong>`;
+      setWoWColour(grandDelta, grandPct);
+
+      kpiRetailSalesEl.textContent = money(grandCurrSales);
+      kpiRetailSalesSubEl.textContent = `${Math.round(grandCurrTx)} tx • SPH ${money(grandSPH)}`;
+
+      const l7 = currMap.get('Level 7')?.sales || 0;
+      const l5 = currMap.get('Level 5')?.sales || 0;
+      const l4 = currMap.get('Level 4')?.sales || 0;
+      const l3 = currMap.get('Level 3')?.sales || 0;
+      kpiRetailBreakdownEl.textContent = `L7 ${money(l7)} • L5 ${money(l5)} • L4 ${money(l4)} • L3 ${money(l3)}`;
+
+      applyRetailBadges(currMap);
+
+      const items = [];
+      for (const lvl of ['Level 7','Level 5','Level 4','Level 3']) {
+        const c = currMap.get(lvl) || { sales:0, tx:0 };
+        const p = prevMap.get(lvl) || { sales:0, tx:0 };
+
+        const sph = calcSPH(c.sales, c.tx);
+        const delta = c.sales - p.sales;
+        const pct = fmtSignedPctFrom(p.sales, c.sales);
+
+        items.push({
+          title: lvl,
+          badge: `SPH ${money(sph)}`,
+          notes:
+            `This week: ${money(c.sales)} • ${Math.round(c.tx)} tx\n` +
+            `Vs last week: ${fmtSignedMoney(delta)} (${pct})`
+        });
+      }
+      renderList(salesListEl, salesEmptyEl, items);
+
+      const daily = computeRetailSalesDaily(currentRows, weekStartStr);
+      retailChartLabelEl.textContent = `${weekStartStr} → ${weekEndStr} (Mon–Fri)`;
+      retailChartAvgLabelEl.textContent = `Avg/day: ${money(daily.avgGrand)}`;
+
+      lastRetailChartPayload = {
+        labels: daily.labels,
+        dayTotalsByLevel: daily.dayTotalsByLevel,
+        dailyGrand: daily.dailyGrand,
+        avgGrand: daily.avgGrand,
+        weekRangeText: `${weekStartStr}→${weekEndStr}`
+      };
+
+      drawRetailSalesChart(
+        lastRetailChartPayload.labels,
+        lastRetailChartPayload.dayTotalsByLevel,
+        lastRetailChartPayload.dailyGrand,
+        lastRetailChartPayload.avgGrand,
+        lastRetailChartPayload.weekRangeText
+      );
+    }
+
+    // --- Staffing Drilldown (Option A) ---
+    function computeStaffingDaily(rows, weekStartStr, siteFilter, areaFilter) {
+      const start = new Date(weekStartStr + 'T00:00:00');
+      const dayKeys = [];
+      for (let i = 0; i < 5; i++) dayKeys.push(toISODate(addDays(start, i)));
+
+      const keyOk = (r) => {
+        const rs = (r.site || '').toString();
+        const ra = (r.area || '').toString();
+        if (siteFilter !== 'All' && rs !== siteFilter) return false;
+        if (areaFilter !== 'All' && ra !== areaFilter) return false;
+        return true;
+      };
+
+      const sick = dayKeys.map(() => 0);
+      const hol = dayKeys.map(() => 0);
+      const ag = dayKeys.map(() => 0);
+
+      for (const r of (rows || [])) {
+        if (!keyOk(r)) continue;
+        const d = (r.log_date || (r.created_at ? String(r.created_at).slice(0,10) : '')).slice(0,10);
+        const idx = dayKeys.indexOf(d);
+        if (idx < 0) continue;
+
+        sick[idx] += safeNum(r.sickness_count);
+        hol[idx]  += safeNum(r.holiday_count);
+        ag[idx]   += safeNum(r.agency_count);
+      }
+
+      const totals = {
+        sick: sick.reduce((s,v) => s+v, 0),
+        hol: hol.reduce((s,v) => s+v, 0),
+        ag: ag.reduce((s,v) => s+v, 0),
+      };
+
+      const dailyGrand = dayKeys.map((_, i) => sick[i] + hol[i] + ag[i]);
+      const avgGrand = dailyGrand.reduce((s,v) => s+v, 0) / 5;
+
+      return {
+        labels: ['Mon','Tue','Wed','Thu','Fri'],
+        dayKeys,
+        sick,
+        hol,
+        ag,
+        totals,
+        dailyGrand,
+        avgGrand
+      };
+    }
+
+    function drawStaffingChart(labels, sick, hol, ag, avgGrand, weekRangeText) {
+      if (!staffingChartEl) return;
+
+      scaleCanvasToDisplaySize(staffingChartEl);
+      const ctx = staffingChartEl.getContext('2d');
+      const w = staffingChartEl.width;
+      const h = staffingChartEl.height;
+
+      ctx.clearRect(0, 0, w, h);
+
+      const padL = Math.floor(w * 0.06);
+      const padR = Math.floor(w * 0.03);
+      const padT = Math.floor(h * 0.10);
+      const padB = Math.floor(h * 0.18);
+
+      const plotW = w - padL - padR;
+      const plotH = h - padT - padB;
+
+      const dailyGrand = labels.map((_, i) => (sick[i]||0) + (hol[i]||0) + (ag[i]||0));
+      const maxV = Math.max(1, ...dailyGrand, avgGrand || 0);
+      const yMax = maxV * 1.20;
+
+      function yFor(v) {
+        return padT + (plotH - (v / yMax) * plotH);
+      }
+
+      // grid
+      ctx.strokeStyle = CHART_COLORS.grid;
+      ctx.lineWidth = 1;
+      const gridCount = 4;
+      for (let i = 0; i <= gridCount; i++) {
+        const y = padT + (plotH / gridCount) * i;
+        ctx.beginPath();
+        ctx.moveTo(padL, y);
+        ctx.lineTo(padL + plotW, y);
+        ctx.stroke();
+      }
+
+      const n = labels.length;
+      const gap = Math.floor(plotW * 0.03);
+      const barW = Math.floor((plotW - gap * (n - 1)) / n);
+
+      for (let i = 0; i < n; i++) {
+        const x = padL + i * (barW + gap);
+
+        const vS = sick[i] || 0;
+        const vH = hol[i] || 0;
+        const vA = ag[i] || 0;
+        const total = vS + vH + vA;
+
+        let yBottom = padT + plotH;
+
+        function drawSeg(val, fill, stroke) {
+          if (val <= 0) return;
+          const segH = (val / yMax) * plotH;
+          const yTop = yBottom - segH;
+
+          ctx.fillStyle = fill;
+          ctx.fillRect(x, yTop, barW, segH);
+
+          ctx.strokeStyle = stroke;
+          ctx.strokeRect(x + 0.5, yTop + 0.5, barW - 1, Math.max(0, segH - 1));
+
+          yBottom = yTop;
+        }
+
+        // bottom -> top (agency, holiday, sickness)
+        drawSeg(vA, CHART_COLORS.agFill, CHART_COLORS.agStroke);
+        drawSeg(vH, CHART_COLORS.holFill, CHART_COLORS.holStroke);
+        drawSeg(vS, CHART_COLORS.sickFill, CHART_COLORS.sickStroke);
+
+        // label total
+        const yTopOfBar = yFor(total);
+        ctx.fillStyle = CHART_COLORS.textMain;
+        ctx.font = `${Math.floor(h * 0.055)}px system-ui, -apple-system, Segoe UI, sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'bottom';
+        ctx.fillText(String(Math.round(total)), x + barW / 2, yTopOfBar - 6);
+
+        // x labels
+        ctx.fillStyle = CHART_COLORS.textSub;
+        ctx.font = `${Math.floor(h * 0.055)}px system-ui, -apple-system, Segoe UI, sans-serif`;
+        ctx.textBaseline = 'top';
+        ctx.fillText(labels[i] || '', x + barW / 2, padT + plotH + 10);
+      }
+
+      // avg line
+      const yAvg = yFor(avgGrand || 0);
+      ctx.strokeStyle = CHART_COLORS.avgLine;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(padL, yAvg);
+      ctx.lineTo(padL + plotW, yAvg);
+      ctx.stroke();
+
+      ctx.fillStyle = CHART_COLORS.avgLine;
+      ctx.font = `${Math.floor(h * 0.055)}px system-ui, -apple-system, Segoe UI, sans-serif`;
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'bottom';
+      ctx.fillText(`Avg ${Math.round(avgGrand || 0)}`, padL + 6, yAvg - 6);
+
+      if (weekRangeText) {
+        ctx.fillStyle = CHART_COLORS.labelSoft;
+        ctx.font = `${Math.floor(h * 0.05)}px system-ui, -apple-system, Segoe UI, sans-serif`;
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'top';
+        ctx.fillText(weekRangeText, padL + plotW, 8);
+      }
+    }
+
+    function renderStaffingDrilldown(weekStartStr, weekEndStr) {
+      const sSite = staffingSiteSelectEl.value;
+      const sArea = staffingAreaSelectEl.value;
+
+      staffingWeekLabelEl.textContent = `${weekStartStr} → ${weekEndStr}`;
+      staffingChartLabelEl.textContent = `${weekStartStr} → ${weekEndStr} (Mon–Fri) • ${sSite} • ${sArea}`;
+
+      const computed = computeStaffingDaily(opsRowsWeekAll, weekStartStr, sSite, sArea);
+
+      staffingChartAvgLabelEl.textContent = `Avg/day: ${Math.round(computed.avgGrand || 0)}`;
+
+      staffingTotalSickEl.textContent = String(Math.round(computed.totals.sick));
+      staffingTotalHolEl.textContent = String(Math.round(computed.totals.hol));
+      staffingTotalAgEl.textContent = String(Math.round(computed.totals.ag));
+
+      lastStaffingChartPayload = {
+        labels: computed.labels,
+        sick: computed.sick,
+        hol: computed.hol,
+        ag: computed.ag,
+        avgGrand: computed.avgGrand,
+        weekRangeText: `${weekStartStr}→${weekEndStr}`
+      };
+
+      drawStaffingChart(
+        lastStaffingChartPayload.labels,
+        lastStaffingChartPayload.sick,
+        lastStaffingChartPayload.hol,
+        lastStaffingChartPayload.ag,
+        lastStaffingChartPayload.avgGrand,
+        lastStaffingChartPayload.weekRangeText
+      );
+
+      // Table: show individual log rows that have staffing impact
+      const start = new Date(weekStartStr + 'T00:00:00');
+      const dayKeys = [];
+      for (let i = 0; i < 5; i++) dayKeys.push(toISODate(addDays(start, i)));
+
+      const rows = (opsRowsWeekAll || [])
+        .filter(r => {
+          const rs = (r.site || '').toString();
+          const ra = (r.area || '').toString();
+          if (sSite !== 'All' && rs !== sSite) return false;
+          if (sArea !== 'All' && ra !== sArea) return false;
+
+          const d = (r.log_date || (r.created_at ? String(r.created_at).slice(0,10) : '')).slice(0,10);
+          if (!dayKeys.includes(d)) return false;
+
+          const sick = safeNum(r.sickness_count);
+          const hol = safeNum(r.holiday_count);
+          const ag = safeNum(r.agency_count);
+          return (sick + hol + ag) > 0;
+        })
+        .map(r => {
+          const date = (r.log_date || (r.created_at ? String(r.created_at).slice(0,10) : '')).slice(0,10);
+          return {
+            date,
+            day: dayNameFromISO(date),
+            site: (r.site || '').toString() || '—',
+            area: (r.area || '').toString() || '—',
+            sick: safeNum(r.sickness_count),
+            hol: safeNum(r.holiday_count),
+            ag: safeNum(r.agency_count),
+          };
+        })
+        .sort((a,b) => (a.date.localeCompare(b.date) || a.site.localeCompare(b.site) || a.area.localeCompare(b.area)));
+
+      staffingTableBodyEl.innerHTML = '';
+      if (rows.length === 0) {
+        staffingTableBodyEl.innerHTML = `<tr><td colspan="7" class="muted">No staffing impact rows for this selection.</td></tr>`;
+      } else {
+        rows.forEach(r => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${r.date}</td>
+            <td>${r.day}</td>
+            <td>${r.site}</td>
+            <td>${r.area}</td>
+            <td>${Math.round(r.sick)}</td>
+            <td>${Math.round(r.hol)}</td>
+            <td>${Math.round(r.ag)}</td>
+          `;
+          staffingTableBodyEl.appendChild(tr);
+        });
+      }
+    }
+
+    function clearAll() {
+      errorMessageEl.style.display = 'none';
+      errorMessageEl.textContent = '';
+
+      kpiTotalLogsEl.textContent = '0';
+      kpiPhotosEl.textContent = '0';
+      kpiIncidentsEl.textContent = '0';
+      kpiStaffingEl.textContent = '0';
+      kpiRetailSpecialsEl.textContent = '0';
+      kpiRetailSpecialsSubEl.textContent = 'Days with specials';
+      kpiRetailSalesEl.textContent = '£0.00';
+      kpiRetailSalesSubEl.textContent = 'Transactions • SPH';
+      kpiRetailBreakdownEl.textContent = 'L7 £0 • L5 £0 • L4 £0 • L3 £0';
+
+      staffSicknessEl.textContent = '0';
+      staffHolidayEl.textContent = '0';
+      staffAgencyEl.textContent = '0';
+
+      hospDayEl.textContent = '0';
+      hospNightEl.textContent = '0';
+      hospTotalEl.textContent = '0';
+
+      freeBreakfastTotalEl.textContent = '0';
+      freeBreakfastDaysEl.textContent = '0';
+
+      hotLunchTotalEl.textContent = '0';
+      hotLunchAvgEl.textContent = '0';
+      hotLunchDaysEl.textContent = '0';
+      hotLunchChartAvgLabelEl.textContent = 'Avg: 0';
+      hotLunchChartLabelEl.textContent = 'Mon–Fri totals';
+
+      salesTotalEl.textContent = '£0.00';
+      salesTxEl.textContent = '0';
+      salesSPHEl.textContent = '£0.00';
+      salesWoWLabelEl.textContent = 'WoW';
+      salesWoWValueEl.innerHTML = '<strong>£0.00</strong>';
+      salesWoWPctEl.innerHTML = '<strong>0.0%</strong>';
+      salesWoWLineEl.classList.remove('wow-pos','wow-neg','wow-neutral');
+      salesWoWLineEl.classList.add('wow-neutral');
+
+      clearRetailBadges();
+
+      maintListEl.innerHTML = '';
+      hsListEl.innerHTML = '';
+      hospNotesListEl.innerHTML = '';
+      specialsListEl.innerHTML = '';
+      notesListEl.innerHTML = '';
+      salesListEl.innerHTML = '';
+      photosGridEl.innerHTML = '';
+
+      maintEmptyEl.style.display = 'block';
+      hsEmptyEl.style.display = 'block';
+      hospNotesEmptyEl.style.display = 'block';
+      specialsEmptyEl.style.display = 'block';
+      notesEmptyEl.style.display = 'block';
+      salesEmptyEl.style.display = 'block';
+      photosEmptyEl.style.display = 'block';
+
+      weeklySummaryBox.style.display = 'none';
+      weeklySummaryText.textContent = '';
+
+      drawHotLunchChart(['Mon','Tue','Wed','Thu','Fri'], [0,0,0,0,0], 0, '');
+      drawRetailSalesChart(['Mon','Tue','Wed','Thu','Fri'], {
+        'Level 7':[0,0,0,0,0],
+        'Level 5':[0,0,0,0,0],
+        'Level 4':[0,0,0,0,0],
+        'Level 3':[0,0,0,0,0]
+      }, [0,0,0,0,0], 0, '');
+
+      // Reset staffing drilldown view (kept hidden unless modal open)
+      staffingChartAvgLabelEl.textContent = 'Avg/day: 0';
+      staffingTotalSickEl.textContent = '0';
+      staffingTotalHolEl.textContent = '0';
+      staffingTotalAgEl.textContent = '0';
+      staffingTableBodyEl.innerHTML = `<tr><td colspan="7" class="muted">No staffing data.</td></tr>`;
+      lastStaffingChartPayload = null;
+    }
+
+    async function loadWeekly() {
+      clearAll();
+
+      const picked = weekPickerEl.value ? new Date(weekPickerEl.value + 'T00:00:00') : new Date();
+      const start = startOfWeekMonday(picked);
+      const end = addDays(start, 4);
+
+      const startStr = toISODate(start);
+      const endStr = toISODate(end);
+
+      const prevStart = addDays(start, -7);
+      const prevEnd = addDays(end, -7);
+      const prevStartStr = toISODate(prevStart);
+      const prevEndStr = toISODate(prevEnd);
+
+      weekLabelEl.textContent = `${startStr} → ${endStr}`;
+
+      try {
+        const [opsRowsRaw, salesCurrRaw, salesPrevRaw] = await Promise.all([
+          loadWeeklyOpsLogs(startStr, endStr),
+          loadWeeklyRetailSales(startStr, endStr),
+          loadWeeklyRetailSales(prevStartStr, prevEndStr),
+        ]);
+
+        // store full weekly rows for drilldown
+        opsRowsWeekAll = opsRowsRaw || [];
+
+        const site = siteFilterEl.value;
+        const area = areaFilterEl.value;
+
+        const opsRows = (opsRowsRaw || []).filter(r => matchesFilter(r, site, area));
+        opsRowsCache = opsRows;
+
+        // KPIs
+        kpiTotalLogsEl.textContent = String(opsRows.length);
+
+        
+        // Multi-photo support: load ops_log_photos for the currently filtered week rows
+        const photosByLogId = new Map();
+        try {
+          const logIds = (opsRows || []).map(r => r.id).filter(v => v !== null && v !== undefined);
+          if (logIds.length > 0) {
+            const { data: photoRows, error: photoErr } = await supabase
+              .from('ops_log_photos')
+              .select('log_id, photo_url, created_at')
+              .in('log_id', logIds)
+              .order('created_at', { ascending: true });
+
+            if (!photoErr && Array.isArray(photoRows)) {
+              photoRows.forEach(p => {
+                const key = p.log_id;
+                if (!photosByLogId.has(key)) photosByLogId.set(key, []);
+                const url = safeText(p.photo_url);
+                if (url) photosByLogId.get(key).push(url);
+              });
+            }
+          }
+        } catch (e) {
+          // If the table doesn't exist / RLS blocks access, fall back to single-photo mode.
+        }
+
+        const withPhotos = opsRows.filter(r => {
+          const single = !!safeText(r.photo_url);
+          const multi = (photosByLogId.get(r.id) || []).length > 0;
+          return single || multi;
+        });
+        kpiPhotosEl.textContent = String(withPhotos.length);
+
+        // Incidents
+        const maintItems = opsRows
+          .filter(r => isIncidentFlagTrue(r.maintenance_issue) || hasMeaningfulText(r.maintenance_notes))
+          .map(r => ({
+            title: `${r.site || 'Site'} • ${r.area || 'Area'} • ${r.log_date || (r.created_at ? String(r.created_at).slice(0,10) : '')}`,
+            badge: '',
+            notes: safeText(r.maintenance_notes) || '(No notes entered)'
+          }));
+
+        const hsItems = opsRows
+          .filter(r => isIncidentFlagTrue(r.hs_issue) || hasMeaningfulText(r.hs_notes))
+          .map(r => ({
+            title: `${r.site || 'Site'} • ${r.area || 'Area'} • ${r.log_date || (r.created_at ? String(r.created_at).slice(0,10) : '')}`,
+            badge: '',
+            notes: safeText(r.hs_notes) || '(No notes entered)'
+          }));
+
+        renderList(maintListEl, maintEmptyEl, maintItems);
+        renderList(hsListEl, hsEmptyEl, hsItems);
+        kpiIncidentsEl.textContent = String(maintItems.length + hsItems.length);
+
+        // Hospitality notes
+        const hospNotes = opsRows
+          .filter(r => (r.area || '') === 'Hospitality' && hasMeaningfulText(r.notes))
+          .map(r => ({
+            title: `${r.site || 'Site'} • ${r.log_date || (r.created_at ? String(r.created_at).slice(0,10) : '')}`,
+            badge: '',
+            notes: safeText(r.notes)
+          }));
+        renderList(hospNotesListEl, hospNotesEmptyEl, hospNotes);
+
+        // Specials
+        const specials = opsRows
+          .filter(r => safeText(r.retail_lunch_special).toLowerCase() === 'yes')
+          .map(r => ({
+            title: `${r.site || 'Site'} • ${r.log_date || (r.created_at ? String(r.created_at).slice(0,10) : '')}`,
+            badge: '',
+            notes: safeText(r.retail_lunch_desc) || '(Special recorded – no details entered)'
+          }));
+        renderList(specialsListEl, specialsEmptyEl, specials);
+
+        const specialDays = new Set(specials.map(s => s.title.split(' • ').pop()));
+        kpiRetailSpecialsEl.textContent = String(specialDays.size);
+        kpiRetailSpecialsSubEl.textContent = `${specialDays.size} day(s) with specials`;
+
+        // Staffing
+        const sickness = opsRows.reduce((s,r) => s + safeNum(r.sickness_count), 0);
+        const holiday = opsRows.reduce((s,r) => s + safeNum(r.holiday_count), 0);
+        const agency = opsRows.reduce((s,r) => s + safeNum(r.agency_count), 0);
+
+        staffSicknessEl.textContent = String(sickness);
+        staffHolidayEl.textContent = String(holiday);
+        staffAgencyEl.textContent = String(agency);
+        kpiStaffingEl.textContent = String(sickness + holiday + agency);
+
+        // Hospitality day/night
+        const hospDay = opsRows.reduce((s,r) => s + safeNum(r.hosp_day_events), 0);
+        const hospNight = opsRows.reduce((s,r) => s + safeNum(r.hosp_night_events), 0);
+        const hospPlaces = opsRows.reduce((s,r) => s + safeNum(r.hosp_places_events), 0);
+        hospDayEl.textContent = String(hospDay);
+        hospNightEl.textContent = String(hospNight);
+        hospPlacesEl.textContent = String(hospPlaces);
+        hospTotalEl.textContent = String(hospDay + hospNight + hospPlaces);
+
+        // Free breakfast
+        const fbRows = opsRows.filter(r => safeNum(r.free_breakfast_count) > 0);
+        const fbTotal = fbRows.reduce((s,r) => s + safeNum(r.free_breakfast_count), 0);
+        const fbDays = new Set(fbRows.map(r => (r.log_date || (r.created_at ? String(r.created_at).slice(0,10) : '')).slice(0,10)));
+        freeBreakfastTotalEl.textContent = String(fbTotal);
+        freeBreakfastDaysEl.textContent = String(fbDays.size);
+
+        // Hot lunches + chart
+        const hl = computeHotLunchDaily(opsRows, startStr);
+        hotLunchTotalEl.textContent = String(Math.round(hl.total));
+        hotLunchAvgEl.textContent = String(hl.daysWithEntriesCount ? Math.round(hl.avg) : 0);
+        hotLunchDaysEl.textContent = String(hl.daysWithEntriesCount);
+
+        hotLunchChartAvgLabelEl.textContent = `Avg: ${Math.round(hl.avg || 0)}`;
+        hotLunchChartLabelEl.textContent = `${startStr} → ${endStr} (Mon–Fri)`;
+
+        lastHotLunchChartPayload = {
+          labels: hl.labels,
+          values: hl.values,
+          avg: hl.avg,
+          weekRangeText: `${startStr}→${endStr}`
+        };
+        drawHotLunchChart(lastHotLunchChartPayload.labels, lastHotLunchChartPayload.values, lastHotLunchChartPayload.avg, lastHotLunchChartPayload.weekRangeText);
+
+        // Notes
+        const notes = opsRows
+          .filter(r => hasMeaningfulText(r.notes))
+          .map(r => ({
+            title: `${r.site || 'Site'} • ${r.area || 'Area'} • ${r.log_date || (r.created_at ? String(r.created_at).slice(0,10) : '')}`,
+            badge: '',
+            notes: safeText(r.notes)
+          }));
+        renderList(notesListEl, notesEmptyEl, notes);
+
+        // Retail
+        renderRetail(salesCurrRaw || [], salesPrevRaw || [], prevStartStr, prevEndStr, startStr, endStr);
+
+        // Photos
+        photosGridEl.innerHTML = '';
+        if (!withPhotos || withPhotos.length === 0) {
+          photosEmptyEl.style.display = 'block';
+        } else {
+          photosEmptyEl.style.display = 'none';
+          withPhotos.forEach(r => {
+            const when = r.log_date || (r.created_at ? String(r.created_at).slice(0,10) : '');
+            const cap = `${r.site || ''} • ${r.area || ''} • ${when}`;
+            const notesTxt = safeText(r.notes);
+
+            // Build photo URL list (legacy single + multi photos table)
+            const urls = [];
+            const singleUrl = safeText(r.photo_url);
+            if (singleUrl) urls.push(singleUrl);
+            const multiUrls = photosByLogId.get(r.id) || [];
+            multiUrls.forEach(u => { if (u && !urls.includes(u)) urls.push(u); });
+
+            const thumbUrl = urls[0] || '';
+
+            const div = document.createElement('div');
+            div.className = 'thumb';
+            div.innerHTML = `
+              <img src="${thumbUrl}" alt="Photo" />
               <div class="cap">${cap}</div>
-              ${(photosByLogId[r.id] && photosByLogId[r.id].length > 1) ? `<div class="badge">${photosByLogId[r.id].length}</div>` : ``}
             `;
 
-            // Make sure taps on inner elements trigger the same open behaviour (mobile browsers can be picky)
             const openThumb = (e) => {
               if (e) { e.preventDefault(); e.stopPropagation(); }
-
+              if (!thumbUrl) return;
               modalTitleEl.textContent = cap || 'Photo';
-              const urls = (photosByLogId[r.id] && photosByLogId[r.id].length) ? photosByLogId[r.id] : (r.photo_url ? [r.photo_url] : []);
-              let currentIdx = 0;
-              modalImgEl.src = urls[0] || '';
-              if (modalThumbsEl) {
-                modalThumbsEl.innerHTML = '';
-                urls.forEach((u, idx) => {
-                  const t = document.createElement('img');
-                  t.src = u;
-                  t.alt = `Photo ${idx+1}`;
-                  if (idx === 0) t.classList.add('active');
-                  t.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    currentIdx = idx;
-                    modalImgEl.src = urls[currentIdx] || '';
-                    Array.from(modalThumbsEl.querySelectorAll('img')).forEach((imgEl, i2) => {
-                      imgEl.classList.toggle('active', i2 === currentIdx);
-                    });
-                  });
-                  modalThumbsEl.appendChild(t);
-                });
-              }
+              modalImgEl.src = thumbUrl;
               modalNotesEl.textContent = notesTxt || '';
               photoModalEl.classList.add('open');
+              // extra safety for mobile layering
               photoModalEl.style.display = 'grid';
               document.body.style.overflow = 'hidden';
             };
 
             div.addEventListener('click', openThumb);
-            const _img = div.querySelector('img');
-            if (_img) _img.addEventListener('click', openThumb);
-            const _cap = div.querySelector('.cap');
-            if (_cap) _cap.addEventListener('click', openThumb);
+            const imgEl = div.querySelector('img');
+            if (imgEl) imgEl.addEventListener('click', openThumb);
+            const capEl = div.querySelector('.cap');
+            if (capEl) capEl.addEventListener('click', openThumb);
 
             photosGridEl.appendChild(div);
           });
@@ -1409,19 +2349,18 @@
     areaFilterEl.addEventListener('change', loadWeekly);
 
     // Photo modal close
-    closeModalBtn.addEventListener('click', () => {
-      photoModalEl.classList.remove('open');
-      photoModalEl.style.display = '';
-      document.body.style.overflow = '';
-    });
+    closeModalBtn.addEventListener('click', () => photoModalEl.classList.remove('open'));
     photoModalEl.addEventListener('click', (e) => {
       if (e.target === photoModalEl) {
         photoModalEl.classList.remove('open');
         photoModalEl.style.display = '';
         document.body.style.overflow = '';
       }
+      photoModalEl.style.display = '';
+      document.body.style.overflow = '';
     });
-// Staffing modal open/close
+
+    // Staffing modal open/close
     openStaffingDrillBtn.addEventListener('click', () => {
       // derive week start/end from current picker
       const picked = weekPickerEl.value ? new Date(weekPickerEl.value + 'T00:00:00') : new Date();
