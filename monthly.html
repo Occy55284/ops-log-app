@@ -339,7 +339,29 @@
       .bar-row { grid-template-columns: 1fr; }
       .bar-right { text-align: left; }
     }
-    /* Photos */
+    
+    /* Modal thumbs */
+    .modal-thumbs{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:12px;
+    }
+    .modal-thumbs img{
+      width:78px;
+      height:56px;
+      object-fit:cover;
+      border-radius:10px;
+      border:1px solid rgba(255,255,255,0.12);
+      cursor:pointer;
+      opacity:0.8;
+    }
+    .modal-thumbs img.active{
+      outline:2px solid rgba(56,189,248,0.85);
+      opacity:1;
+    }
+
+/* Photos */
     .photos-grid {
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -1041,6 +1063,7 @@
       </div>
       <div class="modal-body">
         <img id="photoModalImg" alt="Photo" />
+        <div id="photoModalThumbs" class="modal-thumbs"></div>
         <div class="metric-sub" id="photoModalMeta"></div>
       </div>
     </div>
@@ -1179,6 +1202,7 @@ const maintEmptyEl = document.getElementById('maintEmpty');
 
     const photoModalEl = document.getElementById('photoModal');
     const photoModalImgEl = document.getElementById('photoModalImg');
+    const photoModalThumbsEl = document.getElementById('photoModalThumbs');
     const photoModalMetaEl = document.getElementById('photoModalMeta');
     const closePhotoModalBtn = document.getElementById('closePhotoModalBtn');
 
@@ -2117,6 +2141,32 @@ async function loadMonthlyRetailSales(startStr, endStr, site) {
       return data || [];
     }
 
+    
+    async function loadPhotosByLogId(logIds) {
+      const out = {};
+      const ids = (logIds || []).filter(Boolean);
+      if (!ids.length) return out;
+
+      // Supabase IN() has practical limits; chunk for safety.
+      const chunkSize = 100;
+      for (let i = 0; i < ids.length; i += chunkSize) {
+        const chunk = ids.slice(i, i + chunkSize);
+        const { data, error } = await supabase
+          .from('ops_log_photos')
+          .select('log_id, photo_url, created_at')
+          .in('log_id', chunk)
+          .order('created_at', { ascending: true });
+
+        if (error) throw error;
+        (data || []).forEach(row => {
+          const k = row.log_id;
+          if (!out[k]) out[k] = [];
+          if (row.photo_url) out[k].push(row.photo_url);
+        });
+      }
+      return out;
+    }
+
     function renderPhotos(opsRows) {
       const photos = (opsRows || [])
         .filter(r => !!r.photo_url)
@@ -2481,7 +2531,8 @@ async function loadMonthlyRetailSales(startStr, endStr, site) {
         }
 
         renderRetailSales(retailTotals);
-        renderPhotos(opsRows);
+        const photosByLogId = await loadPhotosByLogId((opsRows || []).map(r => r.id));
+        renderPhotos(opsRows, photosByLogId);
 
         await loadMonthlyFinance(monthStartStr, site);
 

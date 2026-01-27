@@ -379,7 +379,7 @@
       position: fixed;
       inset: 0;
       background: rgba(0,0,0,0.65);
-      z-index: 50;
+      z-index: 9999;
       padding: 16px;
     }
 
@@ -2245,7 +2245,9 @@
               <div class="cap">${cap}</div>
               ${(photosByLogId[r.id] && photosByLogId[r.id].length > 1) ? `<div class="badge">${photosByLogId[r.id].length}</div>` : ``}
             `;
-            div.addEventListener('click', () => {
+            div.addEventListener('click', (e) => {
+              e.preventDefault();
+              e.stopPropagation();
               modalTitleEl.textContent = cap || 'Photo';
               const urls = (photosByLogId[r.id] && photosByLogId[r.id].length) ? photosByLogId[r.id] : (r.photo_url ? [r.photo_url] : []);
               let currentIdx = 0;
@@ -2257,7 +2259,9 @@
                   t.src = u;
                   t.alt = `Photo ${idx+1}`;
                   if (idx === 0) t.classList.add('active');
-                  t.addEventListener('click', () => {
+                  t.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
                     currentIdx = idx;
                     modalImgEl.src = urls[currentIdx] || '';
                     Array.from(modalThumbsEl.querySelectorAll('img')).forEach((imgEl, i2) => {
