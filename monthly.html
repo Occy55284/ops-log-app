@@ -2276,18 +2276,59 @@ async function loadMonthlyOpsLogs(startStr, endStr, site) {
       return data || [];
     }
 
-    function renderPhotos(opsRows) {
-      const photos = (opsRows || [])
-        .filter(r => !!r.photo_url)
-        .map(r => {
-          const d = (r.log_date || (r.created_at ? String(r.created_at).slice(0,10) : '')).slice(0,10);
-          return {
-            url: r.photo_url,
+    async function renderPhotos(opsRows) {
+      // Monthly photo gallery should be driven by the parent log's date (log_date),
+      // not by the upload timestamp. We therefore:
+      // 1) load logs for the month (already done upstream),
+      // 2) fetch ALL photos for those log_ids from ops_log_photos (no date filter),
+      // 3) merge legacy ops_logs.photo_url for backwards compatibility.
+
+      const rows = opsRows || [];
+      const logIds = rows.map(r => r.id).filter(v => v !== null && v !== undefined);
+
+      // Build map log_id -> urls[]
+      const urlsByLogId = new Map();
+
+      // Legacy single photo on ops_logs
+      rows.forEach(r => {
+        if (r && r.id != null && r.photo_url) {
+          urlsByLogId.set(r.id, [r.photo_url]);
+        }
+      });
+
+      // Multi-photos (preferred)
+      if (logIds.length) {
+        const { data: pData, error: pErr } = await supabase
+          .from('ops_log_photos')
+          .select('log_id, photo_url')
+          .in('log_id', logIds)
+          .order('created_at', { ascending: true });
+
+        if (!pErr && Array.isArray(pData)) {
+          pData.forEach(p => {
+            if (!p || p.log_id == null || !p.photo_url) return;
+            const arr = urlsByLogId.get(p.log_id) || [];
+            if (!arr.includes(p.photo_url)) arr.push(p.photo_url);
+            urlsByLogId.set(p.log_id, arr);
+          });
+        }
+      }
+
+      // Flatten into gallery items (one tile per photo)
+      const photos = [];
+      rows.forEach(r => {
+        const urls = urlsByLogId.get(r.id) || [];
+        if (!urls.length) return;
+        const d = (r.log_date || (r.created_at ? String(r.created_at).slice(0, 10) : '')).slice(0, 10);
+        urls.forEach(url => {
+          photos.push({
+            url,
             date: d || '—',
             site: r.site || '—',
             area: r.area || '—'
-          };
+          });
         });
+      });
 
       if (!photos.length) {
         photosEmptyEl.style.display = 'block';
@@ -2296,7 +2337,7 @@ async function loadMonthlyOpsLogs(startStr, endStr, site) {
       }
 
       photosEmptyEl.style.display = 'none';
-      photos.sort((a,b) => (a.date < b.date ? -1 : 1));
+      photos.sort((a, b) => (a.date < b.date ? -1 : 1));
 
       photosGridEl.innerHTML = photos.map(p => `
         <div class="photo-card" data-url="${p.url}" data-meta="${p.date} • ${p.site} • ${p.area}">
@@ -2305,14 +2346,22 @@ async function loadMonthlyOpsLogs(startStr, endStr, site) {
         </div>
       `).join('');
 
+      // Click-to-open
       photosGridEl.querySelectorAll('.photo-card').forEach(el => {
-        el.addEventListener('click', () => {
+        const open = (ev) => {
+          if (ev) { ev.preventDefault(); ev.stopPropagation(); }
           const url = el.getAttribute('data-url');
           const meta = el.getAttribute('data-meta') || '';
           photoModalImgEl.src = url;
           photoModalMetaEl.textContent = meta;
           photoModalEl.classList.add('open');
-        });
+          document.body.style.overflow = 'hidden';
+        };
+        el.addEventListener('click', open);
+        const img = el.querySelector('img');
+        const cap = el.querySelector('.photo-card-caption');
+        if (img) img.addEventListener('click', open);
+        if (cap) cap.addEventListener('click', open);
       });
     }
 
@@ -2833,9 +2882,9 @@ ${s}`);
     });
 
 
-    closePhotoModalBtn.addEventListener('click', () => photoModalEl.classList.remove('open'));
+    closePhotoModalBtn.addEventListener('click', () => { photoModalEl.classList.remove('open'); document.body.style.overflow = ''; });
     photoModalEl.addEventListener('click', (e) => {
-      if (e.target === photoModalEl) photoModalEl.classList.remove('open');
+      if (e.target === photoModalEl) { photoModalEl.classList.remove('open'); document.body.style.overflow = ''; }
     });
 
     loadMonth();
