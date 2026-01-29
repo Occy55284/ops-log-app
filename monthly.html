@@ -420,6 +420,53 @@
     .modal-body { padding: 12px; display: grid; gap: 12px; }
     .modal-body img { width: 100%; border-radius: 14px; border: 1px solid rgba(255,255,255,0.10); }
     /* Finance visualisation */
+    /* Occupancy table */
+    .occ-wrap { margin-top: 10px; }
+    .occ-site-title {
+      font-weight: 900;
+      letter-spacing: 0.2px;
+      margin-top: 6px;
+      margin-bottom: 6px;
+      color: rgba(255,255,255,0.92);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .occ-site-badge {
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.10);
+      color: rgba(255,255,255,0.82);
+    }
+    table.occ-table {
+      width: 100%;
+      border-collapse: collapse;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.10);
+      background: rgba(0,0,0,0.18);
+    }
+    .occ-table th, .occ-table td {
+      padding: 10px 10px;
+      font-size: 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      text-align: left;
+      white-space: nowrap;
+    }
+    .occ-table th {
+      font-weight: 900;
+      color: rgba(255,255,255,0.78);
+      background: rgba(255,255,255,0.04);
+    }
+    .occ-table td.num, .occ-table th.num { text-align: right; }
+    .occ-table tr:last-child td { border-bottom: none; }
+    .occ-total-row td {
+      font-weight: 900;
+      background: rgba(59,130,246,0.10);
+    }
+
 .fin-ytd{
   margin-top: 10px;
   padding: 10px;
@@ -780,6 +827,27 @@
           <div id="financeAllSitesList" class="list" style="display:none;"></div>
         </div>
       </div>
+
+      <!-- Occupancy Levels (FY) -->
+      <div class="row-2" id="occupancyRow">
+        <div class="card" style="grid-column: 1 / span 2;">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Occupancy Levels (FY)</div>
+              <div class="card-subtitle">Seat capacity + average occupied seats (%) split by Tue–Thu and Mon–Fri. Enter monthly values in Finance Admin.</div>
+            </div>
+            <div class="pill" id="occPill">Occupancy</div>
+          </div>
+
+          <div id="occEmpty" class="empty-text">No occupancy data found for this FY yet. Add it via <strong>Finance Admin</strong>.</div>
+
+          <div id="occBody" style="display:none;">
+            <div id="occTables"></div>
+            <div class="metric-sub" id="occHint" style="margin-top:8px; opacity:0.8;"></div>
+          </div>
+        </div>
+      </div>
+
 
       <!-- Staffing + incidents -->
       <div class="row-3">
@@ -2259,6 +2327,189 @@ async function loadTogatherSales(monthStartStr, site) {
 }
 
 
+async function loadOccupancyLevels(monthStartStr, site) {
+  const rowEl = document.getElementById('occupancyRow');
+  const emptyEl = document.getElementById('occEmpty');
+  const bodyEl = document.getElementById('occBody');
+  const tablesEl = document.getElementById('occTables');
+  const pillEl = document.getElementById('occPill');
+  const hintEl = document.getElementById('occHint');
+
+  if (!rowEl || !emptyEl || !bodyEl || !tablesEl) return;
+
+  // Reset
+  emptyEl.style.display = 'none';
+  bodyEl.style.display = 'none';
+  tablesEl.innerHTML = '';
+  if (hintEl) hintEl.textContent = '';
+  if (pillEl) pillEl.textContent = 'Occupancy';
+
+  const fyStartStr = fyStartFromMonthStart(monthStartStr);
+
+  const sites = (site === 'All') ? ['London', 'Newcastle'] : [site];
+
+  const { data: rows, error } = await supabase
+    .from('monthly_finance_summary')
+    .select('month_start, site, seat_capacity_total, seat_occupancy_pct_tue_thu, seat_occupancy_pct_mon_fri')
+    .in('site', sites)
+    .gte('month_start', fyStartStr)
+    .lte('month_start', monthStartStr)
+    .order('month_start', { ascending: true });
+
+  if (error) {
+    emptyEl.style.display = 'block';
+    emptyEl.textContent = `Unable to load occupancy: ${error.message}`;
+    return;
+  }
+
+  // Build month series (Sep -> selected month)
+  const months = [];
+  let cur = fyStartStr;
+  while (cur <= monthStartStr) {
+    months.push(cur);
+    cur = addMonthsYYYYMMDD(cur, 1);
+  }
+
+  const bySite = new Map();
+  (rows || []).forEach(r => {
+    const s = String(r.site || '');
+    const ms = String(r.month_start || '').slice(0,10);
+    if (!bySite.has(s)) bySite.set(s, new Map());
+    bySite.get(s).set(ms, {
+      cap: (r.seat_capacity_total ?? null),
+      tth: (r.seat_occupancy_pct_tue_thu ?? null),
+      mf:  (r.seat_occupancy_pct_mon_fri ?? null),
+    });
+  });
+
+  const fmtCap = (v) => {
+    const n = Number(v);
+    if (!Number.isFinite(n) || n <= 0) return '—';
+    return String(Math.round(n));
+  };
+  const fmtPct = (v) => {
+    const n = Number(v);
+    if (!Number.isFinite(n)) return '—';
+    return `${n.toFixed(1)}%`;
+  };
+
+  let anyData = false;
+
+  sites.forEach(s => {
+    const map = bySite.get(s) || new Map();
+
+    // Determine if this site has any occupancy values in FY-to-date
+    const has = months.some(ms => {
+      const v = map.get(ms);
+      return v && (Number.isFinite(Number(v.cap)) || Number.isFinite(Number(v.tth)) || Number.isFinite(Number(v.mf)));
+    });
+    if (!has) return;
+
+    anyData = true;
+
+    // Weighted averages (capacity-weighted)
+    let sumCap = 0;
+    let sumCapPctTTH = 0;
+    let sumCapPctMF = 0;
+    let capCount = 0;
+    let capSumForAvg = 0;
+
+    months.forEach(ms => {
+      const v = map.get(ms);
+      const cap = Number(v?.cap);
+      const tth = Number(v?.tth);
+      const mf = Number(v?.mf);
+
+      if (Number.isFinite(cap) && cap > 0) {
+        capCount += 1;
+        capSumForAvg += cap;
+
+        if (Number.isFinite(tth)) { sumCap += cap; sumCapPctTTH += cap * tth; }
+        if (Number.isFinite(mf))  { /* note: use same sumCap basis? keep separate to avoid missing */ }
+      }
+    });
+
+    // For MF we need its own cap sum in case some months have MF missing
+    let sumCapMF = 0;
+    months.forEach(ms => {
+      const v = map.get(ms);
+      const cap = Number(v?.cap);
+      const mf = Number(v?.mf);
+      if (Number.isFinite(cap) && cap > 0 && Number.isFinite(mf)) {
+        sumCapMF += cap;
+        sumCapPctMF += cap * mf;
+      }
+    });
+
+    const avgCap = capCount ? (capSumForAvg / capCount) : null;
+    const wTTH = (sumCap > 0) ? (sumCapPctTTH / sumCap) : null;
+    const wMF  = (sumCapMF > 0) ? (sumCapPctMF / sumCapMF) : null;
+
+    const wrap = document.createElement('div');
+    wrap.className = 'occ-wrap';
+
+    const title = document.createElement('div');
+    title.className = 'occ-site-title';
+    title.innerHTML = `<span class="occ-site-badge">${s}</span> <span>FY ${monthLabelYYYYMMDD(fyStartStr)} → ${monthLabelYYYYMMDD(monthStartStr)}</span>`;
+    wrap.appendChild(title);
+
+    const table = document.createElement('table');
+    table.className = 'occ-table';
+
+    table.innerHTML = `
+      <thead>
+        <tr>
+          <th>Month</th>
+          <th class="num">Total seat capacity</th>
+          <th class="num">Avg seat occupied Tue–Thu</th>
+          <th class="num">Avg seat occupied Mon–Fri</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    `;
+
+    const tbody = table.querySelector('tbody');
+
+    months.forEach(ms => {
+      const v = map.get(ms);
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${monthLabelYYYYMMDD(ms)}</td>
+        <td class="num">${fmtCap(v?.cap)}</td>
+        <td class="num">${fmtPct(v?.tth)}</td>
+        <td class="num">${fmtPct(v?.mf)}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    const trTot = document.createElement('tr');
+    trTot.className = 'occ-total-row';
+    trTot.innerHTML = `
+      <td>FY Avg</td>
+      <td class="num">${fmtCap(avgCap)}</td>
+      <td class="num">${fmtPct(wTTH)}</td>
+      <td class="num">${fmtPct(wMF)}</td>
+    `;
+    tbody.appendChild(trTot);
+
+    wrap.appendChild(table);
+    tablesEl.appendChild(wrap);
+  });
+
+  if (!anyData) {
+    emptyEl.style.display = 'block';
+    emptyEl.textContent = 'No occupancy data found for this FY yet. Add it via Finance Admin.';
+    return;
+  }
+
+  if (hintEl) hintEl.textContent = 'Averages are capacity-weighted across months with data. Percentages are entered as provided by the client.';
+  if (pillEl) pillEl.textContent = `Occupancy • ${monthLabelYYYYMMDD(monthStartStr)}`;
+
+  bodyEl.style.display = 'block';
+}
+
+
+
 async function loadMonthlyOpsLogs(startStr, endStr, site) {
       let q = supabase
         .from('ops_logs')
@@ -2693,6 +2944,7 @@ async function loadMonthlyOpsLogs(startStr, endStr, site) {
 
         await loadMonthlyFinance(monthStartStr, site);
         await loadTogatherSales(monthStartStr, site);
+        await loadOccupancyLevels(monthStartStr, site);
 
       } catch (err) {
         errorMessageEl.style.display = 'block';

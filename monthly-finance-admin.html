@@ -219,7 +219,15 @@
         </div>
       </div>
 
-      <div style="margin-top:10px;">
+      
+      <div class="section-title">Occupancy Levels (Monthly)</div>
+      <div class="grid2">
+        <div><label>Total seat capacity</label><input id="occCapacity" type="number" step="1" /></div>
+        <div><label>Avg seat occupied Tue–Thu (%)</label><input id="occTueThu" type="number" step="0.1" /></div>
+        <div><label>Avg seat occupied Mon–Fri (%)</label><input id="occMonFri" type="number" step="0.1" /></div>
+      </div>
+
+<div style="margin-top:10px;">
         <label>Notes (optional)</label>
         <textarea id="notes"></textarea>
       </div>
@@ -261,6 +269,10 @@
       aAgency: document.getElementById('aAgency'),
       aGp: document.getElementById('aGp'),
       aTogather: document.getElementById('aTogather'),
+
+      occCapacity: document.getElementById('occCapacity'),
+      occTueThu: document.getElementById('occTueThu'),
+      occMonFri: document.getElementById('occMonFri'),
 
       notes: document.getElementById('notes')
     };
@@ -339,6 +351,10 @@
       fields.aGp.value = data.actual_gp_pct ?? 0;
       fields.aTogather.value = data.togather_sales ?? 0;
 
+      fields.occCapacity.value = data.seat_capacity_total ?? 0;
+      fields.occTueThu.value = data.seat_occupancy_pct_tue_thu ?? 0;
+      fields.occMonFri.value = data.seat_occupancy_pct_mon_fri ?? 0;
+
       fields.notes.value = data.notes ?? '';
 
       showOk(`Loaded existing row for ${site} • ${monthStart}.`);
@@ -379,6 +395,11 @@
       if (site === 'Newcastle') {
         addNum('togather_sales', fields.aTogather);
       }
+
+      // Occupancy (monthly)
+      addNum('seat_capacity_total', fields.occCapacity);
+      addNum('seat_occupancy_pct_tue_thu', fields.occTueThu);
+      addNum('seat_occupancy_pct_mon_fri', fields.occMonFri);
 
       const notesVal = (fields.notes?.value ?? '').toString().trim();
       if (notesVal !== '') payload.notes = notesVal;
