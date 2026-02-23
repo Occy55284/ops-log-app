@@ -375,6 +375,20 @@
           </select>
         </div>
 
+        <!-- Hot Breakfast sold tracking -->
+        <div style="margin-top: 8px;">
+          <label for="hotBreakfastSold">How many hot breakfasts sold?</label>
+          <input
+            id="hotBreakfastSold"
+            type="number"
+            min="0"
+            placeholder="Number of hot breakfasts sold"
+          />
+          <div class="small-label">
+            Paid hot breakfasts only (not free issue).
+          </div>
+        </div>
+
         <!-- Free Breakfast tracking -->
         <div style="margin-top: 8px;">
           <label for="freeBreakfastCount">Free breakfasts given today:</label>
@@ -564,6 +578,7 @@
     const newcastleSection = document.getElementById('newcastleSection');
     const hotLunchDishesEl = document.getElementById('hotLunchDishes');
     const serviceLevelEl = document.getElementById('serviceLevel');
+    const hotBreakfastSoldEl = document.getElementById('hotBreakfastSold');
     const freeBreakfastCountEl = document.getElementById('freeBreakfastCount');
 
     // London Retail-specific elements
@@ -727,11 +742,13 @@
       // Newcastle-specific values
       let hotLunchDishes = null;
       let serviceLevel = null;
+      let hotBreakfastSold = null;
       let freeBreakfastCount = null;
 
       if (site === 'Newcastle') {
         const hotVal = hotLunchDishesEl.value.trim();
         const serviceVal = serviceLevelEl.value;
+        const hotBVal = hotBreakfastSoldEl ? hotBreakfastSoldEl.value.trim() : '';
         const freeBVal = freeBreakfastCountEl.value.trim();
 
         if (!hotVal || isNaN(hotVal) || Number(hotVal) < 0 || !serviceVal) {
@@ -742,6 +759,15 @@
 
         hotLunchDishes = Number(hotVal);
         serviceLevel = serviceVal;
+
+        if (hotBVal !== '') {
+          if (isNaN(hotBVal) || Number(hotBVal) < 0) {
+            saveMessage.textContent =
+              'Hot breakfast sold must be a number 0 or above.';
+            return;
+          }
+          hotBreakfastSold = Number(hotBVal);
+        }
 
         if (freeBVal !== '') {
           if (isNaN(freeBVal) || Number(freeBVal) < 0) {
@@ -860,6 +886,7 @@
             hs_reported: hsReported,
 
             hot_lunch_dishes: hotLunchDishes,
+            hot_breakfast_sold: hotBreakfastSold,
             service_level: serviceLevel,
             free_breakfast_count: freeBreakfastCount,
 
@@ -959,6 +986,7 @@
       document.getElementById('maintenanceNotes').value = '';
       document.getElementById('hsNotes').value = '';
       hotLunchDishesEl.value = '';
+      if (hotBreakfastSoldEl) hotBreakfastSoldEl.value = '';
       serviceLevelEl.value = '';
       if (freeBreakfastCountEl) freeBreakfastCountEl.value = '';
       retailLunchDescEl.value = '';

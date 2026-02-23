@@ -839,6 +839,39 @@
         </div>
       </div>
 
+
+      <!-- NEWCASTLE HOT BREAKFASTS -->
+      <div class="row-3">
+        <div class="card" id="hotBreakfastCard" style="grid-column: 1 / span 3;">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Newcastle Hot Breakfasts (Sold)</div>
+              <div class="card-subtitle">Weekly total + daily average, plus a Mon–Fri breakdown chart.</div>
+            </div>
+          </div>
+
+          <div class="metric-row" style="grid-template-columns: repeat(2, 1fr);">
+            <div class="metric">
+              <div class="metric-label">Total Hot Breakfasts Sold</div>
+              <div class="metric-value" id="hotBreakfastTotal">0</div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">Average per Day</div>
+              <div class="metric-value" id="hotBreakfastAvg">0</div>
+              <div class="metric-sub"><span id="hotBreakfastDays">0</span> day(s) with entries</div>
+            </div>
+          </div>
+
+          <div class="chart-wrap">
+            <div class="chart-head">
+              <div class="left" id="hotBreakfastChartLabel">Mon–Fri totals</div>
+              <div class="right" id="hotBreakfastChartAvgLabel">Avg: 0</div>
+            </div>
+            <canvas id="hotBreakfastChart" width="900" height="320"></canvas>
+          </div>
+        </div>
+      </div>
+
       <!-- INCIDENTS -->
       <div class="row-2">
         <div class="card">
@@ -1063,6 +1096,15 @@
     const hotLunchChartAvgLabelEl = document.getElementById('hotLunchChartAvgLabel');
     const hotLunchChartLabelEl = document.getElementById('hotLunchChartLabel');
 
+    const hotBreakfastTotalEl = document.getElementById('hotBreakfastTotal');
+    const hotBreakfastAvgEl = document.getElementById('hotBreakfastAvg');
+    const hotBreakfastDaysEl = document.getElementById('hotBreakfastDays');
+
+    const hotBreakfastChartEl = document.getElementById('hotBreakfastChart');
+    const hotBreakfastChartAvgLabelEl = document.getElementById('hotBreakfastChartAvgLabel');
+    const hotBreakfastChartLabelEl = document.getElementById('hotBreakfastChartLabel');
+
+
     const maintEmptyEl = document.getElementById('maintEmpty');
     const maintListEl = document.getElementById('maintList');
     const hsEmptyEl = document.getElementById('hsEmpty');
@@ -1137,6 +1179,7 @@
     let opsRowsWeekAll = [];         // ALL weekly rows (for drilldown)
 
     let lastHotLunchChartPayload = null;
+    let lastHotBreakfastChartPayload = null;
     let lastRetailChartPayload = null;
     let lastStaffingChartPayload = null;
 
@@ -1469,7 +1512,95 @@
       }
     }
 
-    function drawRetailSalesChart(labels, dayTotalsByLevel, dailyGrand, avgGrand, weekRangeText) {
+    
+    function drawHotBreakfastChart(labels, values, avg, weekRangeText) {
+      if (!hotBreakfastChartEl) return;
+
+      scaleCanvasToDisplaySize(hotBreakfastChartEl);
+      const ctx = hotBreakfastChartEl.getContext('2d');
+      const w = hotBreakfastChartEl.width;
+      const h = hotBreakfastChartEl.height;
+
+      ctx.clearRect(0, 0, w, h);
+
+      const padL = Math.floor(w * 0.06);
+      const padR = Math.floor(w * 0.03);
+      const padT = Math.floor(h * 0.10);
+      const padB = Math.floor(h * 0.18);
+
+      const plotW = w - padL - padR;
+      const plotH = h - padT - padB;
+
+      const maxV = Math.max(1, ...values, avg || 0);
+      const yMax = maxV * 1.15;
+
+      function yFor(v) {
+        return padT + (plotH - (v / yMax) * plotH);
+      }
+
+      ctx.strokeStyle = CHART_COLORS.grid;
+      ctx.lineWidth = 1;
+      const gridCount = 4;
+      for (let i = 0; i <= gridCount; i++) {
+        const y = padT + (plotH / gridCount) * i;
+        ctx.beginPath();
+        ctx.moveTo(padL, y);
+        ctx.lineTo(padL + plotW, y);
+        ctx.stroke();
+      }
+
+      const n = values.length;
+      const gap = Math.floor(plotW * 0.03);
+      const barW = Math.floor((plotW - gap * (n - 1)) / n);
+
+      for (let i = 0; i < n; i++) {
+        const v = values[i] || 0;
+        const x = padL + i * (barW + gap);
+        const y = yFor(v);
+        const bh = (padT + plotH) - y;
+
+        ctx.fillStyle = CHART_COLORS.lvl5Fill;
+        ctx.fillRect(x, y, barW, bh);
+
+        ctx.strokeStyle = CHART_COLORS.lvl5Stroke;
+        ctx.strokeRect(x + 0.5, y + 0.5, barW - 1, bh - 1);
+
+        ctx.fillStyle = CHART_COLORS.textMain;
+        ctx.font = `${Math.floor(h * 0.06)}px system-ui, -apple-system, Segoe UI, sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'bottom';
+        ctx.fillText(String(Math.round(v)), x + barW / 2, y - 6);
+
+        ctx.fillStyle = CHART_COLORS.textSub;
+        ctx.font = `${Math.floor(h * 0.055)}px system-ui, -apple-system, Segoe UI, sans-serif`;
+        ctx.textBaseline = 'top';
+        ctx.fillText(labels[i] || '', x + barW / 2, padT + plotH + 10);
+      }
+
+      const yAvg = yFor(avg || 0);
+      ctx.strokeStyle = CHART_COLORS.avgLine;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(padL, yAvg);
+      ctx.lineTo(padL + plotW, yAvg);
+      ctx.stroke();
+
+      ctx.fillStyle = CHART_COLORS.avgLine;
+      ctx.font = `${Math.floor(h * 0.055)}px system-ui, -apple-system, Segoe UI, sans-serif`;
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'bottom';
+      ctx.fillText(`Avg ${Math.round(avg || 0)}`, padL + 6, yAvg - 6);
+
+      if (weekRangeText) {
+        ctx.fillStyle = CHART_COLORS.labelSoft;
+        ctx.font = `${Math.floor(h * 0.05)}px system-ui, -apple-system, Segoe UI, sans-serif`;
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'top';
+        ctx.fillText(weekRangeText, padL + plotW, 8);
+      }
+    }
+
+function drawRetailSalesChart(labels, dayTotalsByLevel, dailyGrand, avgGrand, weekRangeText) {
       if (!retailSalesChartEl) return;
 
       scaleCanvasToDisplaySize(retailSalesChartEl);
@@ -1611,7 +1742,39 @@
       return { labels, values, total, avg, daysWithEntriesCount: daysWithEntries.size };
     }
 
-    function clearRetailBadges() {
+    
+    function computeHotBreakfastDaily(opsRows, weekStartStr) {
+      const start = new Date(weekStartStr + 'T00:00:00');
+      const days = [];
+      for (let i = 0; i < 5; i++) days.push(toISODate(addDays(start, i)));
+
+      const totalsByDate = new Map();
+      days.forEach(d => totalsByDate.set(d, 0));
+
+      for (const r of opsRows) {
+        if ((r.site || '') !== 'Newcastle') continue;
+        const dateKey = (r.log_date || (r.created_at ? String(r.created_at).slice(0,10) : '')).slice(0,10);
+        if (!totalsByDate.has(dateKey)) continue;
+        totalsByDate.set(dateKey, totalsByDate.get(dateKey) + safeNum(r.hot_breakfast_sold));
+      }
+
+      const labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+      const values = days.map(d => totalsByDate.get(d) || 0);
+
+      const daysWithEntries = new Set(
+        opsRows
+          .filter(r => (r.site || '') === 'Newcastle')
+          .map(r => (r.log_date || (r.created_at ? String(r.created_at).slice(0,10) : '')).slice(0,10))
+          .filter(d => totalsByDate.has(d))
+      );
+
+      const total = values.reduce((s,v) => s + v, 0);
+      const avg = daysWithEntries.size ? (total / daysWithEntries.size) : 0;
+
+      return { labels, values, total, avg, daysWithEntriesCount: daysWithEntries.size };
+    }
+
+function clearRetailBadges() {
       bestFloorBadgeEl.style.display = 'none';
       worstFloorBadgeEl.style.display = 'none';
       bestFloorBadgeEl.textContent = '';
@@ -2005,6 +2168,12 @@
       hotLunchChartAvgLabelEl.textContent = 'Avg: 0';
       hotLunchChartLabelEl.textContent = 'Mon–Fri totals';
 
+      hotBreakfastTotalEl.textContent = '0';
+      hotBreakfastAvgEl.textContent = '0';
+      hotBreakfastDaysEl.textContent = '0';
+      hotBreakfastChartAvgLabelEl.textContent = 'Avg: 0';
+      hotBreakfastChartLabelEl.textContent = 'Mon–Fri totals';
+
       salesTotalEl.textContent = '£0.00';
       salesTxEl.textContent = '0';
       salesSPHEl.textContent = '£0.00';
@@ -2208,6 +2377,24 @@
         };
         drawHotLunchChart(lastHotLunchChartPayload.labels, lastHotLunchChartPayload.values, lastHotLunchChartPayload.avg, lastHotLunchChartPayload.weekRangeText);
 
+        // Hot breakfasts sold + chart
+        const hb = computeHotBreakfastDaily(opsRows, startStr);
+        hotBreakfastTotalEl.textContent = String(Math.round(hb.total));
+        hotBreakfastAvgEl.textContent = String(hb.daysWithEntriesCount ? Math.round(hb.avg) : 0);
+        hotBreakfastDaysEl.textContent = String(hb.daysWithEntriesCount);
+
+        hotBreakfastChartAvgLabelEl.textContent = `Avg: ${Math.round(hb.avg || 0)}`;
+        hotBreakfastChartLabelEl.textContent = `${startStr} → ${endStr} (Mon–Fri)`;
+
+        lastHotBreakfastChartPayload = {
+          labels: hb.labels,
+          values: hb.values,
+          avg: hb.avg,
+          weekRangeText: `${startStr}→${endStr}`
+        };
+        drawHotBreakfastChart(lastHotBreakfastChartPayload.labels, lastHotBreakfastChartPayload.values, lastHotBreakfastChartPayload.avg, lastHotBreakfastChartPayload.weekRangeText);
+
+
         // Notes
         const notes = opsRows
           .filter(r => hasMeaningfulText(r.notes))
@@ -2311,6 +2498,7 @@
       lines.push(`Newcastle`);
       lines.push(`• Free breakfasts: ${freeBreakfastTotalEl.textContent} over ${freeBreakfastDaysEl.textContent} day(s)`);
       lines.push(`• Hot lunches: ${hotLunchTotalEl.textContent} total (avg ${hotLunchAvgEl.textContent}/day over ${hotLunchDaysEl.textContent} day(s))`);
+      lines.push(`• Hot breakfasts sold: ${hotBreakfastTotalEl.textContent} total (avg ${hotBreakfastAvgEl.textContent}/day over ${hotBreakfastDaysEl.textContent} day(s))`);
       lines.push('');
 
       if (notesListEl.children.length > 0) {
@@ -2400,6 +2588,14 @@
           lastHotLunchChartPayload.values,
           lastHotLunchChartPayload.avg,
           lastHotLunchChartPayload.weekRangeText
+        );
+      }
+      if (lastHotBreakfastChartPayload) {
+        drawHotBreakfastChart(
+          lastHotBreakfastChartPayload.labels,
+          lastHotBreakfastChartPayload.values,
+          lastHotBreakfastChartPayload.avg,
+          lastHotBreakfastChartPayload.weekRangeText
         );
       }
       if (lastRetailChartPayload) {
