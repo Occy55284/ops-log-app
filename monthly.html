@@ -277,7 +277,6 @@
     }
     .nc-mixseg { height: 100%; }
     .nc-mixseg.hot { background: rgba(59,130,246,0.75); }
-    .nc-mixseg.breakfast { background: rgba(245,158,11,0.75); }
     .nc-mixseg.free { background: rgba(16,185,129,0.70); }
 
     .nc-legend {
@@ -291,7 +290,6 @@
     .nc-key { display: inline-flex; align-items: center; gap: 6px; }
     .nc-dot { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
     .nc-dot.hot { background: rgba(59,130,246,0.75); }
-    .nc-dot.breakfast { background: rgba(245,158,11,0.75); }
     .nc-dot.free { background: rgba(16,185,129,0.70); }
 
     .nc-chart { display: grid; gap: 8px; margin-top: 12px; }
@@ -316,7 +314,6 @@
     }
     .nc-seg { height: 100%; }
     .nc-seg.hot { background: rgba(59,130,246,0.75); }
-    .nc-seg.breakfast { background: rgba(245,158,11,0.75); }
     .nc-seg.free { background: rgba(16,185,129,0.70); }
     .nc-total {
       font-weight: 900;
@@ -920,7 +917,7 @@
         </div>
         <div id="hospEventsEmpty" class="empty-text" style="display:none;">No hospitality event entries for this month.</div>
         <div id="hospEventsMetrics">
-          <div class="metric-row" style="grid-template-columns: repeat(5, 1fr);">
+          <div class="metric-row" style="grid-template-columns: repeat(4, 1fr);">
             <div class="metric">
               <div class="metric-label">Day Events</div>
               <div class="metric-value" id="mHospDay">0</div>
@@ -1021,7 +1018,7 @@
           <div class="card-header">
             <div>
               <div class="card-title">Newcastle • Monthly Production</div>
-              <div class="card-subtitle">Hot lunches, hot breakfasts sold and free breakfasts recorded in daily logs for the selected month.</div>
+              <div class="card-subtitle">Hot lunches and free breakfasts recorded in daily logs for the selected month.</div>
             </div>
             <div class="pill" id="newcastlePill">Newcastle</div>
           </div>
@@ -1035,12 +1032,6 @@
                 <div class="metric-value" id="ncHotLunchTotal">0</div>
                 <div class="metric-sub" id="ncHotLunchSub">0 day(s) • Avg 0/day</div>
                 <div class="metric-sub" id="ncHotLunchPct">0%</div>
-              </div>
-              <div class="metric">
-                <div class="metric-label">Hot Breakfasts Sold</div>
-                <div class="metric-value" id="ncHotBreakfastTotal">0</div>
-                <div class="metric-sub" id="ncHotBreakfastSub">0 day(s) • Avg 0/day</div>
-                <div class="metric-sub" id="ncHotBreakfastPct">0%</div>
               </div>
               <div class="metric">
                 <div class="metric-label">Total Free Breakfast</div>
@@ -1062,12 +1053,10 @@
 
             <div id="ncMixBar" class="nc-mixbar" style="display:none;">
               <div class="nc-mixseg hot" id="ncMixHot" style="width:0%"></div>
-              <div class="nc-mixseg breakfast" id="ncMixBreakfast" style="width:0%"></div>
               <div class="nc-mixseg free" id="ncMixFree" style="width:0%"></div>
             </div>
             <div id="ncLegend" class="nc-legend" style="display:none;">
               <div class="nc-key"><span class="nc-dot hot"></span>Hot lunches</div>
-              <div class="nc-key"><span class="nc-dot breakfast"></span>Hot breakfasts sold</div>
               <div class="nc-key"><span class="nc-dot free"></span>Free breakfasts</div>
             </div>
 
@@ -1273,13 +1262,10 @@ const maintEmptyEl = document.getElementById('maintEmpty');
     const newcastleMonthlyEmptyEl = document.getElementById('newcastleMonthlyEmpty');
     const newcastleMonthlyMetricsEl = document.getElementById('newcastleMonthlyMetrics');
     const ncHotLunchTotalEl = document.getElementById('ncHotLunchTotal');
-    const ncHotBreakfastTotalEl = document.getElementById('ncHotBreakfastTotal');
     const ncHotLunchPctEl = document.getElementById('ncHotLunchPct');
-    const ncHotBreakfastPctEl = document.getElementById('ncHotBreakfastPct');
     const ncFreeBreakfastPctEl = document.getElementById('ncFreeBreakfastPct');
     const ncMixBarEl = document.getElementById('ncMixBar');
     const ncMixHotEl = document.getElementById('ncMixHot');
-    const ncMixBreakfastEl = document.getElementById('ncMixBreakfast');
     const ncMixFreeEl = document.getElementById('ncMixFree');
     const ncLegendEl = document.getElementById('ncLegend');
     const ncTotalProductionEl = document.getElementById('ncTotalProduction');
@@ -1289,7 +1275,6 @@ const maintEmptyEl = document.getElementById('maintEmpty');
     const ncMonthlyChartEl = document.getElementById('ncMonthlyChart');
     const ncMonthlyChartHintEl = document.getElementById('ncMonthlyChartHint');
     const ncHotLunchSubEl = document.getElementById('ncHotLunchSub');
-    const ncHotBreakfastSubEl = document.getElementById('ncHotBreakfastSub');
     const ncFreeBreakfastTotalEl = document.getElementById('ncFreeBreakfastTotal');
     const ncFreeBreakfastSubEl = document.getElementById('ncFreeBreakfastSub');
 
@@ -2829,27 +2814,23 @@ async function loadMonthlyOpsLogs(startStr, endStr, site) {
               const k = dateKeyFromRow(r);
               if (!k) return;
               const hl = safeNum(r.hot_lunch_dishes);
-              const hb = safeNum(r.hot_breakfast_sold);
               const fb = safeNum(r.free_breakfast_count);
-              if (!daily.has(k)) daily.set(k, { hl: 0, hb: 0, fb: 0 });
+              if (!daily.has(k)) daily.set(k, { hl: 0, fb: 0 });
               const v = daily.get(k);
               v.hl += hl;
-              v.hb += hb;
               v.fb += fb;
             });
 
             const datesWithEntries = [...daily.entries()]
-              .map(([k,v]) => ({ date: k, hl: v.hl, hb: v.hb, fb: v.fb, total: (v.hl + v.hb + v.fb) }))
+              .map(([k,v]) => ({ date: k, hl: v.hl, fb: v.fb, total: (v.hl + v.fb) }))
               .filter(d => d.total > 0)
               .sort((a,b) => (a.date < b.date ? -1 : 1));
 
             const hlTotal = datesWithEntries.reduce((s,d) => s + d.hl, 0);
-            const hbTotal = datesWithEntries.reduce((s,d) => s + d.hb, 0);
             const fbTotal = datesWithEntries.reduce((s,d) => s + d.fb, 0);
-            const totalProd = hlTotal + hbTotal + fbTotal;
+            const totalProd = hlTotal + fbTotal;
 
             const hlDays = new Set(datesWithEntries.filter(d => d.hl > 0).map(d => d.date));
-            const hbDays = new Set(datesWithEntries.filter(d => d.hb > 0).map(d => d.date));
             const fbDays = new Set(datesWithEntries.filter(d => d.fb > 0).map(d => d.date));
             const activeDays = datesWithEntries.length;
 
@@ -2858,31 +2839,38 @@ async function loadMonthlyOpsLogs(startStr, endStr, site) {
             newcastleMonthlyMetricsEl.style.display = anyData ? 'block' : 'none';
 
             const hlAvg = hlDays.size ? (hlTotal / hlDays.size) : 0;
+
+            // Hot breakfasts sold (paid) – tracked separately from the production chart (which is lunches + free)
+            const hbDaily = new Map(); // dateKey -> hot breakfasts sold
+            (ncRows || []).forEach(r => {
+              const k = dateKeyFromRow(r);
+              if (!k) return;
+              const hb = safeNum(r.hot_breakfast_sold);
+              if (!hbDaily.has(k)) hbDaily.set(k, 0);
+              hbDaily.set(k, hbDaily.get(k) + hb);
+            });
+            const hbEntries = [...hbDaily.entries()].map(([date, hb]) => ({ date, hb })).filter(d => d.hb > 0);
+            const hbTotal = hbEntries.reduce((s, d) => s + d.hb, 0);
+            const hbDays = new Set(hbEntries.map(d => d.date));
             const hbAvg = hbDays.size ? (hbTotal / hbDays.size) : 0;
 
             if (ncHotLunchTotalEl) ncHotLunchTotalEl.textContent = String(Math.round(hlTotal));
             if (ncHotLunchSubEl) ncHotLunchSubEl.textContent = `${hlDays.size} day(s) • Avg ${Math.round(hlAvg)}/day`;
 
-            if (ncHotBreakfastTotalEl) ncHotBreakfastTotalEl.textContent = String(Math.round(hbTotal));
-            if (ncHotBreakfastSubEl) ncHotBreakfastSubEl.textContent = `${hbDays.size} day(s) • Avg ${Math.round(hbAvg)}/day`;
-
             if (ncFreeBreakfastTotalEl) ncFreeBreakfastTotalEl.textContent = String(Math.round(fbTotal));
             if (ncFreeBreakfastSubEl) ncFreeBreakfastSubEl.textContent = `${fbDays.size} day(s)`;
 
             const pctHot = totalProd > 0 ? (hlTotal / totalProd) * 100 : 0;
-            const pctBreakfast = totalProd > 0 ? (hbTotal / totalProd) * 100 : 0;
             const pctFree = totalProd > 0 ? (fbTotal / totalProd) * 100 : 0;
 
             if (ncHotLunchPctEl) ncHotLunchPctEl.textContent = fmtPct1(pctHot);
-            if (ncHotBreakfastPctEl) ncHotBreakfastPctEl.textContent = fmtPct1(pctBreakfast);
             if (ncFreeBreakfastPctEl) ncFreeBreakfastPctEl.textContent = fmtPct1(pctFree);
 
             if (ncMixBarEl) ncMixBarEl.style.display = anyData ? '' : 'none';
             if (ncLegendEl) ncLegendEl.style.display = anyData ? '' : 'none';
             if (ncMixHotEl) ncMixHotEl.style.width = `${pctHot}%`;
-            if (ncMixBreakfastEl) ncMixBreakfastEl.style.width = `${pctBreakfast}%`;
             if (ncMixFreeEl) ncMixFreeEl.style.width = `${pctFree}%`;
-            if (ncMixBarEl) ncMixBarEl.title = `Hot lunches ${fmtPct1(pctHot)} • Hot breakfasts sold ${fmtPct1(pctBreakfast)} • Free breakfasts ${fmtPct1(pctFree)}`;
+            if (ncMixBarEl) ncMixBarEl.title = `Hot lunches ${fmtPct1(pctHot)} • Free breakfasts ${fmtPct1(pctFree)}`;
 
             const avgActive = activeDays ? (totalProd / activeDays) : 0;
             if (ncTotalProductionEl) ncTotalProductionEl.textContent = String(Math.round(totalProd));
@@ -2921,16 +2909,11 @@ async function loadMonthlyOpsLogs(startStr, endStr, site) {
                 hotSeg.className = 'nc-seg hot';
                 hotSeg.style.width = d.total ? `${(d.hl / d.total) * 100}%` : '0%';
 
-                const breakfastSeg = document.createElement('div');
-                breakfastSeg.className = 'nc-seg breakfast';
-                breakfastSeg.style.width = d.total ? `${(d.hb / d.total) * 100}%` : '0%';
-
                 const freeSeg = document.createElement('div');
                 freeSeg.className = 'nc-seg free';
                 freeSeg.style.width = d.total ? `${(d.fb / d.total) * 100}%` : '0%';
 
                 wrap.appendChild(hotSeg);
-                wrap.appendChild(breakfastSeg);
                 wrap.appendChild(freeSeg);
                 track.appendChild(wrap);
 
@@ -2942,7 +2925,7 @@ async function loadMonthlyOpsLogs(startStr, endStr, site) {
                 row.appendChild(track);
                 row.appendChild(right);
 
-                row.title = `Hot lunches ${Math.round(d.hl)} • Hot breakfasts sold ${Math.round(d.hb)} • Free breakfasts ${Math.round(d.fb)} • Total ${Math.round(d.total)}`;
+                row.title = `Hot lunches ${Math.round(d.hl)} • Free breakfasts ${Math.round(d.fb)} • Total ${Math.round(d.total)}`;
 
                 ncMonthlyChartEl.appendChild(row);
               });
@@ -2950,7 +2933,7 @@ async function loadMonthlyOpsLogs(startStr, endStr, site) {
               if (ncMonthlyChartHintEl) {
                 ncMonthlyChartHintEl.style.display = anyData ? '' : 'none';
                 ncMonthlyChartHintEl.textContent = anyData
-                  ? `Daily total production for ${activeDays} day(s) with entries (stacked: hot lunches + hot breakfasts sold + free breakfasts).`
+                  ? `Daily total production for ${activeDays} day(s) with entries (stacked: hot lunches + free breakfasts).`
                   : '';
               }
             }
@@ -3052,8 +3035,8 @@ async function loadMonthlyOpsLogs(startStr, endStr, site) {
       if ((snapshotState.site || 'All') !== 'London') {
         const nc = snapshotState.newcastleMonthly;
         if (nc) {
-          lines.push(`- Newcastle hot lunches: ${nc.hotLunchTotal ?? 0} over ${nc.hotLunchDays ?? 0} day(s) (avg ${nc.hotLunchAvg ?? 0}/day)`
-          lines.push(`- Newcastle hot breakfasts sold: ${nc.hotBreakfastTotal ?? 0} over ${nc.hotBreakfastDays ?? 0} day(s) (avg ${nc.hotBreakfastAvg ?? 0}/day)`));
+          lines.push(`- Newcastle hot lunches: ${nc.hotLunchTotal ?? 0} over ${nc.hotLunchDays ?? 0} day(s) (avg ${nc.hotLunchAvg ?? 0}/day)`);
+          lines.push(`- Newcastle hot breakfasts sold: ${nc.hotBreakfastTotal ?? 0} over ${nc.hotBreakfastDays ?? 0} day(s) (avg ${nc.hotBreakfastAvg ?? 0}/day)`);
           lines.push(`- Newcastle free breakfasts: ${nc.freeBreakfastTotal ?? 0} over ${nc.freeBreakfastDays ?? 0} day(s)`);
         }
       }
